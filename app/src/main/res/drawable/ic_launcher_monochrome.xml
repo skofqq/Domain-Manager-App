@@ -5,7 +5,6 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Stem: bottom of top node → branch point -->
     <path
         android:fillColor="#00000000"
         android:pathData="M 54,40 L 54,52"
@@ -13,7 +12,6 @@
         android:strokeLineCap="round"
         android:strokeWidth="5" />
 
-    <!-- Left branch: branch point → left node -->
     <path
         android:fillColor="#00000000"
         android:pathData="M 54,52 L 33,70"
@@ -21,7 +19,6 @@
         android:strokeLineCap="round"
         android:strokeWidth="5" />
 
-    <!-- Right branch: branch point → right node -->
     <path
         android:fillColor="#00000000"
         android:pathData="M 54,52 L 75,70"
@@ -29,17 +26,14 @@
         android:strokeLineCap="round"
         android:strokeWidth="5" />
 
-    <!-- Top node: router (filled circle, r=10) -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M 44,30 a 10,10 0 1 0 20,0 a 10,10 0 1 0 -20,0" />
 
-    <!-- Left leaf node (filled circle, r=7) -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M 26,77 a 7,7 0 1 0 14,0 a 7,7 0 1 0 -14,0" />
 
-    <!-- Right leaf node (filled circle, r=7) -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M 68,77 a 7,7 0 1 0 14,0 a 7,7 0 1 0 -14,0" />

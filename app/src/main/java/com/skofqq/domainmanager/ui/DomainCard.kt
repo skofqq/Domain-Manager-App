@@ -1,5 +1,10 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,19 +19,23 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DomainStatusCard(
     status: StatusUiState,
@@ -35,53 +44,69 @@ fun DomainStatusCard(
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    when (status) {
-        is StatusUiState.Idle -> {}
+    AnimatedContent(
+        targetState = status,
+        transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(150)) },
+        label = "status-card",
+    ) { s ->
+        when (s) {
+            is StatusUiState.Idle -> Box(modifier.fillMaxWidth())
 
-        is StatusUiState.Loading -> Box(
-            modifier = modifier.fillMaxWidth().padding(vertical = 32.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            CircularProgressIndicator()
-        }
-
-        is StatusUiState.Error -> ElevatedCard(
-            modifier = modifier.fillMaxWidth(),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-            ),
-        ) {
-            Text(
-                text = status.message,
-                modifier = Modifier.padding(16.dp),
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-
-        is StatusUiState.Loaded -> ElevatedCard(modifier = modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+            is StatusUiState.Loading -> Box(
+                modifier = modifier.fillMaxWidth().padding(vertical = 32.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                StatusRow(name = "mihomo", active = status.mihomo)
-                HorizontalDivider()
-                StatusRow(name = "MagiTrickle", active = status.magitrickle)
-                Spacer(Modifier.height(4.dp))
-                val bothActive = status.mihomo && status.magitrickle
-                if (bothActive) {
-                    OutlinedButton(
-                        onClick = onRemove,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error,
-                        ),
-                    ) {
-                        Text("Remove from $defaultTarget")
+                CircularProgressIndicator()
+            }
+
+            is StatusUiState.Error -> ElevatedCard(
+                modifier = modifier.fillMaxWidth(),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                ),
+            ) {
+                Text(
+                    text = s.message,
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+
+            is StatusUiState.Loaded -> ElevatedCard(modifier = modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = "Status",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        StatusChip(name = "mihomo", active = s.mihomo)
+                        StatusChip(name = "MagiTrickle", active = s.magitrickle)
                     }
-                } else {
-                    FilledTonalButton(onClick = onAdd, modifier = Modifier.fillMaxWidth()) {
-                        Text("Add to $defaultTarget")
+                    Spacer(Modifier.height(4.dp))
+                    val bothActive = s.mihomo && s.magitrickle
+                    if (bothActive) {
+                        OutlinedButton(
+                            onClick = onRemove,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error,
+                            ),
+                        ) {
+                            Text("Remove from $defaultTarget")
+                        }
+                    } else {
+                        FilledTonalButton(
+                            onClick = onAdd,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("Add to $defaultTarget")
+                        }
                     }
                 }
             }
@@ -89,30 +114,19 @@ fun DomainStatusCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StatusRow(name: String, active: Boolean) {
-    val tint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(name, style = MaterialTheme.typography.bodyLarge)
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+private fun StatusChip(name: String, active: Boolean) {
+    FilterChip(
+        selected = active,
+        onClick = {},
+        label = { Text(name) },
+        leadingIcon = {
             Icon(
                 imageVector = if (active) Icons.Default.Check else Icons.Default.Close,
                 contentDescription = null,
-                tint = tint,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(FilterChipDefaults.IconSize),
             )
-            Text(
-                text = if (active) "Active" else "Inactive",
-                style = MaterialTheme.typography.labelMedium,
-                color = tint,
-            )
-        }
-    }
+        },
+    )
 }

@@ -5,29 +5,31 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -42,6 +44,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<DomainViewModel> { DomainViewModel.Factory(api) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         setContent {
             DomainManagerTheme {
@@ -60,62 +63,70 @@ fun MainScreen(viewModel: DomainViewModel, onOpenSettings: () -> Unit) {
     val domain by viewModel.domain.collectAsState()
     val status by viewModel.statusState.collectAsState()
     val focusManager = LocalFocusManager.current
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
+            LargeTopAppBar(
                 title = { Text("Domain Manager") },
                 actions = {
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
                 },
+                scrollBehavior = scrollBehavior,
             )
         },
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Spacer(Modifier.height(4.dp))
-            OutlinedTextField(
-                value = domain,
-                onValueChange = {
-                    viewModel.setDomain(it)
-                    viewModel.resetStatus()
-                },
-                label = { Text("Domain") },
-                placeholder = { Text("example.com") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Uri,
-                    imeAction = ImeAction.Go,
-                ),
-                keyboardActions = KeyboardActions(onGo = {
-                    focusManager.clearFocus()
-                    viewModel.loadStatus()
-                }),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            FilledTonalButton(
-                onClick = {
-                    focusManager.clearFocus()
-                    viewModel.loadStatus()
-                },
-                enabled = domain.isNotBlank() && status !is StatusUiState.Loading,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Check Status")
+            item {
+                OutlinedTextField(
+                    value = domain,
+                    onValueChange = {
+                        viewModel.setDomain(it)
+                        viewModel.resetStatus()
+                    },
+                    label = { Text("Domain") },
+                    placeholder = { Text("example.com") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Uri,
+                        imeAction = ImeAction.Go,
+                    ),
+                    keyboardActions = KeyboardActions(onGo = {
+                        focusManager.clearFocus()
+                        viewModel.loadStatus()
+                    }),
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
-            DomainStatusCard(
-                status = status,
-                defaultTarget = viewModel.defaultTarget,
-                onAdd = { viewModel.addDomain() },
-                onRemove = { viewModel.removeDomain() },
-            )
+            item {
+                FilledTonalButton(
+                    onClick = {
+                        focusManager.clearFocus()
+                        viewModel.loadStatus()
+                    },
+                    enabled = domain.isNotBlank() && status !is StatusUiState.Loading,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Check Status")
+                }
+            }
+            item {
+                DomainStatusCard(
+                    status = status,
+                    defaultTarget = viewModel.defaultTarget,
+                    onAdd = { viewModel.addDomain() },
+                    onRemove = { viewModel.removeDomain() },
+                )
+            }
         }
     }
 }

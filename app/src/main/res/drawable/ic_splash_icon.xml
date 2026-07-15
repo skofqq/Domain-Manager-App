@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Stroke-based version of the network tree icon used for the splash screen animation.
+  All paths support trimPathEnd for sequential draw-in animation.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Top node circle (stroke, r=10, center 54,30) — draws clockwise from left -->
+    <path
+        android:name="node_top"
+        android:fillColor="#00000000"
+        android:pathData="M 44,30 A 10,10 0 0 1 64,30 A 10,10 0 0 1 44,30"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="5.5"
+        android:trimPathEnd="1" />
+
+    <!-- Stem: bottom of top node → branch point -->
+    <path
+        android:name="stem"
+        android:fillColor="#00000000"
+        android:pathData="M 54,40 L 54,52"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="5.5"
+        android:trimPathEnd="1" />
+
+    <!-- Left branch: branch point → left node top -->
+    <path
+        android:name="branch_left"
+        android:fillColor="#00000000"
+        android:pathData="M 54,52 L 33,70"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="5.5"
+        android:trimPathEnd="1" />
+
+    <!-- Right branch: branch point → right node top -->
+    <path
+        android:name="branch_right"
+        android:fillColor="#00000000"
+        android:pathData="M 54,52 L 75,70"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="5.5"
+        android:trimPathEnd="1" />
+
+    <!-- Left leaf node circle (stroke, r=7, center 33,77) -->
+    <path
+        android:name="node_left"
+        android:fillColor="#00000000"
+        android:pathData="M 26,77 A 7,7 0 0 1 40,77 A 7,7 0 0 1 26,77"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="5.5"
+        android:trimPathEnd="1" />
+
+    <!-- Right leaf node circle (stroke, r=7, center 75,77) -->
+    <path
+        android:name="node_right"
+        android:fillColor="#00000000"
+        android:pathData="M 68,77 A 7,7 0 0 1 82,77 A 7,7 0 0 1 68,77"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="5.5"
+        android:trimPathEnd="1" />
+
+</vector>

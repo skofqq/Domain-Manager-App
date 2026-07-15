@@ -6,12 +6,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
@@ -40,7 +39,6 @@ class ShareActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         if (savedInstanceState == null) {
             val sharedText = intent?.getStringExtra(Intent.EXTRA_TEXT)
                 ?: intent?.getStringExtra(Intent.EXTRA_SUBJECT)
@@ -49,7 +47,6 @@ class ShareActivity : ComponentActivity() {
             viewModel.setDomain(guessed)
             if (guessed.isNotBlank()) viewModel.loadStatus()
         }
-
         setContent {
             DomainManagerTheme {
                 ShareScreen(viewModel = viewModel, onDone = ::finish)
@@ -76,45 +73,49 @@ fun ShareScreen(viewModel: DomainViewModel, onDone: () -> Unit) {
             )
         },
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Spacer(Modifier.height(4.dp))
-            OutlinedTextField(
-                value = domain,
-                onValueChange = {
-                    viewModel.setDomain(it)
-                    viewModel.resetStatus()
-                },
-                label = { Text("Domain") },
-                singleLine = true,
-                trailingIcon = {
-                    if (domain.isNotBlank()) {
-                        IconButton(onClick = { viewModel.loadStatus() }) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Reload status")
+            item {
+                OutlinedTextField(
+                    value = domain,
+                    onValueChange = {
+                        viewModel.setDomain(it)
+                        viewModel.resetStatus()
+                    },
+                    label = { Text("Domain") },
+                    singleLine = true,
+                    trailingIcon = {
+                        if (domain.isNotBlank()) {
+                            IconButton(onClick = { viewModel.loadStatus() }) {
+                                Icon(Icons.Default.Refresh, contentDescription = "Reload status")
+                            }
                         }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            DomainStatusCard(
-                status = status,
-                defaultTarget = viewModel.defaultTarget,
-                onAdd = { viewModel.addDomain() },
-                onRemove = { viewModel.removeDomain() },
-            )
-            Spacer(Modifier.weight(1f))
-            OutlinedButton(
-                onClick = onDone,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-            ) {
-                Text("Done")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            item {
+                DomainStatusCard(
+                    status = status,
+                    defaultTarget = viewModel.defaultTarget,
+                    onAdd = { viewModel.addDomain() },
+                    onRemove = { viewModel.removeDomain() },
+                )
+            }
+            item {
+                OutlinedButton(
+                    onClick = onDone,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                ) {
+                    Text("Done")
+                }
             }
         }
     }
