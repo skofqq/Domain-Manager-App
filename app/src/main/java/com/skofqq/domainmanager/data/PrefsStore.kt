@@ -43,6 +43,11 @@ class PrefsStore(context: Context) {
         get() = uiPrefs.getBoolean(KEY_DYNAMIC_COLOR, true)
         set(value) { uiPrefs.edit().putBoolean(KEY_DYNAMIC_COLOR, value).apply() }
 
+    /** "system" | "light" | "dark" */
+    var themeMode: String
+        get() = uiPrefs.getString(KEY_THEME_MODE, "system") ?: "system"
+        set(value) { uiPrefs.edit().putString(KEY_THEME_MODE, value).apply() }
+
     companion object {
         private const val PREFS_NAME = "domain_manager_secure_prefs"
         private const val UI_PREFS_NAME = "domain_manager_ui_prefs"
@@ -51,5 +56,6 @@ class PrefsStore(context: Context) {
         private const val KEY_TOKEN = "token"
         private const val KEY_TARGET = "default_target"
         private const val KEY_DYNAMIC_COLOR = "use_dynamic_color"
+        private const val KEY_THEME_MODE = "theme_mode"
     }
 }

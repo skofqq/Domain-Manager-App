@@ -12,10 +12,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 sealed class StatusUiState {
-    object Idle : StatusUiState()
-    object Loading : StatusUiState()
+    data object Idle : StatusUiState()
+    data object Loading : StatusUiState()
     data class Loaded(val mihomo: Boolean, val magitrickle: Boolean) : StatusUiState()
-    data class Error(val message: String) : StatusUiState()
+    data class Error(val message: UiMessage) : StatusUiState()
 }
 
 class DomainViewModel(private val api: RouterApi) : ViewModel() {
@@ -48,18 +48,10 @@ class DomainViewModel(private val api: RouterApi) : ViewModel() {
             val result = withContext(Dispatchers.IO) { api.callApi(d, action) }
             _status.value = when (result) {
                 is ApiResult.Success -> StatusUiState.Loaded(result.status.mihomo, result.status.magitrickle)
-                is ApiResult.ApiError -> StatusUiState.Error(friendlyError(result.code, result.error))
-                is ApiResult.NetworkError -> StatusUiState.Error(result.message)
+                is ApiResult.ApiError -> StatusUiState.Error(apiErrorMessage(result.code, result.error))
+                is ApiResult.NetworkError -> StatusUiState.Error(networkErrorMessage(result.kind, result.detail))
             }
         }
-    }
-
-    private fun friendlyError(code: Int, error: String) = when (error) {
-        "bad_token" -> "Bad token — check Settings"
-        "token_not_configured" -> "Token not configured on router"
-        "bad_domain" -> "Invalid domain format"
-        "empty_domain" -> "Domain is empty"
-        else -> "Error $code: $error"
     }
 
     class Factory(private val api: RouterApi) : ViewModelProvider.Factory {

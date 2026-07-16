@@ -18,8 +18,8 @@ android {
         applicationId = "com.skofqq.domainmanager"
         minSdk = 29
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -72,10 +72,16 @@ dependencies {
     implementation(libs.androidx.compose.material.icons)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     // Splash screen
     implementation(libs.androidx.core.splashscreen)
+
+    // Seed-based Material3 color scheme (brand accent when dynamic color is off)
+    implementation(libs.materialkolor)
+    // Avatar loading in About
+    implementation(libs.coil.compose)
 
     // Network & storage
     implementation(libs.okhttp)

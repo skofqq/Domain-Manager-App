@@ -1,5 +1,7 @@
 <resources>
-    <style name="Theme.DomainManager" parent="Theme.Material3.DayNight.NoActionBar" />
+    <style name="Theme.DomainManager" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
 
     <style name="Theme.DomainManager.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>

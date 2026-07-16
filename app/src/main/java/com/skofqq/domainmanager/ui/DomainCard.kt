@@ -32,8 +32,10 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.skofqq.domainmanager.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +68,7 @@ fun DomainStatusCard(
                 ),
             ) {
                 Text(
-                    text = s.message,
+                    text = s.message.resolve(),
                     modifier = Modifier.padding(16.dp),
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     style = MaterialTheme.typography.bodyMedium,
@@ -79,7 +81,7 @@ fun DomainStatusCard(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = "Status",
+                        text = stringResource(R.string.status),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary,
@@ -89,8 +91,14 @@ fun DomainStatusCard(
                         StatusChip(name = "MagiTrickle", active = s.magitrickle)
                     }
                     Spacer(Modifier.height(4.dp))
-                    val bothActive = s.mihomo && s.magitrickle
-                    if (bothActive) {
+                    // "Present" is judged against the selected target, not always both —
+                    // with target=mihomo an added domain must offer Remove, not Add.
+                    val presentOnTarget = when (defaultTarget) {
+                        "mihomo" -> s.mihomo
+                        "magitrickle" -> s.magitrickle
+                        else -> s.mihomo && s.magitrickle
+                    }
+                    if (presentOnTarget) {
                         OutlinedButton(
                             onClick = onRemove,
                             modifier = Modifier.fillMaxWidth(),
@@ -98,14 +106,14 @@ fun DomainStatusCard(
                                 contentColor = MaterialTheme.colorScheme.error,
                             ),
                         ) {
-                            Text("Remove from $defaultTarget")
+                            Text(stringResource(R.string.remove_from, defaultTarget))
                         }
                     } else {
                         FilledTonalButton(
                             onClick = onAdd,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("Add to $defaultTarget")
+                            Text(stringResource(R.string.add_to, defaultTarget))
                         }
                     }
                 }

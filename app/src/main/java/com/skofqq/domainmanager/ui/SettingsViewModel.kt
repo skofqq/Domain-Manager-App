@@ -6,13 +6,20 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.PrefsStore
 import com.skofqq.domainmanager.data.RouterApi
+import com.skofqq.domainmanager.data.TestResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+sealed class TestUiState {
+    data object Testing : TestUiState()
+    data class Done(val ok: Boolean, val message: UiMessage) : TestUiState()
+}
 
 class SettingsViewModel(private val prefs: PrefsStore, private val api: RouterApi) : ViewModel() {
 
@@ -29,8 +36,21 @@ class SettingsViewModel(private val prefs: PrefsStore, private val api: RouterAp
         prefs.useDynamicColor = value
     }
 
-    private val _testResult = MutableStateFlow<String?>(null)
-    val testResult: StateFlow<String?> = _testResult
+    var themeMode by mutableStateOf(prefs.themeMode)
+        private set
+
+    fun setTheme(value: String) {
+        themeMode = value
+        prefs.themeMode = value
+    }
+
+    private val _testState = MutableStateFlow<TestUiState?>(null)
+    val testState: StateFlow<TestUiState?> = _testState
+
+    /** Called by the UI after the result toast is shown, so it stays one-shot. */
+    fun clearTestResult() {
+        _testState.value = null
+    }
 
     fun save() {
         prefs.routerHost = host.trim()
@@ -44,8 +64,15 @@ class SettingsViewModel(private val prefs: PrefsStore, private val api: RouterAp
         val p = port.toIntOrNull()?.coerceIn(1, 65535) ?: 80
         val t = token.trim()
         viewModelScope.launch {
-            _testResult.value = "Testing…"
-            _testResult.value = withContext(Dispatchers.IO) { api.testConnection(h, p, t) }
+            _testState.value = TestUiState.Testing
+            val result = withContext(Dispatchers.IO) { api.testConnection(h, p, t) }
+            _testState.value = when (result) {
+                is TestResult.Connected -> TestUiState.Done(true, UiMessage(R.string.test_connected))
+                is TestResult.ConnectedBadToken -> TestUiState.Done(true, UiMessage(R.string.test_connected_bad_token))
+                is TestResult.ConnectedNoToken -> TestUiState.Done(true, UiMessage(R.string.test_connected_no_token))
+                is TestResult.HttpError -> TestUiState.Done(false, UiMessage(R.string.test_http_error, listOf(result.code)))
+                is TestResult.Failed -> TestUiState.Done(false, networkErrorMessage(result.kind, result.detail))
+            }
         }
     }
 

@@ -22,7 +22,8 @@ fun extractDomain(input: String): String? {
         ?: run {
             // Treat bare token (no spaces, has a dot) as a domain/URL
             if (trimmed.contains('.') && !trimmed.contains(' '))
-                trimmed.removePrefix("www.").lowercase()
+                trimmed.substringBefore('/').substringBefore('?').substringBefore(':')
+                    .removePrefix("www.").trimEnd('.').lowercase()
             else null
         }
     return host?.let { toRegistrableDomain(it) }?.takeIf { it.isNotBlank() }

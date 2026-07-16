@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Needed to pick the Wi-Fi network explicitly (bypasses VPN for LAN router calls) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Android 16+ Local Network Protection: without this, connections to LAN IPs
+         (the router!) are silently dropped and look like connect timeouts -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
 
     <!--
         usesCleartextTraffic is intentional: the app communicates only with a
@@ -18,7 +23,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DomainManager"
         android:usesCleartextTraffic="true"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        android:localeConfig="@xml/locales_config">
 
         <activity
             android:name=".ui.MainActivity"
@@ -49,6 +55,16 @@
                 <data android:mimeType="text/html" />
             </intent-filter>
         </activity>
+
+        <!-- Persists the in-app language choice across restarts on Android 12 and below -->
+        <service
+            android:name="androidx.appcompat.app.AppCompatDelegate$AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
 
         <!-- Optional Quick Settings tile -->
         <service

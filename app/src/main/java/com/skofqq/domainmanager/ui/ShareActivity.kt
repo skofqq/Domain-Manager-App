@@ -1,13 +1,15 @@
 package com.skofqq.domainmanager.ui
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.BackEventCompat
-import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,6 +30,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -37,17 +40,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.PrefsStore
 import com.skofqq.domainmanager.data.RouterApi
 import com.skofqq.domainmanager.ui.theme.DomainManagerTheme
 import com.skofqq.domainmanager.util.extractDomain
 import kotlinx.coroutines.CancellationException
 
-class ShareActivity : ComponentActivity() {
+class ShareActivity : AppCompatActivity() {
     private val prefs by lazy { PrefsStore(this) }
-    private val api by lazy { RouterApi(prefs) }
+    private val api by lazy { RouterApi(prefs, applicationContext) }
     private val viewModel by viewModels<DomainViewModel> { DomainViewModel.Factory(api) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,7 +67,14 @@ class ShareActivity : ComponentActivity() {
             if (guessed.isNotBlank()) viewModel.loadStatus()
         }
         setContent {
-            DomainManagerTheme {
+            val darkTheme = isDarkTheme(prefs.themeMode)
+            LaunchedEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme },
+                )
+            }
+            DomainManagerTheme(darkTheme = darkTheme, useDynamicColor = prefs.useDynamicColor) {
                 ShareScreen(viewModel = viewModel, onDone = ::finish)
             }
         }
@@ -113,10 +125,13 @@ fun ShareScreen(viewModel: DomainViewModel, onDone: () -> Unit) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Add to router") },
+                    title = { Text(stringResource(R.string.share_title)) },
                     navigationIcon = {
                         IconButton(onClick = onDone) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Close")
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.close),
+                            )
                         }
                     },
                 )
@@ -136,12 +151,15 @@ fun ShareScreen(viewModel: DomainViewModel, onDone: () -> Unit) {
                             viewModel.setDomain(it)
                             viewModel.resetStatus()
                         },
-                        label = { Text("Domain") },
+                        label = { Text(stringResource(R.string.domain)) },
                         singleLine = true,
                         trailingIcon = {
                             if (domain.isNotBlank()) {
                                 IconButton(onClick = { viewModel.loadStatus() }) {
-                                    Icon(Icons.Default.Refresh, contentDescription = "Reload status")
+                                    Icon(
+                                        Icons.Default.Refresh,
+                                        contentDescription = stringResource(R.string.reload_status),
+                                    )
                                 }
                             }
                         },
@@ -163,7 +181,7 @@ fun ShareScreen(viewModel: DomainViewModel, onDone: () -> Unit) {
                             .fillMaxWidth()
                             .padding(top = 8.dp),
                     ) {
-                        Text("Done")
+                        Text(stringResource(R.string.done))
                     }
                 }
             }

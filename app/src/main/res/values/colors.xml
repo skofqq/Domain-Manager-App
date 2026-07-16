@@ -9,4 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <!-- Splash background matches the icon's dark background -->
     <color name="splash_background">#FF1D1D1F</color>
+    <!-- Matches the brand (seed #D2DA40) scheme surface so recreation (e.g. language
+         switch) doesn't flash a foreign color before Compose draws -->
+    <color name="window_background">#FFFBFAEE</color>
 </resources>
