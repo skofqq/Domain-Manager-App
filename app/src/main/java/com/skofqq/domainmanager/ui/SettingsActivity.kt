@@ -1,26 +1,22 @@
 package com.skofqq.domainmanager.ui
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.viewModels
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -29,6 +25,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -47,31 +44,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.skofqq.domainmanager.data.PrefsStore
-import com.skofqq.domainmanager.data.RouterApi
-import com.skofqq.domainmanager.ui.theme.DomainManagerTheme
 import kotlinx.coroutines.launch
-
-class SettingsActivity : ComponentActivity() {
-    private val prefs by lazy { PrefsStore(this) }
-    private val api by lazy { RouterApi(prefs) }
-    private val viewModel by viewModels<SettingsViewModel> { SettingsViewModel.Factory(prefs, api) }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            DomainManagerTheme {
-                SettingsScreen(viewModel = viewModel, onBack = ::finish)
-            }
-        }
-    }
-}
 
 private val TARGET_OPTIONS = listOf("both", "mihomo", "magitrickle")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
+fun SettingsScreen(viewModel: SettingsViewModel) {
     val testResult by viewModel.testResult.collectAsState()
     var tokenVisible by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -82,19 +61,17 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
         topBar = {
             LargeTopAppBar(
                 title = { Text("Settings") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
                 scrollBehavior = scrollBehavior,
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0),
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -140,8 +117,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
             }
             item { HorizontalDivider() }
             item { SectionLabel("Default target") }
-            items(TARGET_OPTIONS.size) { i ->
-                val option = TARGET_OPTIONS[i]
+            items(TARGET_OPTIONS) { option ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -152,6 +128,35 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
                         selected = viewModel.target == option,
                         onClick = { viewModel.target = option },
                     )
+                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                item { HorizontalDivider() }
+                item { SectionLabel("Appearance") }
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+                            Text(
+                                "Dynamic color",
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            Text(
+                                "Wallpaper-based colors (Material You)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = viewModel.useDynamicColor,
+                            onCheckedChange = { viewModel.setDynamicColor(it) },
+                        )
+                    }
                 }
             }
             item { HorizontalDivider() }
@@ -194,7 +199,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
 }
 
 @Composable
-private fun SectionLabel(text: String) {
+internal fun SectionLabel(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelLarge,

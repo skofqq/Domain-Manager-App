@@ -17,7 +17,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DomainManager"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:enableOnBackInvokedCallback="true">
 
         <activity
             android:name=".ui.MainActivity"
@@ -48,11 +49,6 @@
                 <data android:mimeType="text/html" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".ui.SettingsActivity"
-            android:exported="false"
-            android:label="@string/settings" />
 
         <!-- Optional Quick Settings tile -->
         <service

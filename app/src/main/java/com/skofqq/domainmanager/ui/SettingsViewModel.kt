@@ -21,6 +21,14 @@ class SettingsViewModel(private val prefs: PrefsStore, private val api: RouterAp
     var token by mutableStateOf(prefs.token)
     var target by mutableStateOf(prefs.defaultTarget)
 
+    var useDynamicColor by mutableStateOf(prefs.useDynamicColor)
+        private set
+
+    fun setDynamicColor(value: Boolean) {
+        useDynamicColor = value
+        prefs.useDynamicColor = value
+    }
+
     private val _testResult = MutableStateFlow<String?>(null)
     val testResult: StateFlow<String?> = _testResult
 

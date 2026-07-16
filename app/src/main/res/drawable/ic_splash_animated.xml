@@ -3,27 +3,7 @@
     android:drawable="@drawable/ic_splash_icon">
 
     <target
-        android:name="node_top"
-        android:animation="@animator/splash_node_top" />
-
-    <target
-        android:name="stem"
-        android:animation="@animator/splash_stem" />
-
-    <target
-        android:name="branch_left"
-        android:animation="@animator/splash_branch_left" />
-
-    <target
-        android:name="branch_right"
-        android:animation="@animator/splash_branch_right" />
-
-    <target
-        android:name="node_left"
-        android:animation="@animator/splash_node_left" />
-
-    <target
-        android:name="node_right"
-        android:animation="@animator/splash_node_right" />
+        android:name="icon_group"
+        android:animation="@animator/splash_icon_enter" />
 
 </animated-vector>

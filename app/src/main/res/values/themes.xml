@@ -6,7 +6,7 @@
     <style name="Theme.DomainManager.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_animated</item>
-        <item name="windowSplashScreenAnimationDuration">820</item>
+        <item name="windowSplashScreenAnimationDuration">650</item>
         <item name="postSplashScreenTheme">@style/Theme.DomainManager</item>
     </style>
 </resources>
