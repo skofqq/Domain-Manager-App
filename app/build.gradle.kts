@@ -18,8 +18,8 @@ android {
         applicationId = "com.skofqq.domainmanager"
         minSdk = 29
         targetSdk = 37
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -82,6 +82,9 @@ dependencies {
     implementation(libs.materialkolor)
     // Avatar loading in About
     implementation(libs.coil.compose)
+
+    // Biometric/PIN app lock
+    implementation(libs.androidx.biometric)
 
     // Network & storage
     implementation(libs.okhttp)

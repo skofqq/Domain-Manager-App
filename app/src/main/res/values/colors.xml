@@ -12,4 +12,8 @@
     <!-- Matches the brand (seed #D2DA40) scheme surface so recreation (e.g. language
          switch) doesn't flash a foreign color before Compose draws -->
     <color name="window_background">#FFFBFAEE</color>
+    <!-- Night-independent variants: MainActivity picks one at startup based on the
+         IN-APP theme (which may be forced light/dark against the system mode) -->
+    <color name="window_background_light">#FFFBFAEE</color>
+    <color name="window_background_dark">#FF14140D</color>
 </resources>

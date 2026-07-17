@@ -68,8 +68,13 @@ fun ServicesScreen(viewModel: ServicesViewModel) {
         contentWindowInsets = WindowInsets(0),
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding ->
+        // First svc_list (no cache yet) → 4 skeleton cards; later refreshes keep
+        // the regular indicator over the existing cards.
+        val firstLoad = state.services == null && state.error == null
+        val skeletonBrush = if (firstLoad) shimmerBrush() else null
+
         PullToRefreshBox(
-            isRefreshing = state.isRefreshing,
+            isRefreshing = state.isRefreshing && !firstLoad,
             onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
@@ -82,6 +87,10 @@ fun ServicesScreen(viewModel: ServicesViewModel) {
             ) {
                 state.error?.let { message ->
                     item { ErrorCard(message) }
+                }
+                if (skeletonBrush != null) {
+                    // mihomo / magitrickle / zapret / zapret2
+                    items(4) { SkeletonServiceCard(skeletonBrush) }
                 }
                 val services = state.services
                 if (services != null) {

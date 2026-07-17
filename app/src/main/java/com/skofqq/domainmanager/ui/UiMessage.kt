@@ -44,6 +44,8 @@ fun apiErrorMessage(code: Int, error: String): UiMessage = when (error) {
     "bad_domain" -> UiMessage(R.string.err_bad_domain)
     "empty_domain" -> UiMessage(R.string.err_empty_domain)
     "bad_service" -> UiMessage(R.string.err_bad_service)
+    "bad_engine" -> UiMessage(R.string.err_bad_engine)
+    "bad_strategy" -> UiMessage(R.string.err_bad_strategy)
     else -> UiMessage(R.string.err_generic, listOf(code, error))
 }
 

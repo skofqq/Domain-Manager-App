@@ -48,7 +48,18 @@ class PrefsStore(context: Context) {
         get() = uiPrefs.getString(KEY_THEME_MODE, "system") ?: "system"
         set(value) { uiPrefs.edit().putString(KEY_THEME_MODE, value).apply() }
 
+    /** "off" | "token" (auth before revealing the token) | "app" (auth on every launch) */
+    var appLockMode: String
+        get() = uiPrefs.getString(KEY_APP_LOCK_MODE, "off") ?: "off"
+        set(value) { uiPrefs.edit().putString(KEY_APP_LOCK_MODE, value).apply() }
+
+    /** Connect/read timeout for router API calls, seconds. */
+    var httpTimeoutSeconds: Int
+        get() = uiPrefs.getInt(KEY_HTTP_TIMEOUT, DEFAULT_HTTP_TIMEOUT)
+        set(value) { uiPrefs.edit().putInt(KEY_HTTP_TIMEOUT, value).apply() }
+
     companion object {
+        const val DEFAULT_HTTP_TIMEOUT = 10
         private const val PREFS_NAME = "domain_manager_secure_prefs"
         private const val UI_PREFS_NAME = "domain_manager_ui_prefs"
         private const val KEY_HOST = "router_host"
@@ -57,5 +68,7 @@ class PrefsStore(context: Context) {
         private const val KEY_TARGET = "default_target"
         private const val KEY_DYNAMIC_COLOR = "use_dynamic_color"
         private const val KEY_THEME_MODE = "theme_mode"
+        private const val KEY_APP_LOCK_MODE = "app_lock_mode"
+        private const val KEY_HTTP_TIMEOUT = "http_timeout_seconds"
     }
 }

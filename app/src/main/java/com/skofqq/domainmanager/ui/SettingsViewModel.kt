@@ -44,6 +44,25 @@ class SettingsViewModel(private val prefs: PrefsStore, private val api: RouterAp
         prefs.themeMode = value
     }
 
+    /** "off" | "token" | "app" — see PrefsStore.appLockMode. Persisted immediately. */
+    var appLockMode by mutableStateOf(prefs.appLockMode)
+        private set
+
+    fun setAppLock(value: String) {
+        appLockMode = value
+        prefs.appLockMode = value
+    }
+
+    /** Router API timeout, seconds. Persisted immediately; RouterApi picks it up per call. */
+    var httpTimeoutSeconds by mutableStateOf(prefs.httpTimeoutSeconds)
+        private set
+
+    fun setHttpTimeout(value: Int) {
+        val clamped = value.coerceIn(RouterApi.MIN_TIMEOUT_SECONDS, RouterApi.MAX_TIMEOUT_SECONDS)
+        httpTimeoutSeconds = clamped
+        prefs.httpTimeoutSeconds = clamped
+    }
+
     private val _testState = MutableStateFlow<TestUiState?>(null)
     val testState: StateFlow<TestUiState?> = _testState
 

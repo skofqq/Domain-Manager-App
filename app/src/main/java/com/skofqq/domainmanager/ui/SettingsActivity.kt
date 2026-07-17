@@ -1,5 +1,6 @@
 package com.skofqq.domainmanager.ui
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -12,6 +13,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +37,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Palette
@@ -55,6 +66,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -63,6 +75,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,22 +85,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import androidx.compose.ui.layout.ContentScale
+import androidx.activity.compose.LocalActivity
 import androidx.core.os.LocaleListCompat
-import coil.compose.AsyncImage
+import androidx.fragment.app.FragmentActivity
+import coil.compose.SubcomposeAsyncImage
 import com.skofqq.domainmanager.R
+import com.skofqq.domainmanager.ui.theme.appColorScheme
+import com.skofqq.domainmanager.data.ApiLog
+import com.skofqq.domainmanager.data.RouterApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.math.roundToInt
 
 private const val GITHUB_USERNAME = "skofqq"
 private const val GITHUB_PROFILE_URL = "https://github.com/$GITHUB_USERNAME"
@@ -118,27 +146,48 @@ private val THEME_OPTIONS = listOf(
  * Child state survives recreation (language switch recreates the activity).
  */
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
+fun SettingsScreen(viewModel: SettingsViewModel, backupViewModel: BackupViewModel) {
     var subScreen by rememberSaveable { mutableStateOf<String?>(null) }
+    var backProgress by remember { mutableFloatStateOf(0f) }
 
     // Pops the child screen first; the root's back-to-Domains handler in
     // MainNavigation only fires once this one is disabled. Predictive-back aware:
-    // commits on gesture completion, no-ops when the swipe is cancelled.
+    // the swipe progress drives a scale/alpha preview of the leaving child (same
+    // treatment as the bottom-tab handler in MainNavigation), commits on gesture
+    // completion and snaps back on cancel.
     PredictiveBackHandler(enabled = subScreen != null) { events ->
         try {
-            events.collect { }
+            events.collect { backProgress = it.progress }
             subScreen = null
         } catch (e: CancellationException) {
             throw e
+        } finally {
+            backProgress = 0f
         }
     }
 
-    when (subScreen) {
-        "appearance" -> AppearanceSettingsScreen(viewModel, onBack = { subScreen = null })
-        "language" -> LanguageSettingsScreen(onBack = { subScreen = null })
-        "auth" -> AuthSettingsScreen(viewModel, onBack = { subScreen = null })
-        "about" -> AboutSettingsScreen(onBack = { subScreen = null })
-        else -> SettingsRootScreen(onOpen = { subScreen = it })
+    val child = subScreen
+    if (child == null) {
+        SettingsRootScreen(onOpen = { subScreen = it })
+    } else {
+        Box(
+            modifier = Modifier.graphicsLayer {
+                val scale = lerp(1f, 0.94f, backProgress)
+                scaleX = scale
+                scaleY = scale
+                alpha = lerp(1f, 0.85f, backProgress)
+            },
+        ) {
+            when (child) {
+                "appearance" -> AppearanceSettingsScreen(viewModel, onBack = { subScreen = null })
+                "language" -> LanguageSettingsScreen(onBack = { subScreen = null })
+                "auth" -> AuthSettingsScreen(viewModel, onBack = { subScreen = null })
+                "security" -> SecuritySettingsScreen(viewModel, onBack = { subScreen = null })
+                "backup" -> BackupSettingsScreen(backupViewModel, onBack = { subScreen = null })
+                "diagnostics" -> DiagnosticsSettingsScreen(viewModel, onBack = { subScreen = null })
+                "about" -> AboutSettingsScreen(onBack = { subScreen = null })
+            }
+        }
     }
 }
 
@@ -186,6 +235,30 @@ private fun SettingsRootScreen(onOpen: (String) -> Unit) {
                     title = stringResource(R.string.settings_auth_title),
                     subtitle = stringResource(R.string.settings_auth_desc),
                     onClick = { onOpen("auth") },
+                )
+            }
+            item {
+                SettingsItem(
+                    icon = Icons.Outlined.Fingerprint,
+                    title = stringResource(R.string.section_security),
+                    subtitle = stringResource(R.string.settings_security_desc),
+                    onClick = { onOpen("security") },
+                )
+            }
+            item {
+                SettingsItem(
+                    icon = Icons.Outlined.CloudUpload,
+                    title = stringResource(R.string.section_backup),
+                    subtitle = stringResource(R.string.settings_backup_desc),
+                    onClick = { onOpen("backup") },
+                )
+            }
+            item {
+                SettingsItem(
+                    icon = Icons.Outlined.BugReport,
+                    title = stringResource(R.string.section_diagnostics),
+                    subtitle = stringResource(R.string.settings_diagnostics_desc),
+                    onClick = { onOpen("diagnostics") },
                 )
             }
             item {
@@ -276,6 +349,25 @@ private fun SettingsChildScaffold(
 @Composable
 private fun AppearanceSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
     SettingsChildScaffold(stringResource(R.string.section_appearance), onBack) { padding ->
+        val scope = rememberCoroutineScope()
+        val pagerState = rememberPagerState(
+            initialPage = THEME_OPTIONS.indexOfFirst { it.mode == viewModel.themeMode }
+                .coerceAtLeast(0),
+        ) { THEME_OPTIONS.size }
+
+        // Two-way sync: a swipe (or chevron/circle-driven scroll) that SETTLES on a
+        // page applies that theme for real; the selected circle follows themeMode.
+        LaunchedEffect(pagerState.settledPage) {
+            val mode = THEME_OPTIONS[pagerState.settledPage].mode
+            if (viewModel.themeMode != mode) viewModel.setTheme(mode)
+        }
+
+        fun scrollTo(page: Int) {
+            scope.launch {
+                pagerState.animateScrollToPage(page.coerceIn(0, THEME_OPTIONS.lastIndex))
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -284,19 +376,48 @@ private fun AppearanceSettingsScreen(viewModel: SettingsViewModel, onBack: () ->
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // The app theme applies instantly on selection, so the preview simply
-            // renders with the live MaterialTheme colors.
-            ThemePreviewCard()
-            Spacer(Modifier.height(20.dp))
-            // Same segmented pill control as "Default target" and "Language".
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            // Swipeable preview card + side chevrons as a tap alternative. The pager
+            // spans the full width between the chevrons (each page centers its card),
+            // so the swipe is caught well outside the card itself.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                IconButton(
+                    onClick = { scrollTo(pagerState.currentPage - 1) },
+                    enabled = pagerState.currentPage > 0,
+                ) { Icon(Icons.Filled.ChevronLeft, contentDescription = null) }
+                HorizontalPager(
+                    state = pagerState,
+                    pageSpacing = 16.dp,
+                    modifier = Modifier.weight(1f),
+                ) { page ->
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        ThemePreviewPage(THEME_OPTIONS[page], viewModel.useDynamicColor)
+                    }
+                }
+                IconButton(
+                    onClick = { scrollTo(pagerState.currentPage + 1) },
+                    enabled = pagerState.currentPage < THEME_OPTIONS.lastIndex,
+                ) { Icon(Icons.Filled.ChevronRight, contentDescription = null) }
+            }
+            Spacer(Modifier.height(14.dp))
+            PagerDots(current = pagerState.currentPage, count = THEME_OPTIONS.size)
+            Spacer(Modifier.height(12.dp))
+            // Round theme selectors (reference style), replacing the old pill row.
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 THEME_OPTIONS.forEachIndexed { index, option ->
-                    SegmentedButton(
+                    ThemeCircleSelector(
+                        option = option,
                         selected = viewModel.themeMode == option.mode,
-                        onClick = { viewModel.setTheme(option.mode) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = THEME_OPTIONS.size),
-                        icon = {},
-                    ) { Text(stringResource(option.labelRes), maxLines = 1) }
+                        onClick = {
+                            viewModel.setTheme(option.mode)
+                            scrollTo(index)
+                        },
+                    )
                 }
             }
             Spacer(Modifier.height(20.dp))
@@ -333,74 +454,160 @@ private fun AppearanceSettingsScreen(viewModel: SettingsViewModel, onBack: () ->
     }
 }
 
-/** Miniature phone mock rendered with the live theme colors. */
+/**
+ * One pager page: a filled container-colored card with the "phone screen" surface
+ * (skeleton preview) on top and the theme label embedded in the colored bottom
+ * zone — a single visual asset per the reference. The System page resolves to the
+ * device's REAL current system theme, not a static look.
+ */
 @Composable
-private fun ThemePreviewCard() {
-    val cs = MaterialTheme.colorScheme
-    Box(
-        modifier = Modifier
-            .width(190.dp)
-            .height(330.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .border(2.dp, cs.outlineVariant, RoundedCornerShape(28.dp))
-            .background(cs.background)
-            .padding(14.dp),
-    ) {
+private fun ThemePreviewPage(option: ThemeOption, useDynamicColor: Boolean) {
+    val dark = when (option.mode) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
+    val scheme = appColorScheme(darkTheme = dark, useDynamicColor = useDynamicColor)
+    MaterialTheme(colorScheme = scheme) {
         Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .width(228.dp)
+                .height(390.dp)
+                .clip(RoundedCornerShape(30.dp))
+                .background(scheme.primaryContainer),
         ) {
-            Text(
-                stringResource(R.string.domains),
-                style = MaterialTheme.typography.titleMedium,
-                color = cs.onSurface,
-            )
             Box(
                 modifier = Modifier
+                    .padding(start = 12.dp, end = 12.dp, top = 12.dp)
+                    .weight(1f)
                     .fillMaxWidth()
-                    .height(30.dp)
-                    .border(1.dp, cs.outline, RoundedCornerShape(8.dp)),
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(scheme.surface),
+            ) { ThemePreviewSkeleton() }
+            Text(
+                text = stringResource(option.labelRes),
+                style = MaterialTheme.typography.titleSmall,
+                color = scheme.onPrimaryContainer,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 11.dp),
             )
-            repeat(3) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(34.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(cs.surfaceContainerHigh)
-                        .padding(horizontal = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Box(
-                        Modifier
-                            .size(7.dp)
-                            .clip(CircleShape)
-                            .background(cs.primary),
-                    )
-                    Box(
-                        Modifier
-                            .width(70.dp)
-                            .height(7.dp)
-                            .clip(CircleShape)
-                            .background(cs.onSurfaceVariant.copy(alpha = 0.5f)),
-                    )
-                }
-            }
-            Spacer(Modifier.weight(1f))
+        }
+    }
+}
+
+/**
+ * Mini Domains-style skeleton inside the preview "screen": search bar, three
+ * placeholder rows (dot + title bar + badge), bottom-nav dots. Colors and the
+ * shimmer come from the wrapping per-page MaterialTheme.
+ */
+@Composable
+private fun ThemePreviewSkeleton() {
+    val cs = MaterialTheme.colorScheme
+    val brush = shimmerBrush()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        SkeletonBox(brush, Modifier.fillMaxWidth().height(20.dp), CircleShape)
+        repeat(3) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(cs.surfaceContainerHigh)
+                    .padding(horizontal = 8.dp, vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                repeat(3) { index ->
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(CircleShape)
-                            .background(if (index == 0) cs.secondaryContainer else cs.surfaceContainerHigh),
-                    )
-                }
+                Box(
+                    Modifier
+                        .size(7.dp)
+                        .clip(CircleShape)
+                        .background(cs.primary),
+                )
+                SkeletonBox(brush, Modifier.weight(1f).height(8.dp))
+                SkeletonBox(brush, Modifier.width(18.dp).height(10.dp), CircleShape)
             }
+        }
+        Spacer(Modifier.weight(1f))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            repeat(3) { index ->
+                Box(
+                    modifier = Modifier
+                        .size(14.dp)
+                        .clip(CircleShape)
+                        .background(if (index == 0) cs.secondaryContainer else cs.surfaceContainerHigh),
+                )
+            }
+        }
+    }
+}
+
+/** Standard 3-dot page indicator; the active dot is bigger and accent-colored. */
+@Composable
+private fun PagerDots(current: Int, count: Int) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        repeat(count) { index ->
+            val active = index == current
+            Box(
+                modifier = Modifier
+                    .size(if (active) 8.dp else 6.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (active) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.outlineVariant
+                    ),
+            )
+        }
+    }
+}
+
+private val CircleSwatchDark = Color(0xFF1D1D1F)
+private val CircleSwatchLight = Color(0xFFF4F4EC)
+
+/**
+ * Round theme selector (reference style): dark filled circle with an auto icon for
+ * System, light filled circle for Light, solid dark circle for Dark; the selected
+ * one gets a thicker accent ring.
+ */
+@Composable
+private fun ThemeCircleSelector(option: ThemeOption, selected: Boolean, onClick: () -> Unit) {
+    val label = stringResource(option.labelRes)
+    Box(
+        modifier = Modifier
+            .size(52.dp)
+            .then(
+                if (selected) {
+                    Modifier.border(2.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                } else Modifier
+            )
+            .padding(6.dp)
+            .clip(CircleShape)
+            .background(if (option.mode == "light") CircleSwatchLight else CircleSwatchDark)
+            .then(
+                if (option.mode == "light") {
+                    Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                } else Modifier
+            )
+            .clickable(onClickLabel = label, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (option.mode == "system") {
+            Icon(
+                Icons.Filled.BrightnessAuto,
+                contentDescription = label,
+                tint = Color.White,
+                modifier = Modifier.size(20.dp),
+            )
         }
     }
 }
@@ -411,6 +618,7 @@ private fun ThemePreviewCard() {
 private fun LanguageSettingsScreen(onBack: () -> Unit) {
     SettingsChildScaffold(stringResource(R.string.section_language), onBack) { padding ->
         val currentTag = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+        val activity = LocalActivity.current
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -423,11 +631,11 @@ private fun LanguageSettingsScreen(onBack: () -> Unit) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { applyLocale(option.tag) }
+                        .clickable { applyLocale(activity, option.tag) }
                         .padding(horizontal = 20.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    RadioButton(selected = selected, onClick = { applyLocale(option.tag) })
+                    RadioButton(selected = selected, onClick = { applyLocale(activity, option.tag) })
                     Text(
                         option.label ?: stringResource(R.string.language_system),
                         modifier = Modifier.padding(start = 12.dp),
@@ -439,11 +647,30 @@ private fun LanguageSettingsScreen(onBack: () -> Unit) {
     }
 }
 
-private fun applyLocale(tag: String) {
+private fun applyLocale(activity: Activity?, tag: String) {
     AppCompatDelegate.setApplicationLocales(
         if (tag.isEmpty()) LocaleListCompat.getEmptyLocaleList()
         else LocaleListCompat.forLanguageTags(tag)
     )
+    // setApplicationLocales() recreates the activity; the default relaunch has no
+    // transition, which reads as a flash. Crossfade it instead.
+    when {
+        activity == null -> Unit
+        Build.VERSION.SDK_INT >= 34 -> {
+            activity.overrideActivityTransition(
+                Activity.OVERRIDE_TRANSITION_OPEN,
+                android.R.anim.fade_in,
+                android.R.anim.fade_out,
+            )
+            activity.overrideActivityTransition(
+                Activity.OVERRIDE_TRANSITION_CLOSE,
+                android.R.anim.fade_in,
+                android.R.anim.fade_out,
+            )
+        }
+        else -> @Suppress("DEPRECATION")
+        activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+    }
 }
 
 // --- Authorization (router address, token, default target) -----------------------
@@ -458,6 +685,8 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val savedMessage = stringResource(R.string.saved)
     val context = LocalContext.current
+    val activity = LocalActivity.current as? FragmentActivity
+    val authTitle = stringResource(R.string.auth_to_show_token)
 
     // Test-connection result surfaces as a one-shot toast; state is cleared so it
     // doesn't re-fire on recomposition or when returning to this screen.
@@ -528,7 +757,16 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
                     visualTransformation = if (tokenVisible) VisualTransformation.None
                     else PasswordVisualTransformation(),
                     trailingIcon = {
-                        TextButton(onClick = { tokenVisible = !tokenVisible }) {
+                        TextButton(onClick = {
+                            when {
+                                tokenVisible -> tokenVisible = false
+                                // "token" lock mode: confirm with biometrics/PIN before revealing.
+                                viewModel.appLockMode == "token" && activity != null &&
+                                    deviceAuthAvailable(activity) ->
+                                    promptDeviceAuth(activity, authTitle) { tokenVisible = true }
+                                else -> tokenVisible = true
+                            }
+                        }) {
                             Text(stringResource(if (tokenVisible) R.string.hide else R.string.show))
                         }
                     },
@@ -572,6 +810,348 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
                         )
                     )
                 }
+            }
+        }
+    }
+}
+
+// --- Security (biometric / PIN lock) ----------------------------------------------
+
+private data class LockOption(
+    val mode: String,
+    @StringRes val labelRes: Int,
+    @StringRes val descRes: Int,
+)
+
+private val LOCK_OPTIONS = listOf(
+    LockOption("off", R.string.lock_mode_off, R.string.lock_mode_off_desc),
+    LockOption("token", R.string.lock_mode_token, R.string.lock_mode_token_desc),
+    LockOption("app", R.string.lock_mode_app, R.string.lock_mode_app_desc),
+)
+
+@Composable
+private fun SecuritySettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
+    SettingsChildScaffold(stringResource(R.string.section_security), onBack) { padding ->
+        val context = LocalContext.current
+        val authAvailable = remember { deviceAuthAvailable(context) }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+        ) {
+            Text(
+                stringResource(R.string.lock_explain),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (!authAvailable) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    stringResource(R.string.lock_unavailable),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            LOCK_OPTIONS.forEach { option ->
+                // With no biometrics AND no screen lock there is nothing to require —
+                // only "off" stays selectable.
+                val enabled = authAvailable || option.mode == "off"
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = enabled) { viewModel.setAppLock(option.mode) }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(
+                        selected = viewModel.appLockMode == option.mode,
+                        onClick = { viewModel.setAppLock(option.mode) },
+                        enabled = enabled,
+                    )
+                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                        Text(
+                            stringResource(option.labelRes),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (enabled) MaterialTheme.colorScheme.onSurface
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                        )
+                        Text(
+                            stringResource(option.descRes),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- Backup (export / import of the router lists) ---------------------------------
+
+@Composable
+private fun BackupSettingsScreen(viewModel: BackupViewModel, onBack: () -> Unit) {
+    SettingsChildScaffold(stringResource(R.string.section_backup), onBack) { padding ->
+        val state by viewModel.state.collectAsState()
+        val context = LocalContext.current
+        val clipboard = LocalClipboardManager.current
+        val copiedMessage = stringResource(R.string.copied)
+        var importText by rememberSaveable { mutableStateOf("") }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            SectionLabel(stringResource(R.string.backup_export_title))
+            Text(
+                stringResource(R.string.backup_export_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Button(
+                onClick = { viewModel.buildSnapshot() },
+                enabled = !state.building && !state.importing,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    stringResource(
+                        if (state.building) R.string.backup_building else R.string.backup_build
+                    )
+                )
+            }
+            state.snapshot?.let { snapshot ->
+                state.snapshotCounts?.let { (routing, zapret2, zapret) ->
+                    Text(
+                        stringResource(R.string.backup_export_summary, routing, zapret2, zapret),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            clipboard.setText(AnnotatedString(snapshot))
+                            Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) { Text(stringResource(R.string.copy)) }
+                    OutlinedButton(
+                        onClick = {
+                            val send = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, snapshot)
+                            }
+                            context.startActivity(Intent.createChooser(send, null))
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) { Text(stringResource(R.string.share)) }
+                }
+            }
+
+            HorizontalDivider()
+            SectionLabel(stringResource(R.string.backup_import_title))
+            Text(
+                stringResource(R.string.backup_import_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            OutlinedTextField(
+                value = importText,
+                onValueChange = { importText = it },
+                minLines = 4,
+                maxLines = 10,
+                trailingIcon = {
+                    IconButton(onClick = {
+                        clipboard.getText()?.text?.trim()?.takeIf { it.isNotEmpty() }
+                            ?.let { importText = it }
+                    }) {
+                        Icon(
+                            Icons.Filled.ContentPaste,
+                            contentDescription = stringResource(R.string.paste_from_clipboard),
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                stringResource(R.string.backup_import_hint_restart),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Button(
+                onClick = { viewModel.runImport(importText) },
+                enabled = importText.isNotBlank() && !state.importing && !state.building,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                val progress = state.importProgress
+                Text(
+                    if (state.importing && progress != null) {
+                        stringResource(R.string.backup_progress, progress.first, progress.second)
+                    } else stringResource(R.string.backup_run_import)
+                )
+            }
+            state.importResult?.let {
+                Text(
+                    it.resolve(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            state.error?.let { ErrorCard(it) }
+        }
+    }
+}
+
+// --- Diagnostics (timeout + request log) ------------------------------------------
+
+@Composable
+private fun DiagnosticsSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
+    SettingsChildScaffold(stringResource(R.string.section_diagnostics), onBack) { padding ->
+        val entries by ApiLog.flow.collectAsState()
+        val context = LocalContext.current
+        val clipboard = LocalClipboardManager.current
+        val copiedMessage = stringResource(R.string.copied)
+        var timeout by remember { mutableStateOf(viewModel.httpTimeoutSeconds.toFloat()) }
+        val timeFormat = remember { SimpleDateFormat("HH:mm:ss", Locale.US) }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            SectionLabel(stringResource(R.string.diag_timeout_title))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Slider(
+                    value = timeout,
+                    onValueChange = { timeout = it },
+                    // Persisted once per released drag, not per tick.
+                    onValueChangeFinished = { viewModel.setHttpTimeout(timeout.roundToInt()) },
+                    valueRange = RouterApi.MIN_TIMEOUT_SECONDS.toFloat()..RouterApi.MAX_TIMEOUT_SECONDS.toFloat(),
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    stringResource(R.string.diag_timeout_value, timeout.roundToInt()),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+
+            HorizontalDivider()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                SectionLabel(stringResource(R.string.diag_log_title))
+                TextButton(
+                    enabled = entries.isNotEmpty(),
+                    onClick = {
+                        val text = entries.joinToString("\n\n") { e ->
+                            buildString {
+                                append(timeFormat.format(Date(e.timeMillis)))
+                                append("  ")
+                                append(e.code?.toString() ?: "FAIL")
+                                append("  ")
+                                append(e.durationMs)
+                                append(" ms\n")
+                                append(e.url)
+                                e.error?.let { append("\n").append(it) }
+                                e.body?.let { append("\n").append(it) }
+                            }
+                        }
+                        clipboard.setText(AnnotatedString(text))
+                        Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
+                    },
+                ) { Text(stringResource(R.string.copy)) }
+            }
+            Text(
+                stringResource(R.string.diag_log_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (entries.isEmpty()) {
+                Text(
+                    stringResource(R.string.diag_log_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 16.dp),
+                )
+            }
+            entries.forEach { entry ->
+                ApiLogEntryCard(entry, timeFormat)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ApiLogEntryCard(entry: ApiLog.Entry, timeFormat: SimpleDateFormat) {
+    var expanded by remember { mutableStateOf(false) }
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    timeFormat.format(Date(entry.timeMillis)),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    entry.code?.toString() ?: stringResource(R.string.diag_failed),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = when {
+                        entry.code == null -> MaterialTheme.colorScheme.error
+                        entry.code < 400 -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.error
+                    },
+                )
+                Text(
+                    "${entry.durationMs} ms",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                entry.url,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = if (expanded) Int.MAX_VALUE else 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            entry.error?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            entry.body?.let { body ->
+                Text(
+                    body,
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    maxLines = if (expanded) Int.MAX_VALUE else 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }
@@ -656,10 +1236,18 @@ private fun AboutSettingsScreen(onBack: () -> Unit) {
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    AsyncImage(
+                    // Shimmer circle while the GitHub avatar loads.
+                    SubcomposeAsyncImage(
                         model = GITHUB_AVATAR_URL,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
+                        loading = {
+                            SkeletonBox(
+                                brush = shimmerBrush(),
+                                modifier = Modifier.size(48.dp),
+                                shape = CircleShape,
+                            )
+                        },
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape),

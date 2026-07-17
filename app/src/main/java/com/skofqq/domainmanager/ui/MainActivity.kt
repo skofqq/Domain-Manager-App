@@ -1,6 +1,9 @@
 package com.skofqq.domainmanager.ui
 
+import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.PredictiveBackHandler
@@ -24,6 +27,7 @@ import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -39,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.lerp
@@ -53,13 +58,16 @@ class MainActivity : AppCompatActivity() {
     private val prefs by lazy { PrefsStore(this) }
     private val api by lazy { RouterApi(prefs, applicationContext) }
     private val domainsViewModel by viewModels<DomainsViewModel> { DomainsViewModel.Factory(api) }
+    private val strategiesViewModel by viewModels<StrategiesViewModel> { StrategiesViewModel.Factory(api) }
     private val servicesViewModel by viewModels<ServicesViewModel> { ServicesViewModel.Factory(api) }
     private val settingsViewModel by viewModels<SettingsViewModel> { SettingsViewModel.Factory(prefs, api) }
+    private val backupViewModel by viewModels<BackupViewModel> { BackupViewModel.Factory(api) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        applyStartupWindowBackground()
         setContent {
             val darkTheme = isDarkTheme(settingsViewModel.themeMode)
             // Re-style system bars when the in-app theme diverges from the system one,
@@ -74,20 +82,38 @@ class MainActivity : AppCompatActivity() {
                 darkTheme = darkTheme,
                 useDynamicColor = settingsViewModel.useDynamicColor,
             ) {
+                // Keep the window background in exact sync with the composed theme,
+                // so any later recreation starts from the right color.
+                val windowBackground = MaterialTheme.colorScheme.background
+                LaunchedEffect(windowBackground) {
+                    window.setBackgroundDrawable(ColorDrawable(windowBackground.toArgb()))
+                }
                 // Cold start: system splash → animated intro → Domains. Saveable so a
                 // recreation (language/theme change) never replays the intro.
                 var introDone by rememberSaveable { mutableStateOf(false) }
+                // App lock: asked once per process when the "app" mode is on at start.
+                // Initialized from the pref so enabling the mode mid-session never
+                // locks the user out of the session they enabled it in.
+                var unlocked by rememberSaveable {
+                    mutableStateOf(settingsViewModel.appLockMode != "app")
+                }
                 Crossfade(
                     targetState = introDone,
                     animationSpec = tween(durationMillis = 350),
                     label = "intro-crossfade",
                 ) { done ->
                     if (done) {
-                        MainNavigation(
-                            domainsViewModel = domainsViewModel,
-                            servicesViewModel = servicesViewModel,
-                            settingsViewModel = settingsViewModel,
-                        )
+                        if (unlocked) {
+                            MainNavigation(
+                                domainsViewModel = domainsViewModel,
+                                strategiesViewModel = strategiesViewModel,
+                                servicesViewModel = servicesViewModel,
+                                settingsViewModel = settingsViewModel,
+                                backupViewModel = backupViewModel,
+                            )
+                        } else {
+                            AppLockScreen(onUnlocked = { unlocked = true })
+                        }
                     } else {
                         SplashIntroScreen(
                             darkTheme = darkTheme,
@@ -97,6 +123,32 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    /**
+     * The XML windowBackground follows the SYSTEM night mode, but the in-app theme
+     * can be forced light/dark (and dynamic color shifts the real background) — on
+     * a recreation (language switch!) the first frame would flash the wrong color.
+     * Paint the window with the effective theme's background before the first draw;
+     * the composed theme then refines it to the exact color.
+     */
+    private fun applyStartupWindowBackground() {
+        val dark = when (prefs.themeMode) {
+            "light" -> false
+            "dark" -> true
+            else -> (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+        }
+        val color = if (prefs.useDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // M3 dynamic background ≈ system neutral1 tone 99 (light) / tone 10 (dark).
+            getColor(
+                if (dark) android.R.color.system_neutral1_900
+                else android.R.color.system_neutral1_10
+            )
+        } else {
+            getColor(if (dark) R.color.window_background_dark else R.color.window_background_light)
+        }
+        window.setBackgroundDrawable(ColorDrawable(color))
     }
 }
 
@@ -115,6 +167,7 @@ private data class TabSpec(
 )
 
 private const val TAB_DOMAINS = 0
+private const val TAB_STATUS = 1
 
 private val TABS = listOf(
     TabSpec(R.string.domains, Icons.Filled.Public, Icons.Outlined.Public),
@@ -125,8 +178,10 @@ private val TABS = listOf(
 @Composable
 private fun MainNavigation(
     domainsViewModel: DomainsViewModel,
+    strategiesViewModel: StrategiesViewModel,
     servicesViewModel: ServicesViewModel,
     settingsViewModel: SettingsViewModel,
+    backupViewModel: BackupViewModel,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(TAB_DOMAINS) }
     var backProgress by remember { mutableFloatStateOf(0f) }
@@ -183,9 +238,13 @@ private fun MainNavigation(
                 },
         ) {
             when (selectedTab) {
-                TAB_DOMAINS -> DomainsScreen(domainsViewModel)
-                1 -> ServicesScreen(servicesViewModel)
-                2 -> SettingsScreen(settingsViewModel)
+                TAB_DOMAINS -> DomainsScreen(
+                    domainsViewModel,
+                    strategiesViewModel,
+                    onOpenStatus = { selectedTab = TAB_STATUS },
+                )
+                TAB_STATUS -> ServicesScreen(servicesViewModel)
+                2 -> SettingsScreen(settingsViewModel, backupViewModel)
             }
         }
     }

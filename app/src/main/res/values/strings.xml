@@ -13,7 +13,11 @@
     <string name="remove_from">Remove from %1$s</string>
 
     <!-- Domains screen -->
+    <string name="tab_routing">Routing</string>
+    <string name="tab_strategies">Strategies</string>
     <string name="add_domain">Add domain</string>
+    <string name="add">Add</string>
+    <string name="apply">Apply</string>
     <string name="remove_domain">Remove domain</string>
     <string name="no_domains">No managed domains yet. Pull down to refresh.</string>
     <string name="domain_partial">This domain is only in %1$s.</string>
@@ -21,6 +25,30 @@
     <string name="paste_from_clipboard">Paste from clipboard</string>
     <string name="cancel">Cancel</string>
     <string name="back">Back</string>
+
+    <!-- Strategies -->
+    <string name="strategy">Strategy</string>
+    <string name="strategy_n">Strategy %1$d</string>
+    <string name="strategy_pool">No personal lock — shared pool</string>
+    <string name="strategy_range_loading">Loading the strategy range from the router…</string>
+    <string name="strat_showing_active">Running — changes apply immediately</string>
+    <string name="strat_showing_inactive">Stopped — changes are only saved</string>
+    <string name="engine_running">Running</string>
+    <string name="engine_stopped">Stopped</string>
+    <string name="strat_no_engine">No DPI engine is running</string>
+    <string name="strat_no_engine_hint">Start zapret or zapret2 on the Status tab to manage per-domain strategies.</string>
+    <string name="open_status">Open Status</string>
+    <string name="retry">Retry</string>
+    <string name="no_strat_domains">No domains with a personal strategy yet.</string>
+    <string name="strategy_pool_short">Shared pool</string>
+    <string name="search_domains">Search domains</string>
+    <string name="clear_search">Clear search</string>
+    <string name="search_no_results">No domains match the search.</string>
+    <string name="pick_strategy">Pick a strategy</string>
+    <plurals name="n_domains">
+        <item quantity="one">%d domain</item>
+        <item quantity="other">%d domains</item>
+    </plurals>
 
     <!-- Status (services) screen -->
     <string name="svc_running">Running</string>
@@ -43,6 +71,51 @@
     <string name="settings_auth_desc">Router address and token</string>
     <string name="settings_about_title">About</string>
     <string name="settings_about_desc">Version and app info</string>
+
+    <!-- Security -->
+    <string name="section_security">Security</string>
+    <string name="settings_security_desc">Biometrics and PIN</string>
+    <string name="lock_explain">Uses fingerprint or face, falling back to the device PIN, pattern or password when biometrics are unavailable.</string>
+    <string name="lock_unavailable">Neither biometrics nor a screen lock is set up on this device — there is nothing to require.</string>
+    <string name="lock_mode_off">Off</string>
+    <string name="lock_mode_off_desc">No extra protection</string>
+    <string name="lock_mode_token">Token reveal only</string>
+    <string name="lock_mode_token_desc">Confirm before showing the token in Authorization</string>
+    <string name="lock_mode_app">Whole app</string>
+    <string name="lock_mode_app_desc">Biometrics or PIN on every launch</string>
+    <string name="unlock_title">Unlock Domain Manager</string>
+    <string name="unlock">Unlock</string>
+    <string name="auth_to_show_token">Confirm to show the token</string>
+
+    <!-- Backup -->
+    <string name="section_backup">Backup</string>
+    <string name="settings_backup_desc">Export and import lists</string>
+    <string name="backup_export_title">Export</string>
+    <string name="backup_export_note">A snapshot of the router\'s current lists for reference or manual restore. The live state always stays on the router — this app only reads and writes it over the API.</string>
+    <string name="backup_build">Build snapshot</string>
+    <string name="backup_building">Building…</string>
+    <string name="backup_export_summary">Routing: %1$d · zapret2: %2$d · zapret: %3$d</string>
+    <string name="copy">Copy</string>
+    <string name="copied">Copied</string>
+    <string name="share">Share</string>
+    <string name="backup_import_title">Import</string>
+    <string name="backup_import_note">Paste a snapshot JSON, or a plain list of domains (one per line — they are added to routing with the default target).</string>
+    <string name="backup_import_hint_restart">If a zapret engine is running, every imported strategy restarts its daemon — a large import can take a while.</string>
+    <string name="backup_run_import">Import</string>
+    <string name="backup_progress">%1$d / %2$d…</string>
+    <string name="backup_result">Added: %1$d · Already present: %2$d · Failed: %3$d</string>
+    <string name="backup_parse_error">Could not parse the input — expected a snapshot JSON or a list of domains</string>
+    <string name="backup_empty">Nothing to import</string>
+
+    <!-- Diagnostics -->
+    <string name="section_diagnostics">Diagnostics</string>
+    <string name="settings_diagnostics_desc">Timeouts and request debugging</string>
+    <string name="diag_timeout_title">HTTP request timeout</string>
+    <string name="diag_timeout_value">%1$d s</string>
+    <string name="diag_log_title">Recent API requests</string>
+    <string name="diag_log_note">The token is masked in URLs — safe to copy and share for a bug report.</string>
+    <string name="diag_log_empty">No requests yet.</string>
+    <string name="diag_failed">FAIL</string>
     <string name="about_version">Version %1$s</string>
     <string name="about_source_code">Source code on GitHub</string>
     <string name="developer">Developer</string>
@@ -79,6 +152,9 @@
     <string name="err_bad_domain">Invalid domain format</string>
     <string name="err_empty_domain">Domain is empty</string>
     <string name="err_bad_service">Unknown service</string>
+    <string name="err_bad_engine">Unknown engine</string>
+    <string name="err_bad_strategy">Strategy number is out of range</string>
+    <string name="err_strategy_unconfirmed">The router did not confirm the strategy change</string>
     <string name="err_generic">Error %1$d: %2$s</string>
     <string name="err_timeout">Router did not respond. Make sure the phone is on the router\'s Wi-Fi and the port is correct.</string>
     <string name="err_unreachable">Can\'t reach the router — check the address and port.</string>

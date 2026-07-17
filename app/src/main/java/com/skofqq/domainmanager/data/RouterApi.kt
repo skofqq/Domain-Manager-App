@@ -66,6 +66,26 @@ sealed class ServiceResult {
     data class NetworkError(val kind: NetFailure, val detail: String? = null) : ServiceResult()
 }
 
+/** One domain with its personal DPI-bypass strategy number on a zapret engine. */
+data class StrategyEntry(
+    val domain: String,
+    /** zapret2: 0..max where 0 = shared pool (valid state); zapret v1: 1..17. */
+    val strategy: Int,
+)
+
+sealed class StrategyListResult {
+    data class Success(val engine: String, val max: Int, val domains: List<StrategyEntry>) : StrategyListResult()
+    data class ApiError(val code: Int, val error: String) : StrategyListResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : StrategyListResult()
+}
+
+sealed class StrategyResult {
+    /** [strategy] is null after strat_remove, or when the router couldn't confirm the change. */
+    data class Success(val domain: String, val strategy: Int?) : StrategyResult()
+    data class ApiError(val code: Int, val error: String) : StrategyResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : StrategyResult()
+}
+
 sealed class TestResult {
     data object Connected : TestResult()
     data object ConnectedBadToken : TestResult()
@@ -78,13 +98,43 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
 
     // Proxy.NO_PROXY: the router lives on the LAN — never send these
     // requests through a Wi-Fi proxy configured on the phone.
-    private val baseClient = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .proxy(Proxy.NO_PROXY)
-        .protocols(listOf(Protocol.HTTP_1_1))
-        .eventListener(NetLogListener())
-        .build()
+    // Rebuilt lazily when the user changes the timeout in Diagnostics.
+    @Volatile private var cachedClient: OkHttpClient? = null
+    @Volatile private var cachedTimeout: Int = -1
+
+    private fun baseClient(): OkHttpClient {
+        val timeout = prefs.httpTimeoutSeconds.coerceIn(MIN_TIMEOUT_SECONDS, MAX_TIMEOUT_SECONDS)
+        cachedClient?.let { if (cachedTimeout == timeout) return it }
+        val built = OkHttpClient.Builder()
+            .connectTimeout(timeout.toLong(), TimeUnit.SECONDS)
+            .readTimeout(timeout.toLong(), TimeUnit.SECONDS)
+            .proxy(Proxy.NO_PROXY)
+            .protocols(listOf(Protocol.HTTP_1_1))
+            .eventListener(NetLogListener())
+            .build()
+        cachedTimeout = timeout
+        cachedClient = built
+        return built
+    }
+
+    private data class HttpReply(val code: Int, val ok: Boolean, val body: String?)
+
+    /**
+     * Executes one GET and records it (token-masked) in [ApiLog] for the
+     * Diagnostics screen — both successes and transport failures.
+     */
+    private fun fetch(url: HttpUrl): HttpReply {
+        val started = System.currentTimeMillis()
+        try {
+            val response = lanClient().newCall(Request.Builder().url(url).build()).execute()
+            val body = response.body?.string()
+            ApiLog.record(url, response.code, body, System.currentTimeMillis() - started, null)
+            return HttpReply(response.code, response.isSuccessful, body)
+        } catch (e: Exception) {
+            ApiLog.record(url, null, null, System.currentTimeMillis() - started, detailOf(e))
+            throw e
+        }
+    }
 
     /** Socket-level timeline in logcat (tag RouterApiNet) for debugging router issues. */
     private class NetLogListener : EventListener() {
@@ -132,15 +182,15 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         val active = cm.activeNetwork
         if (cm.getNetworkCapabilities(active).isLan()) {
             Log.d("RouterApiNet", "default network $active is LAN — no binding")
-            return baseClient
+            return baseClient()
         }
 
         // Default is VPN/cellular: find the underlying Wi-Fi/Ethernet network and bind to it.
         @Suppress("DEPRECATION")
         val lan = cm.allNetworks.firstOrNull { cm.getNetworkCapabilities(it).isLan() }
         Log.d("RouterApiNet", "default $active is not LAN, binding to: $lan (null=default routing)")
-        if (lan == null) return baseClient
-        return baseClient.newBuilder()
+        if (lan == null) return baseClient()
+        return baseClient().newBuilder()
             .socketFactory(lan.socketFactory)
             .dns(object : Dns {
                 override fun lookup(hostname: String): List<InetAddress> =
@@ -163,11 +213,11 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         }
 
         return try {
-            val response = lanClient().newCall(Request.Builder().url(url).build()).execute()
-            val body = response.body?.string()
+            val reply = fetch(url)
+            val body = reply.body
                 ?: return ApiResult.NetworkError(NetFailure.EMPTY_RESPONSE)
             val json = JSONObject(body)
-            if (response.isSuccessful) {
+            if (reply.ok) {
                 ApiResult.Success(
                     DomainStatus(
                         domain = json.getString("domain"),
@@ -176,7 +226,7 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
                     )
                 )
             } else {
-                ApiResult.ApiError(response.code, json.optString("error", "unknown"))
+                ApiResult.ApiError(reply.code, json.optString("error", "unknown"))
             }
         } catch (e: Exception) {
             ApiResult.NetworkError(classify(e), detailOf(e))
@@ -199,11 +249,11 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         }
 
         return try {
-            val response = lanClient().newCall(Request.Builder().url(url).build()).execute()
-            val body = response.body?.string()
+            val reply = fetch(url)
+            val body = reply.body
                 ?: return ListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
             val json = JSONObject(body)
-            if (response.isSuccessful) {
+            if (reply.ok) {
                 val array = json.getJSONArray("domains")
                 val domains = buildList {
                     for (i in 0 until array.length()) {
@@ -219,7 +269,7 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
                 }
                 ListResult.Success(domains)
             } else {
-                ListResult.ApiError(response.code, json.optString("error", "unknown"))
+                ListResult.ApiError(reply.code, json.optString("error", "unknown"))
             }
         } catch (e: Exception) {
             ListResult.NetworkError(classify(e), detailOf(e))
@@ -238,18 +288,18 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         }
 
         return try {
-            val response = lanClient().newCall(Request.Builder().url(url).build()).execute()
-            val body = response.body?.string()
+            val reply = fetch(url)
+            val body = reply.body
                 ?: return ServiceListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
             val json = JSONObject(body)
-            if (response.isSuccessful) {
+            if (reply.ok) {
                 val array = json.getJSONArray("services")
                 val services = buildList {
                     for (i in 0 until array.length()) add(serviceOf(array.getJSONObject(i)))
                 }
                 ServiceListResult.Success(services)
             } else {
-                ServiceListResult.ApiError(response.code, json.optString("error", "unknown"))
+                ServiceListResult.ApiError(reply.code, json.optString("error", "unknown"))
             }
         } catch (e: Exception) {
             ServiceListResult.NetworkError(classify(e), detailOf(e))
@@ -273,17 +323,92 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         }
 
         return try {
-            val response = lanClient().newCall(Request.Builder().url(url).build()).execute()
-            val body = response.body?.string()
+            val reply = fetch(url)
+            val body = reply.body
                 ?: return ServiceResult.NetworkError(NetFailure.EMPTY_RESPONSE)
             val json = JSONObject(body)
-            if (response.isSuccessful) {
+            if (reply.ok) {
                 ServiceResult.Success(serviceOf(json))
             } else {
-                ServiceResult.ApiError(response.code, json.optString("error", "unknown"))
+                ServiceResult.ApiError(reply.code, json.optString("error", "unknown"))
             }
         } catch (e: Exception) {
             ServiceResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Fetches per-domain strategies for one engine (action=strat_list). Read-only, never restarts anything. */
+    fun listStrategies(engine: String): StrategyListResult {
+        val url = try {
+            buildUrl(prefs.routerHost, prefs.routerPort) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "strat_list")
+                addQueryParameter("engine", engine)
+            }
+        } catch (e: Exception) {
+            return StrategyListResult.NetworkError(NetFailure.INVALID_ADDRESS, e.message)
+        }
+
+        return try {
+            val reply = fetch(url)
+            val body = reply.body
+                ?: return StrategyListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.getJSONArray("domains")
+                val domains = buildList {
+                    for (i in 0 until array.length()) {
+                        val entry = array.getJSONObject(i)
+                        add(StrategyEntry(entry.getString("domain"), entry.getInt("strategy")))
+                    }
+                }
+                StrategyListResult.Success(
+                    engine = json.getString("engine"),
+                    max = json.getInt("max"),
+                    domains = domains,
+                )
+            } else {
+                StrategyListResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            StrategyListResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * One strat_add / strat_set / strat_remove call ([strategy] must be null only for
+     * strat_remove). WARNING: if [engine] is currently running, the router restarts its
+     * daemon as part of the change — callers must invoke this once per explicit user
+     * confirmation, never per keystroke/slider tick.
+     */
+    fun strategyAction(engine: String, domain: String, action: String, strategy: Int? = null): StrategyResult {
+        val url = try {
+            buildUrl(prefs.routerHost, prefs.routerPort) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", action)
+                addQueryParameter("engine", engine)
+                addQueryParameter("domain", domain)
+                if (strategy != null) addQueryParameter("strategy", strategy.toString())
+            }
+        } catch (e: Exception) {
+            return StrategyResult.NetworkError(NetFailure.INVALID_ADDRESS, e.message)
+        }
+
+        return try {
+            val reply = fetch(url)
+            val body = reply.body
+                ?: return StrategyResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                StrategyResult.Success(
+                    domain = json.getString("domain"),
+                    strategy = if (json.isNull("strategy")) null else json.getInt("strategy"),
+                )
+            } else {
+                StrategyResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            StrategyResult.NetworkError(classify(e), detailOf(e))
         }
     }
 
@@ -306,12 +431,12 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
             return TestResult.Failed(NetFailure.INVALID_ADDRESS, e.message)
         }
         return try {
-            val resp = lanClient().newCall(Request.Builder().url(url).build()).execute()
+            val reply = fetch(url)
             when {
-                resp.isSuccessful || resp.code == 400 -> TestResult.Connected
-                resp.code == 403 -> TestResult.ConnectedBadToken
-                resp.code == 500 -> TestResult.ConnectedNoToken
-                else -> TestResult.HttpError(resp.code)
+                reply.ok || reply.code == 400 -> TestResult.Connected
+                reply.code == 403 -> TestResult.ConnectedBadToken
+                reply.code == 500 -> TestResult.ConnectedNoToken
+                else -> TestResult.HttpError(reply.code)
             }
         } catch (e: Exception) {
             TestResult.Failed(classify(e), detailOf(e))
@@ -339,4 +464,10 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         .addPathSegments("cgi-bin/domain-api")
         .apply(block)
         .build()
+
+    companion object {
+        const val MIN_TIMEOUT_SECONDS = 3
+        const val MAX_TIMEOUT_SECONDS = 60
+    }
 }
+
