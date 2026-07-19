@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.ApiResult
 import com.skofqq.domainmanager.data.DomainStatus
+import com.skofqq.domainmanager.data.HistoryStore
 import com.skofqq.domainmanager.data.ListResult
 import com.skofqq.domainmanager.data.RouterApi
 import com.skofqq.domainmanager.util.extractDomain
@@ -25,12 +26,21 @@ data class DomainsUiState(
     val error: UiMessage? = null,
 )
 
-class DomainsViewModel(private val api: RouterApi) : ViewModel() {
+class DomainsViewModel(
+    private val api: RouterApi,
+    private val history: HistoryStore? = null,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(DomainsUiState())
     val state: StateFlow<DomainsUiState> = _state
 
     val defaultTarget: String get() = api.prefs.defaultTarget
+
+    /** Active router switched: drop the old router's data (skeletons show) and re-fetch. */
+    fun reset() {
+        _state.value = DomainsUiState()
+        refresh()
+    }
 
     fun refresh() {
         if (_state.value.isRefreshing) return
@@ -102,6 +112,11 @@ class DomainsViewModel(private val api: RouterApi) : ViewModel() {
             }
 
             val added = withContext(Dispatchers.IO) { api.callApi(newDomain, "add", target) }
+            if (added is ApiResult.Success) {
+                withContext(Dispatchers.IO) {
+                    history?.logRouting(api.prefs.activeProfileId, newDomain, target)
+                }
+            }
             _state.update { s ->
                 when (added) {
                     is ApiResult.Success -> s.copy(busyDomain = null)
@@ -126,6 +141,12 @@ class DomainsViewModel(private val api: RouterApi) : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(busyDomain = domain, error = null) }
             val result = withContext(Dispatchers.IO) { api.callApi(domain, action, target) }
+            if (action == "add" && result is ApiResult.Success) {
+                // Phone-local history only — the router keeps no timestamps.
+                withContext(Dispatchers.IO) {
+                    history?.logRouting(api.prefs.activeProfileId, domain, target)
+                }
+            }
             _state.update { s ->
                 when (result) {
                     // The response carries the post-action flags — patch the row in place
@@ -154,8 +175,11 @@ class DomainsViewModel(private val api: RouterApi) : ViewModel() {
         else (rest + status).sortedBy { it.domain }
     }
 
-    class Factory(private val api: RouterApi) : ViewModelProvider.Factory {
+    class Factory(
+        private val api: RouterApi,
+        private val history: HistoryStore? = null,
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = DomainsViewModel(api) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = DomainsViewModel(api, history) as T
     }
 }

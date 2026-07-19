@@ -1,15 +1,22 @@
 package com.skofqq.domainmanager.ui
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.PredictiveBackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,6 +26,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -41,15 +49,24 @@ import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -67,6 +84,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -89,6 +107,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -98,23 +117,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.activity.compose.LocalActivity
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.FragmentActivity
 import coil.compose.SubcomposeAsyncImage
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.ui.theme.appColorScheme
 import com.skofqq.domainmanager.data.ApiLog
+import com.skofqq.domainmanager.data.HistoryStore
 import com.skofqq.domainmanager.data.RouterApi
+import com.skofqq.domainmanager.data.RouterProfile
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 import kotlin.math.roundToInt
 
 private const val GITHUB_USERNAME = "skofqq"
@@ -146,9 +176,22 @@ private val THEME_OPTIONS = listOf(
  * Child state survives recreation (language switch recreates the activity).
  */
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel, backupViewModel: BackupViewModel) {
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    backupViewModel: BackupViewModel,
+    /** Non-null once, right after opening via an App Shortcut — e.g. "diagnostics". */
+    initialSubScreen: String? = null,
+    onInitialSubScreenConsumed: () -> Unit = {},
+) {
     var subScreen by rememberSaveable { mutableStateOf<String?>(null) }
     var backProgress by remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(initialSubScreen) {
+        if (initialSubScreen != null) {
+            subScreen = initialSubScreen
+            onInitialSubScreenConsumed()
+        }
+    }
 
     // Pops the child screen first; the root's back-to-Domains handler in
     // MainNavigation only fires once this one is disabled. Predictive-back aware:
@@ -184,7 +227,10 @@ fun SettingsScreen(viewModel: SettingsViewModel, backupViewModel: BackupViewMode
                 "auth" -> AuthSettingsScreen(viewModel, onBack = { subScreen = null })
                 "security" -> SecuritySettingsScreen(viewModel, onBack = { subScreen = null })
                 "backup" -> BackupSettingsScreen(backupViewModel, onBack = { subScreen = null })
+                "history" -> HistorySettingsScreen(viewModel, onBack = { subScreen = null })
                 "diagnostics" -> DiagnosticsSettingsScreen(viewModel, onBack = { subScreen = null })
+                "monitoring" -> MonitoringSettingsScreen(viewModel, onBack = { subScreen = null })
+                "shortcuts" -> ShortcutsSettingsScreen(viewModel, onBack = { subScreen = null })
                 "about" -> AboutSettingsScreen(onBack = { subScreen = null })
             }
         }
@@ -255,10 +301,34 @@ private fun SettingsRootScreen(onOpen: (String) -> Unit) {
             }
             item {
                 SettingsItem(
+                    icon = Icons.Outlined.History,
+                    title = stringResource(R.string.section_history),
+                    subtitle = stringResource(R.string.settings_history_desc),
+                    onClick = { onOpen("history") },
+                )
+            }
+            item {
+                SettingsItem(
                     icon = Icons.Outlined.BugReport,
                     title = stringResource(R.string.section_diagnostics),
                     subtitle = stringResource(R.string.settings_diagnostics_desc),
                     onClick = { onOpen("diagnostics") },
+                )
+            }
+            item {
+                SettingsItem(
+                    icon = Icons.Outlined.NotificationsActive,
+                    title = stringResource(R.string.section_monitoring),
+                    subtitle = stringResource(R.string.settings_monitoring_desc),
+                    onClick = { onOpen("monitoring") },
+                )
+            }
+            item {
+                SettingsItem(
+                    icon = Icons.Outlined.Bolt,
+                    title = stringResource(R.string.section_shortcuts),
+                    subtitle = stringResource(R.string.settings_shortcuts_desc),
+                    onClick = { onOpen("shortcuts") },
                 )
             }
             item {
@@ -673,11 +743,252 @@ private fun applyLocale(activity: Activity?, tag: String) {
     }
 }
 
-// --- Authorization (router address, token, default target) -----------------------
+// --- Authorization (router profiles) ----------------------------------------------
+
+/** Sentinel "profile id" for the add flow before the new profile is first saved. */
+private const val NEW_PROFILE_ID = "__new__"
+
+/**
+ * Two-level Authorization: the profile list (with the active-profile radio —
+ * same source of truth as the Domains title-bar switcher) and the single-profile
+ * editor holding everything the old one-router form had.
+ */
+@Composable
+private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    // Pops the editor back to the list before the list pops back to the
+    // settings root (this handler sits deeper than SettingsScreen's).
+    PredictiveBackHandler(enabled = editingId != null) { events ->
+        try {
+            events.collect { }
+            editingId = null
+        } catch (e: CancellationException) {
+            throw e
+        }
+    }
+    val editing = editingId
+    if (editing == null) {
+        ProfileListScreen(
+            viewModel = viewModel,
+            onBack = onBack,
+            onEdit = { editingId = it },
+            onAdd = { editingId = NEW_PROFILE_ID },
+        )
+    } else {
+        ProfileEditScreen(viewModel, profileId = editing, onBack = { editingId = null })
+    }
+}
+
+@Composable
+private fun ProfileListScreen(
+    viewModel: SettingsViewModel,
+    onBack: () -> Unit,
+    onEdit: (String) -> Unit,
+    onAdd: () -> Unit,
+) {
+    val profiles by viewModel.profiles.collectAsState()
+    val activeId by viewModel.activeProfileId.collectAsState()
+    val context = LocalContext.current
+    var deleteCandidate by remember { mutableStateOf<RouterProfile?>(null) }
+    // Scanned QR whose host matches an existing profile → confirm-update, never
+    // a silent duplicate with the same address but a different token.
+    var updateCandidate by remember { mutableStateOf<Pair<RouterProfile, SetupPayload>?>(null) }
+    val invalidQrMessage = stringResource(R.string.qr_invalid)
+
+    SettingsChildScaffold(stringResource(R.string.settings_auth_title), onBack) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item {
+                Text(
+                    stringResource(R.string.settings_profiles_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            items(profiles.size, key = { profiles[it].id }) { index ->
+                val profile = profiles[index]
+                ProfileRow(
+                    profile = profile,
+                    active = profile.id == activeId,
+                    onSetActive = { viewModel.setActiveProfile(profile.id) },
+                    onClick = { onEdit(profile.id) },
+                    onDelete = { deleteCandidate = profile },
+                )
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = onAdd, modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.profile_add))
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            startQrScan(context) { raw ->
+                                val payload = raw?.let { parseSetupUri(it) }
+                                when {
+                                    payload != null -> {
+                                        val existing = profiles.firstOrNull {
+                                            it.host.equals(payload.host, ignoreCase = true)
+                                        }
+                                        if (existing != null) {
+                                            updateCandidate = existing to payload
+                                        } else {
+                                            val profile = RouterProfile(
+                                                id = UUID.randomUUID().toString(),
+                                                // Host doubles as the initial label;
+                                                // rename in the editor.
+                                                name = payload.host,
+                                                host = payload.host,
+                                                port = payload.port ?: 80,
+                                                fallbackHost = payload.fallbackHost,
+                                                fallbackPort = payload.fallbackPort ?: 80,
+                                                token = payload.token,
+                                                defaultTarget = "both",
+                                            )
+                                            viewModel.saveProfile(profile)
+                                            Toast.makeText(
+                                                context,
+                                                context.getString(R.string.qr_profile_added, profile.name),
+                                                Toast.LENGTH_LONG,
+                                            ).show()
+                                        }
+                                    }
+                                    raw != null ->
+                                        Toast.makeText(context, invalidQrMessage, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) { Text(stringResource(R.string.qr_scan)) }
+                }
+            }
+        }
+    }
+
+    deleteCandidate?.let { profile ->
+        AlertDialog(
+            onDismissRequest = { deleteCandidate = null },
+            title = { Text(stringResource(R.string.profile_delete_title)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.profile_delete_text, profile.name))
+                    if (profiles.size == 1) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            stringResource(R.string.profile_delete_last_warning),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteProfile(profile.id)
+                    deleteCandidate = null
+                }) {
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteCandidate = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
+
+    updateCandidate?.let { (existing, payload) ->
+        AlertDialog(
+            onDismissRequest = { updateCandidate = null },
+            title = { Text(stringResource(R.string.qr_update_title)) },
+            text = { Text(stringResource(R.string.qr_update_text, existing.name)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.saveProfile(
+                        existing.copy(
+                            host = payload.host,
+                            port = payload.port ?: existing.port,
+                            token = payload.token,
+                            fallbackHost = payload.fallbackHost,
+                            fallbackPort = payload.fallbackPort ?: existing.fallbackPort,
+                        )
+                    )
+                    updateCandidate = null
+                }) { Text(stringResource(R.string.update)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { updateCandidate = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun ProfileRow(
+    profile: RouterProfile,
+    active: Boolean,
+    onSetActive: () -> Unit,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RadioButton(selected = active, onClick = onSetActive)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = profile.name.ifEmpty { profile.host },
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = "${profile.host}:${profile.port}",
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Outlined.Delete,
+                    contentDescription = stringResource(R.string.delete),
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+    }
+}
+
+// --- Single profile editor (the old one-router form, now per-profile) --------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
+private fun ProfileEditScreen(viewModel: SettingsViewModel, profileId: String, onBack: () -> Unit) {
+    val isNew = profileId == NEW_PROFILE_ID
+    val profiles by viewModel.profiles.collectAsState()
+    val existing = remember(profileId) { profiles.firstOrNull { it.id == profileId } }
+    // A new profile mints its stable id once, so repeated Saves update the same row.
+    val targetId = rememberSaveable(profileId) {
+        if (isNew) UUID.randomUUID().toString() else profileId
+    }
+    var name by rememberSaveable(profileId) { mutableStateOf(existing?.name ?: "") }
+    var host by rememberSaveable(profileId) { mutableStateOf(existing?.host ?: "") }
+    var port by rememberSaveable(profileId) { mutableStateOf((existing?.port ?: 80).toString()) }
+    var fallbackHost by rememberSaveable(profileId) { mutableStateOf(existing?.fallbackHost ?: "") }
+    var fallbackPort by rememberSaveable(profileId) { mutableStateOf((existing?.fallbackPort ?: 80).toString()) }
+    var token by rememberSaveable(profileId) { mutableStateOf(existing?.token ?: "") }
+    var target by rememberSaveable(profileId) { mutableStateOf(existing?.defaultTarget ?: "both") }
+
     val testState by viewModel.testState.collectAsState()
     var tokenVisible by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -687,6 +998,8 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
     val context = LocalContext.current
     val activity = LocalActivity.current as? FragmentActivity
     val authTitle = stringResource(R.string.auth_to_show_token)
+    val qrAuthTitle = stringResource(R.string.auth_to_show_qr)
+    var showQr by remember { mutableStateOf(false) }
 
     // Test-connection result surfaces as a one-shot toast; state is cleared so it
     // doesn't re-fire on recomposition or when returning to this screen.
@@ -701,7 +1014,14 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
     Scaffold(
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(R.string.settings_auth_title)) },
+                title = {
+                    val title = when {
+                        isNew -> stringResource(R.string.profile_new_title)
+                        existing != null -> existing.name.ifEmpty { existing.host }
+                        else -> stringResource(R.string.settings_auth_title)
+                    }
+                    Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -727,8 +1047,18 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
             item { SectionLabel(stringResource(R.string.section_router)) }
             item {
                 OutlinedTextField(
-                    value = viewModel.host,
-                    onValueChange = { viewModel.host = it },
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text(stringResource(R.string.profile_name)) },
+                    placeholder = { Text(stringResource(R.string.profile_name_placeholder)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            item {
+                OutlinedTextField(
+                    value = host,
+                    onValueChange = { host = it },
                     label = { Text(stringResource(R.string.host)) },
                     placeholder = { Text("192.168.1.1") },
                     singleLine = true,
@@ -738,8 +1068,38 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
             }
             item {
                 OutlinedTextField(
-                    value = viewModel.port,
-                    onValueChange = { viewModel.port = it },
+                    value = port,
+                    onValueChange = { port = it },
+                    label = { Text(stringResource(R.string.port)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            item { HorizontalDivider() }
+            item { SectionLabel(stringResource(R.string.section_fallback)) }
+            item {
+                Text(
+                    stringResource(R.string.fallback_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            item {
+                OutlinedTextField(
+                    value = fallbackHost,
+                    onValueChange = { fallbackHost = it },
+                    label = { Text(stringResource(R.string.host)) },
+                    placeholder = { Text("100.64.0.1") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            item {
+                OutlinedTextField(
+                    value = fallbackPort,
+                    onValueChange = { fallbackPort = it },
                     label = { Text(stringResource(R.string.port)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -750,8 +1110,8 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
             item { SectionLabel(stringResource(R.string.section_auth)) }
             item {
                 OutlinedTextField(
-                    value = viewModel.token,
-                    onValueChange = { viewModel.token = it },
+                    value = token,
+                    onValueChange = { token = it },
                     label = { Text(stringResource(R.string.token)) },
                     singleLine = true,
                     visualTransformation = if (tokenVisible) VisualTransformation.None
@@ -774,13 +1134,39 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
                 )
             }
             item { HorizontalDivider() }
+            item { SectionLabel(stringResource(R.string.section_qr)) }
+            item {
+                Text(
+                    stringResource(R.string.qr_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            item {
+                OutlinedButton(
+                    onClick = {
+                        // The QR carries the token in clear text — same secret,
+                        // different shape — so it sits behind the SAME device-auth
+                        // gate as the token "Show" button. Cancel/fail = no dialog,
+                        // no exposure at all.
+                        when {
+                            viewModel.appLockMode == "token" && activity != null &&
+                                deviceAuthAvailable(activity) ->
+                                promptDeviceAuth(activity, qrAuthTitle) { showQr = true }
+                            else -> showQr = true
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text(stringResource(R.string.qr_show)) }
+            }
+            item { HorizontalDivider() }
             item { SectionLabel(stringResource(R.string.section_default_target)) }
             item {
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     TARGET_OPTIONS.forEachIndexed { index, option ->
                         SegmentedButton(
-                            selected = viewModel.target == option,
-                            onClick = { viewModel.target = option },
+                            selected = target == option,
+                            onClick = { target = option },
                             shape = SegmentedButtonDefaults.itemShape(index = index, count = TARGET_OPTIONS.size),
                             icon = {},
                         ) { Text(option, maxLines = 1) }
@@ -791,15 +1177,29 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
             item {
                 Button(
                     onClick = {
-                        viewModel.save()
+                        viewModel.saveProfile(
+                            RouterProfile(
+                                id = targetId,
+                                // An unnamed profile still needs a recognizable list
+                                // label — fall back to the host.
+                                name = name.trim().ifEmpty { host.trim() },
+                                host = host.trim(),
+                                port = port.toIntOrNull()?.coerceIn(1, 65535) ?: 80,
+                                fallbackHost = fallbackHost.trim(),
+                                fallbackPort = fallbackPort.toIntOrNull()?.coerceIn(1, 65535) ?: 80,
+                                token = token.trim(),
+                                defaultTarget = target,
+                            )
+                        )
                         scope.launch { snackbarHostState.showSnackbar(savedMessage) }
                     },
+                    enabled = host.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text(stringResource(R.string.save)) }
             }
             item {
                 OutlinedButton(
-                    onClick = { viewModel.testConnection() },
+                    onClick = { viewModel.testConnection(host, port, token) },
                     enabled = testState !is TestUiState.Testing,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -813,6 +1213,102 @@ private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit)
             }
         }
     }
+
+    if (showQr) {
+        // Encodes THIS edited profile's current field values (saved or not) —
+        // showing the QR of a non-active profile shows that profile's own data.
+        val qrContent = buildSetupUri(
+            host = host.trim(),
+            port = port.trim(),
+            token = token.trim(),
+            fallbackHost = fallbackHost.trim(),
+            fallbackPort = fallbackPort.trim(),
+        )
+        // Long-press fallback for scanners that reject the styled look; resets
+        // to the styled view on every dialog opening.
+        var plainQr by remember { mutableStateOf(false) }
+        // Near-fullscreen so the code renders large — easier to scan and the
+        // styling actually reads (small-dialog rendering wasted both).
+        Dialog(
+            onDismissRequest = { showQr = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp, vertical = 20.dp),
+                shape = RoundedCornerShape(28.dp),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp, vertical = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        stringResource(R.string.qr_show_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(onLongPress = { plainQr = !plainQr })
+                                },
+                        ) {
+                            Crossfade(targetState = plainQr, label = "qr-style") { plain ->
+                                StyledQrCode(
+                                    content = qrContent,
+                                    plain = plain,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        stringResource(R.string.qr_plain_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.qr_show_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    TextButton(
+                        onClick = { showQr = false },
+                        modifier = Modifier.align(Alignment.End),
+                    ) { Text(stringResource(R.string.close)) }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * System QR scanner via Play services (no camera permission needed in-app).
+ * [onRaw] gets the decoded text, or null when cancelled/unavailable.
+ */
+private fun startQrScan(context: Context, onRaw: (String?) -> Unit) {
+    val options = GmsBarcodeScannerOptions.Builder()
+        .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+        .build()
+    GmsBarcodeScanning.getClient(context, options)
+        .startScan()
+        .addOnSuccessListener { onRaw(it.rawValue) }
+        .addOnCanceledListener { onRaw(null) }
+        .addOnFailureListener { onRaw(null) }
 }
 
 // --- Security (biometric / PIN lock) ----------------------------------------------
@@ -1008,6 +1504,81 @@ private fun BackupSettingsScreen(viewModel: BackupViewModel, onBack: () -> Unit)
     }
 }
 
+// --- History (local log of added domains) -----------------------------------------
+
+/**
+ * Read-only, phone-local history of successful adds (action=add / strat_add).
+ * Never synced with the router — it keeps no timestamps of its own.
+ */
+@Composable
+private fun HistorySettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
+    SettingsChildScaffold(stringResource(R.string.section_history), onBack) { padding ->
+        val context = LocalContext.current
+        val store = remember { HistoryStore.get(context) }
+        val entries by store.entries.collectAsState()
+        // History is per router profile — reload for the active one.
+        val activeRouterId by viewModel.activeProfileId.collectAsState()
+        LaunchedEffect(activeRouterId) {
+            withContext(Dispatchers.IO) { store.reload(activeRouterId) }
+        }
+        val dateFormat = remember { SimpleDateFormat("d MMM yyyy, HH:mm", Locale.getDefault()) }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            item {
+                Text(
+                    stringResource(R.string.history_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            val list = entries
+            if (list != null && list.isEmpty()) {
+                item {
+                    Text(
+                        stringResource(R.string.history_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 16.dp),
+                    )
+                }
+            }
+            if (list != null) {
+                items(list.size, key = { list[it].id }) { index ->
+                    val entry = list[index]
+                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                            Text(
+                                entry.domain,
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = buildString {
+                                    append(dateFormat.format(Date(entry.timeMillis)))
+                                    entry.target?.let { append(" · ").append(it) }
+                                    entry.engine?.let { engine ->
+                                        append(" · ").append(engine)
+                                        entry.strategy?.let { append(" #").append(it) }
+                                    }
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // --- Diagnostics (timeout + request log) ------------------------------------------
 
 @Composable
@@ -1019,6 +1590,8 @@ private fun DiagnosticsSettingsScreen(viewModel: SettingsViewModel, onBack: () -
         val copiedMessage = stringResource(R.string.copied)
         var timeout by remember { mutableStateOf(viewModel.httpTimeoutSeconds.toFloat()) }
         val timeFormat = remember { SimpleDateFormat("HH:mm:ss", Locale.US) }
+        var showRebootConfirm by remember { mutableStateOf(false) }
+        val rebootState by viewModel.rebootState.collectAsState()
 
         Column(
             modifier = Modifier
@@ -1046,6 +1619,18 @@ private fun DiagnosticsSettingsScreen(viewModel: SettingsViewModel, onBack: () -
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
+
+            HorizontalDivider()
+            SectionLabel(stringResource(R.string.section_router))
+            OutlinedButton(
+                onClick = { showRebootConfirm = true },
+                enabled = rebootState == null,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(stringResource(R.string.reboot_router)) }
+            viewModel.rebootError?.let { ErrorCard(it) }
 
             HorizontalDivider()
             Row(
@@ -1091,6 +1676,345 @@ private fun DiagnosticsSettingsScreen(viewModel: SettingsViewModel, onBack: () -
             entries.forEach { entry ->
                 ApiLogEntryCard(entry, timeFormat)
             }
+        }
+
+        // Two-step confirmation: the server fires the reboot immediately with no
+        // soft warning of its own, so the dialog carries the full consequences.
+        if (showRebootConfirm) {
+            AlertDialog(
+                onDismissRequest = { showRebootConfirm = false },
+                title = { Text(stringResource(R.string.reboot_confirm_title)) },
+                text = { Text(stringResource(R.string.reboot_confirm_text)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showRebootConfirm = false
+                        viewModel.requestReboot()
+                    }) {
+                        Text(
+                            stringResource(R.string.reboot_confirm_button),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRebootConfirm = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                },
+            )
+        }
+
+        rebootState?.let { state ->
+            RebootOverlay(
+                state = state,
+                onCheck = { viewModel.rebootCheckConnection() },
+                onDismiss = { viewModel.dismissReboot() },
+            )
+        }
+    }
+}
+
+/**
+ * Full-screen "router is rebooting" overlay: countdown while the router is down,
+ * then a connection check reusing the Test Connection logic. Rendered as an
+ * un-dismissable full-size Dialog so it covers the bottom navigation too; the
+ * explicit Hide button is the only way out.
+ */
+@Composable
+private fun RebootOverlay(
+    state: RebootUiState,
+    onCheck: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+        ),
+    ) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Icon(
+                    Icons.Filled.RestartAlt,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(56.dp),
+                )
+                Spacer(Modifier.height(20.dp))
+                Text(
+                    stringResource(R.string.rebooting_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(R.string.rebooting_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(28.dp))
+                when (state) {
+                    is RebootUiState.Requesting -> CircularProgressIndicator()
+                    is RebootUiState.Waiting -> Text(
+                        stringResource(R.string.reboot_countdown, state.secondsLeft),
+                        style = MaterialTheme.typography.displaySmall,
+                    )
+                    is RebootUiState.CheckReady -> {
+                        Text(
+                            stringResource(R.string.reboot_check_ready),
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = onCheck) {
+                            Text(stringResource(R.string.test_connection))
+                        }
+                    }
+                    is RebootUiState.Checking -> {
+                        CircularProgressIndicator()
+                        Spacer(Modifier.height(12.dp))
+                        Text(stringResource(R.string.testing))
+                    }
+                    is RebootUiState.CheckDone -> {
+                        Text(
+                            state.message.resolve(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (state.ok) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        if (state.ok) {
+                            Button(onClick = onDismiss) { Text(stringResource(R.string.done)) }
+                        } else {
+                            Button(onClick = onCheck) { Text(stringResource(R.string.retry)) }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(32.dp))
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.hide_overlay))
+                }
+            }
+        }
+    }
+}
+
+// --- Monitoring (opt-in background WAN/disk/latency checks) -----------------------
+
+@Composable
+private fun MonitoringSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
+    SettingsChildScaffold(stringResource(R.string.section_monitoring), onBack) { padding ->
+        val context = LocalContext.current
+        var interval by remember { mutableFloatStateOf(viewModel.monitoringIntervalMinutes.toFloat()) }
+        val groupNames by viewModel.mihomoGroupNames.collectAsState()
+        var selectedGroup by remember { mutableStateOf(viewModel.latencyMonitorGroup()) }
+        LaunchedEffect(Unit) { viewModel.loadMihomoGroupNames() }
+
+        val permissionLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) {
+            // Turn monitoring on either way — a denied permission just means
+            // Android itself will suppress the notifications; the background
+            // checks (and their WAN/disk state tracking) are still useful.
+            viewModel.setMonitoringEnabled(true)
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                stringResource(R.string.monitoring_explain),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    stringResource(R.string.monitoring_enable),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f).padding(end = 16.dp),
+                )
+                Switch(
+                    checked = viewModel.monitoringEnabled,
+                    onCheckedChange = { checked ->
+                        val needsPermission = checked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                            PackageManager.PERMISSION_GRANTED
+                        if (needsPermission) {
+                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            viewModel.setMonitoringEnabled(checked)
+                        }
+                    },
+                )
+            }
+
+            if (viewModel.monitoringEnabled) {
+                HorizontalDivider()
+                SectionLabel(stringResource(R.string.monitoring_interval_title))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Slider(
+                        value = interval,
+                        onValueChange = { interval = it },
+                        onValueChangeFinished = { viewModel.setMonitoringInterval(interval.roundToInt()) },
+                        valueRange = 15f..180f,
+                        steps = 10,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        stringResource(R.string.monitoring_interval_value, interval.roundToInt()),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+
+                HorizontalDivider()
+                MonitorToggleRow(
+                    title = stringResource(R.string.monitoring_wan_title),
+                    subtitle = stringResource(R.string.monitoring_wan_desc),
+                    checked = viewModel.monitorWanIp,
+                    onCheckedChange = { viewModel.setMonitorWanIp(it) },
+                )
+                MonitorToggleRow(
+                    title = stringResource(R.string.monitoring_disk_title),
+                    subtitle = stringResource(R.string.monitoring_disk_desc),
+                    checked = viewModel.monitorDiskSpace,
+                    onCheckedChange = { viewModel.setMonitorDiskSpace(it) },
+                )
+
+                HorizontalDivider()
+                SectionLabel(stringResource(R.string.monitoring_latency_title))
+                Text(
+                    stringResource(R.string.monitoring_latency_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedGroup = null
+                                viewModel.setLatencyMonitorGroup(null)
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = selectedGroup == null, onClick = {
+                            selectedGroup = null
+                            viewModel.setLatencyMonitorGroup(null)
+                        })
+                        Text(stringResource(R.string.monitoring_latency_off), modifier = Modifier.padding(start = 12.dp))
+                    }
+                    groupNames?.forEach { name ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selectedGroup = name
+                                    viewModel.setLatencyMonitorGroup(name)
+                                }
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(selected = selectedGroup == name, onClick = {
+                                selectedGroup = name
+                                viewModel.setLatencyMonitorGroup(name)
+                            })
+                            Text(
+                                name,
+                                modifier = Modifier.padding(start = 12.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonitorToggleRow(title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+// --- Shortcuts (dynamic App Shortcuts, 2-4 user-picked) ----------------------------
+
+@Composable
+private fun ShortcutsSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
+    SettingsChildScaffold(stringResource(R.string.section_shortcuts), onBack) { padding ->
+        var selected by remember { mutableStateOf(viewModel.enabledShortcutIds.toSet()) }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                stringResource(R.string.shortcuts_explain),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(8.dp))
+            SHORTCUT_CATALOG.forEach { spec ->
+                val checked = spec.id in selected
+                // 2-4 enabled at all times: block the tap that would break either edge.
+                val enabled = if (checked) selected.size > 2 else selected.size < 4
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = enabled) {
+                            val next = if (checked) selected - spec.id else selected + spec.id
+                            selected = next
+                            viewModel.setEnabledShortcutIds(next.toList())
+                        }
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(checked = checked, onCheckedChange = null, enabled = enabled)
+                    Text(stringResource(spec.labelRes), modifier = Modifier.padding(start = 12.dp))
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.shortcuts_min_max_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

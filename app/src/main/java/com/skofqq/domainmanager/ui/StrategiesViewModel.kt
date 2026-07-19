@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.skofqq.domainmanager.R
+import com.skofqq.domainmanager.data.HistoryStore
 import com.skofqq.domainmanager.data.RouterApi
 import com.skofqq.domainmanager.data.ServiceListResult
 import com.skofqq.domainmanager.data.StrategyEntry
@@ -46,7 +47,10 @@ sealed class ActiveEngineUiState {
  * currently running, so they are dispatched only from explicit confirm actions —
  * one call per press, never per input change.
  */
-class StrategiesViewModel(private val api: RouterApi) : ViewModel() {
+class StrategiesViewModel(
+    private val api: RouterApi,
+    private val history: HistoryStore? = null,
+) : ViewModel() {
 
     private val zapret2State = MutableStateFlow(EngineStrategiesUiState())
     private val zapretState = MutableStateFlow(EngineStrategiesUiState())
@@ -66,6 +70,14 @@ class StrategiesViewModel(private val api: RouterApi) : ViewModel() {
 
     /** Minimum valid strategy: zapret v1 has no "no personal lock" state, so 0 is forbidden. */
     fun minStrategy(engine: String): Int = if (engine == ENGINE_ZAPRET) 1 else 0
+
+    /** Active router switched: forget both engines' lists and re-determine from scratch. */
+    fun reset() {
+        zapret2State.value = EngineStrategiesUiState()
+        zapretState.value = EngineStrategiesUiState()
+        _activeEngineState.value = ActiveEngineUiState.Loading
+        refreshActiveEngine()
+    }
 
     /** svc_list → which zapret engine is running now (picks the list the page shows). */
     fun refreshActiveEngine() {
@@ -149,6 +161,11 @@ class StrategiesViewModel(private val api: RouterApi) : ViewModel() {
         viewModelScope.launch {
             flow.update { it.copy(busyDomain = domain, error = null) }
             val result = withContext(Dispatchers.IO) { api.strategyAction(engine, domain, action, strategy) }
+            if (action == "strat_add" && result is StrategyResult.Success) {
+                withContext(Dispatchers.IO) {
+                    history?.logStrategy(api.prefs.activeProfileId, result.domain, engine, result.strategy)
+                }
+            }
             when (result) {
                 is StrategyResult.Success -> {
                     if (action != "strat_remove" && result.strategy == null) {
@@ -179,8 +196,11 @@ class StrategiesViewModel(private val api: RouterApi) : ViewModel() {
         else (rest + StrategyEntry(domain, strategy)).sortedBy { it.domain }
     }
 
-    class Factory(private val api: RouterApi) : ViewModelProvider.Factory {
+    class Factory(
+        private val api: RouterApi,
+        private val history: HistoryStore? = null,
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = StrategiesViewModel(api) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = StrategiesViewModel(api, history) as T
     }
 }

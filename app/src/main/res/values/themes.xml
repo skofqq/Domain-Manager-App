@@ -4,6 +4,16 @@
         <item name="android:windowBackground">@color/window_background</item>
     </style>
 
+    <!-- Headless deep-link handler (routerdomains://add): keeps the caller's screen
+         visible while the API call runs, only a toast appears -->
+    <style name="Theme.DomainManager.Transparent" parent="Theme.DomainManager">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
     <!-- Splash screen theme (core-splashscreen compat) -->
     <style name="Theme.DomainManager.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>

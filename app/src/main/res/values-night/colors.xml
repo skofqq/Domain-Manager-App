@@ -2,4 +2,6 @@
 <resources>
     <!-- Dark counterpart of the brand scheme surface (see values/colors.xml) -->
     <color name="window_background">#FF14140D</color>
+    <color name="widget_text">#FFECECE4</color>
+    <color name="widget_text_secondary">#99C9C9C0</color>
 </resources>

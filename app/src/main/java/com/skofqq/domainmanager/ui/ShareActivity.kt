@@ -44,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.skofqq.domainmanager.R
+import com.skofqq.domainmanager.data.HistoryStore
 import com.skofqq.domainmanager.data.PrefsStore
 import com.skofqq.domainmanager.data.RouterApi
 import com.skofqq.domainmanager.ui.theme.DomainManagerTheme
@@ -53,7 +54,9 @@ import kotlinx.coroutines.CancellationException
 class ShareActivity : AppCompatActivity() {
     private val prefs by lazy { PrefsStore(this) }
     private val api by lazy { RouterApi(prefs, applicationContext) }
-    private val viewModel by viewModels<DomainViewModel> { DomainViewModel.Factory(api) }
+    private val viewModel by viewModels<DomainViewModel> {
+        DomainViewModel.Factory(api, HistoryStore.get(this))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()

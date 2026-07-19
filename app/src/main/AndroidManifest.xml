@@ -9,6 +9,9 @@
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
     <!-- Optional app lock (Settings → Security) -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Background monitoring notifications (Settings → Мониторинг), opt-in and
+         API 33+ only requires a runtime prompt; harmless to declare unconditionally -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
         usesCleartextTraffic is intentional: the app communicates only with a
@@ -36,6 +39,31 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- App Actions / Assistant capability mapping (see xml/shortcuts.xml) -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
+
+        <!-- Headless automation endpoint: routerdomains://add?domain=X fires
+             action=add and shows only a toast (Tasker / App Actions). The setup
+             host is deliberately NOT registered — QR setup is parsed only by the
+             in-app scanner so a random link can't overwrite credentials. -->
+        <activity
+            android:name=".ui.DeepLinkActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.DomainManager.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="routerdomains"
+                    android:host="add" />
             </intent-filter>
         </activity>
 
@@ -67,6 +95,20 @@
                 android:name="autoStoreLocales"
                 android:value="true" />
         </service>
+
+        <!-- Home-screen widget: 4 service status dots, refreshed on the widget's
+             own 30-min schedule via a WorkManager one-time job -->
+        <receiver
+            android:name=".widget.ServicesWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_services_info" />
+        </receiver>
 
         <!-- Optional Quick Settings tile -->
         <service

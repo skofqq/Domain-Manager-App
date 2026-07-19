@@ -18,8 +18,8 @@ android {
         applicationId = "com.skofqq.domainmanager"
         minSdk = 29
         targetSdk = 37
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -90,6 +90,13 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.androidx.security.crypto)
     implementation(libs.kotlinx.coroutines.android)
+
+    // Home-screen widget refresh (svc_list poll on the widget's schedule)
+    implementation(libs.androidx.work.runtime)
+    // QR generation (setup QR in Authorization settings)
+    implementation(libs.zxing.core)
+    // System QR scanner via Play services — no in-app camera permission
+    implementation(libs.play.services.code.scanner)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

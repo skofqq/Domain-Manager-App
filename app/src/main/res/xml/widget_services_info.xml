@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    updatePeriodMillis (30 min, the platform minimum) fires onUpdate on the
+    provider, which enqueues a WorkManager one-time refresh — the standard
+    widget-schedule → WorkManager pattern, no foreground service.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="40dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="1800000"
+    android:resizeMode="horizontal"
+    android:widgetCategory="home_screen"
+    android:initialLayout="@layout/widget_services"
+    android:previewLayout="@layout/widget_services"
+    android:description="@string/widget_description" />

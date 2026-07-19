@@ -16,4 +16,7 @@
          IN-APP theme (which may be forced light/dark against the system mode) -->
     <color name="window_background_light">#FFFBFAEE</color>
     <color name="window_background_dark">#FF14140D</color>
+    <!-- Home-screen widget text on @color/window_background (night variant below) -->
+    <color name="widget_text">#FF1D1D1F</color>
+    <color name="widget_text_secondary">#994A4A45</color>
 </resources>

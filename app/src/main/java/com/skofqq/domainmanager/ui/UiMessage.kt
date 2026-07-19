@@ -44,8 +44,14 @@ fun apiErrorMessage(code: Int, error: String): UiMessage = when (error) {
     "bad_domain" -> UiMessage(R.string.err_bad_domain)
     "empty_domain" -> UiMessage(R.string.err_empty_domain)
     "bad_service" -> UiMessage(R.string.err_bad_service)
+    "bad_host" -> UiMessage(R.string.err_bad_host)
+    "bad_mac" -> UiMessage(R.string.err_bad_mac)
+    "etherwake_not_installed" -> UiMessage(R.string.err_etherwake_missing)
     "bad_engine" -> UiMessage(R.string.err_bad_engine)
     "bad_strategy" -> UiMessage(R.string.err_bad_strategy)
+    // 502: the mihomo controller itself is down — a distinct case from our API failing.
+    "mihomo_unreachable" -> UiMessage(R.string.err_mihomo_unreachable)
+    "mihomo_select_failed" -> UiMessage(R.string.err_mihomo_select_failed)
     else -> UiMessage(R.string.err_generic, listOf(code, error))
 }
 

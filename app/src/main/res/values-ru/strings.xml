@@ -42,6 +42,7 @@
     <string name="no_strat_domains">Доменов с персональной стратегией пока нет.</string>
     <string name="strategy_pool_short">Общий пул</string>
     <string name="search_domains">Поиск по доменам</string>
+    <string name="search_or_add_domain">Поиск или добавление домена</string>
     <string name="clear_search">Очистить поиск</string>
     <string name="search_no_results">Ничего не найдено.</string>
     <string name="pick_strategy">Выбрать стратегию</string>
@@ -53,6 +54,46 @@
     </plurals>
 
     <!-- Status (services) screen -->
+    <string name="health_model">Модель</string>
+    <string name="health_firmware">Прошивка</string>
+    <string name="health_uptime">Время работы</string>
+    <string name="health_load">Средняя нагрузка</string>
+    <string name="health_cpu_temp">Температура CPU</string>
+    <string name="health_memory">Память</string>
+    <string name="health_wan_ip">IPv4</string>
+    <string name="health_wan_ipv6">IPv6</string>
+    <string name="dur_days_hours">%1$dд %2$dч</string>
+    <string name="dur_hours_minutes">%1$dч %2$dм</string>
+    <string name="dur_minutes">%1$dм</string>
+    <string name="devices_title">Устройства</string>
+    <string name="device_unknown">Неизвестное устройство</string>
+    <string name="device_icon_title">Значок устройства</string>
+    <string name="device_icon_auto">Авто</string>
+    <string name="device_type_speaker">Колонка</string>
+    <string name="device_type_bulb">Лампа</string>
+    <string name="device_type_phone">Телефон</string>
+    <string name="device_type_pc">ПК</string>
+    <string name="device_type_laptop">Ноутбук</string>
+    <string name="device_type_router">Роутер</string>
+    <string name="device_type_zigbee">ZigBee-шлюз</string>
+    <string name="device_type_printer">Принтер</string>
+    <string name="device_type_socket">Розетка</string>
+    <string name="device_type_tv">Телевизор</string>
+    <string name="device_type_storage">Хранилище</string>
+    <string name="device_type_camera">Камера</string>
+    <string name="device_type_generic">Другое</string>
+    <plurals name="n_devices_online">
+        <item quantity="one">%d устройство в сети</item>
+        <item quantity="few">%d устройства в сети</item>
+        <item quantity="many">%d устройств в сети</item>
+        <item quantity="other">%d устройства в сети</item>
+    </plurals>
+    <string name="device_scan_progress">%1$d/%2$d</string>
+    <string name="wake_device">Разбудить</string>
+    <string name="wake_sent">Wake-on-LAN-пакет отправлен</string>
+    <string name="favorite_device">Добавить в избранное</string>
+    <string name="unfavorite_device">Убрать из избранного</string>
+    <string name="health_disk">Диск (/overlay)</string>
     <string name="svc_running">Работает</string>
     <string name="svc_stopped">Остановлена</string>
     <string name="svc_failed">Сбой</string>
@@ -60,6 +101,64 @@
     <string name="svc_start">Запустить</string>
     <string name="svc_stop">Остановить</string>
     <string name="svc_restart">Перезапустить</string>
+    <string name="service_log_button">Логи</string>
+    <string name="service_log_title">Логи %1$s</string>
+    <string name="service_log_empty">Логов не найдено</string>
+    <string name="refresh">Обновить</string>
+
+    <!-- mihomo drill-down -->
+    <string name="section_proxy_groups">Proxy-группы</string>
+    <string name="groups_view_grid">Плитки</string>
+    <string name="groups_view_list">Список</string>
+    <string name="section_traffic">Трафик</string>
+    <string name="section_connections">Активные соединения</string>
+    <string name="traffic_download">Загрузка</string>
+    <string name="traffic_upload">Отдача</string>
+    <string name="speed_value">%1$s/с</string>
+    <string name="traffic_total">Всего %1$s</string>
+    <string name="no_connections">Нет активных соединений</string>
+    <string name="close_connection">Закрыть соединение</string>
+    <string name="err_mihomo_unreachable">mihomo не отвечает — проверьте, что служба запущена</string>
+    <string name="err_mihomo_select_failed">mihomo не принял переключение ноды</string>
+    <string name="traffic_chart_caption">Последние ~5 минут, через mihomo</string>
+    <string name="mihomo_only_note">Только трафик через mihomo-прокси — не весь трафик устройства.</string>
+    <string name="source_all">Все</string>
+    <string name="source_traffic_summary">%1$s: ↓ %2$s · ↑ %3$s (только через mihomo)</string>
+
+    <!-- Network diagnostics -->
+    <string name="diag_net_title">Диагностика сети</string>
+    <string name="diag_host_section">Ping / traceroute</string>
+    <string name="diag_ping">Ping</string>
+    <string name="diag_traceroute">Traceroute</string>
+    <string name="diag_preset_wan">WAN %1$s</string>
+    <string name="ping_result_ok">Доступен · потери %1$d%% · среднее %2$s мс</string>
+    <string name="ping_result_fail">Нет ответа (100%% потерь)</string>
+    <string name="trace_title">Маршрут до %1$s</string>
+    <string name="diag_speedtest_title">Тест скорости</string>
+    <string name="diag_speedtest_note">Измеряет скорость загрузки WAN самого РОУТЕРА, а не Wi-Fi этого телефона. Занимает до ~25 секунд.</string>
+    <string name="diag_speedtest_run">Запустить тест скорости</string>
+    <string name="diag_speedtest_running">Измерение…</string>
+    <string name="diag_speedtest_result_label">Загрузка WAN роутера</string>
+    <string name="speed_mbps">%1$s Мбит/с</string>
+    <string name="diag_tunnel_title">Проверка туннеля</string>
+    <string name="diag_tunnel_note">Встроенный тест задержки mihomo — все ноды группы разом. Нода без ответа за 5 с помечается как не отвечающая.</string>
+    <string name="diag_tunnel_run">Проверить ноды</string>
+    <string name="diag_tunnel_running">Проверка…</string>
+    <string name="ms_value">%1$d мс</string>
+    <string name="ms_value_frac">%1$s мс</string>
+    <string name="node_no_response">Не отвечает</string>
+
+    <!-- MagiTrickle groups overview -->
+    <string name="magitrickle_groups_title">Группы MagiTrickle</string>
+    <string name="magitrickle_groups_empty">На роутере не настроено ни одной группы.</string>
+    <string name="magitrickle_group_no_rules">В этой группе нет правил.</string>
+    <plurals name="n_rules">
+        <item quantity="one">%d правило</item>
+        <item quantity="few">%d правила</item>
+        <item quantity="many">%d правил</item>
+        <item quantity="other">%d правила</item>
+    </plurals>
+    <string name="domain_in_group">Уже в группе «%1$s»</string>
 
     <!-- Share screen -->
     <string name="share_title">Добавить на роутер</string>
@@ -70,7 +169,24 @@
     <!-- Settings screen -->
     <string name="settings_appearance_desc">Изменить тему приложения</string>
     <string name="settings_auth_title">Авторизация</string>
-    <string name="settings_auth_desc">Адрес роутера и токен</string>
+    <string name="settings_auth_desc">Профили роутеров и токены</string>
+
+    <!-- Router profiles -->
+    <string name="default_profile_name">Мой роутер</string>
+    <string name="settings_profiles_hint">Отмеченный профиль — активный: все вкладки работают с ним. Тап по строке — редактирование.</string>
+    <string name="profile_add">Добавить роутер</string>
+    <string name="profile_new_title">Новый роутер</string>
+    <string name="profile_name">Название</string>
+    <string name="profile_name_placeholder">Дом</string>
+    <string name="profile_delete_title">Удалить профиль?</string>
+    <string name="profile_delete_text">«%1$s» будет удалён с этого телефона. Сам роутер не затрагивается.</string>
+    <string name="profile_delete_last_warning">Это единственный настроенный роутер — вы останетесь совсем без профилей.</string>
+    <string name="delete">Удалить</string>
+    <string name="update">Обновить</string>
+    <string name="qr_profile_added">Профиль «%1$s» добавлен</string>
+    <string name="qr_update_title">Обновить профиль?</string>
+    <string name="qr_update_text">QR содержит адрес существующего профиля «%1$s» — обновить его данные, а не создавать дубликат?</string>
+    <string name="auth_to_show_qr">Подтвердите, чтобы показать QR-код</string>
     <!-- Security -->
     <string name="section_security">Безопасность</string>
     <string name="settings_security_desc">Биометрия и PIN</string>
@@ -106,6 +222,34 @@
     <string name="backup_parse_error">Не удалось разобрать данные — ожидается JSON снимка или список доменов</string>
     <string name="backup_empty">Нет записей для импорта</string>
 
+    <!-- QR setup -->
+    <string name="section_qr">QR-код</string>
+    <string name="qr_hint">Перенос настроек на другой телефон: покажите QR здесь, отсканируйте там.</string>
+    <string name="qr_show">Показать QR</string>
+    <string name="qr_scan">Сканировать QR</string>
+    <string name="qr_show_title">Настройки подключения</string>
+    <string name="qr_show_warning">Код содержит адрес, порт и токен доступа в открытом виде — показывайте его только доверенным устройствам.</string>
+    <string name="qr_scanned">Отсканировано — проверьте поля и нажмите «Сохранить»</string>
+    <string name="qr_plain_hint">Долгое нажатие по коду — переключение на обычный QR (для капризных сканеров) и обратно.</string>
+    <string name="qr_invalid">Это не QR-код настроек Domain Manager</string>
+
+    <!-- History -->
+    <string name="section_history">История</string>
+    <string name="settings_history_desc">Локальный журнал добавленных доменов</string>
+    <string name="history_note">Хранится только на этом телефоне: каждое успешное добавление записывается с датой. Роутер не хранит таймстампы, поэтому список с ним не синхронизируется.</string>
+    <string name="history_empty">Пока пусто — добавленные домены появятся здесь.</string>
+
+    <!-- Deep link / automation -->
+    <string name="deeplink_added">%1$s добавлен на роутер</string>
+
+    <!-- Widget -->
+    <string name="widget_label">Статус служб</string>
+    <string name="widget_description">Точки статуса служб роутера</string>
+    <string name="widget_label_mihomo">mihomo</string>
+    <string name="widget_label_magitrickle">MT</string>
+    <string name="widget_label_zapret">zapret</string>
+    <string name="widget_label_zapret2">zapret2</string>
+
     <!-- Diagnostics -->
     <string name="section_diagnostics">Диагностика</string>
     <string name="settings_diagnostics_desc">Таймауты и отладка запросов</string>
@@ -115,6 +259,75 @@
     <string name="diag_log_note">Токен в URL замаскирован — лог можно копировать и отправлять для репорта проблемы.</string>
     <string name="diag_log_empty">Запросов пока не было.</string>
     <string name="diag_failed">СБОЙ</string>
+
+    <!-- Background monitoring (items 1, 2, 6) -->
+    <string name="section_monitoring">Мониторинг</string>
+    <string name="settings_monitoring_desc">Фоновая проверка WAN IP, диска и задержки</string>
+    <string name="monitoring_explain">Периодически проверяет роутер в фоне и уведомляет об изменении WAN IP, нехватке места на диске или деградации задержки прокси. Использует WorkManager и работает только при наличии сети.</string>
+    <string name="monitoring_enable">Включить фоновый мониторинг</string>
+    <string name="monitoring_interval_title">Интервал проверки</string>
+    <string name="monitoring_interval_value">%1$d мин</string>
+    <string name="monitoring_wan_title">Изменение WAN IP</string>
+    <string name="monitoring_wan_desc">Уведомлять при смене WAN IPv4/IPv6 роутера</string>
+    <string name="monitoring_disk_title">Место на диске</string>
+    <string name="monitoring_disk_desc">Уведомлять, когда /overlay заполнен на 90%</string>
+    <string name="monitoring_latency_title">Деградация задержки</string>
+    <string name="monitoring_latency_desc">Выберите proxy-группу для отслеживания — уведомление придёт, если задержка активной ноды выросла примерно вдвое или она перестала отвечать.</string>
+    <string name="monitoring_latency_off">Выключено</string>
+
+    <!-- Notifications (fired by RouterMonitorWorker) -->
+    <string name="notif_channel_name">Мониторинг роутера</string>
+    <string name="notif_channel_desc">Изменение WAN IP, нехватка места на диске и деградация задержки</string>
+    <string name="notif_wan_changed_title">IP роутера изменился</string>
+    <string name="notif_wan_changed_text">%1$s → %2$s</string>
+    <string name="notif_disk_title">Мало места на диске</string>
+    <string name="notif_disk_text">/overlay заполнен на %1$d%%</string>
+    <string name="notif_latency_title">Соединение деградировало</string>
+    <string name="notif_latency_down_text">%1$s не отвечает</string>
+    <string name="notif_latency_degraded_text">%1$s: было %2$d мс, стало %3$d мс</string>
+
+    <!-- App Shortcuts (item 8) -->
+    <string name="section_shortcuts">Ярлыки приложения</string>
+    <string name="settings_shortcuts_desc">Выберите 2–4 действия для меню ярлыков лаунчера</string>
+    <string name="shortcuts_explain">Долгое нажатие на значок приложения открывает сразу одно из этих действий. Действия, требующие подтверждения (перезагрузка, обновление mihomo), всё равно требуют явного тапа внутри приложения — ярлык сам их не запускает.</string>
+    <string name="shortcuts_min_max_hint">Выберите от 2 до 4 ярлыков.</string>
+    <string name="shortcut_status">Статус</string>
+    <string name="shortcut_devices">Список устройств</string>
+    <string name="shortcut_reboot">Перезагрузка</string>
+    <string name="shortcut_mihomo_update">Обновить mihomo</string>
+    <string name="shortcut_speedtest">Проверка скорости</string>
+    <!-- Generic label for the Settings shortcut picker; the actual published
+         shortcut uses shortcut_zapret_restart_named with the live engine name. -->
+    <string name="shortcut_zapret_restart">Перезагрузить zapret/zapret2</string>
+    <string name="shortcut_zapret_restart_named">Перезагрузить %1$s</string>
+
+    <!-- Router info sheet (item 9) -->
+    <string name="router_sheet_routers">Роутеры</string>
+    <string name="router_sheet_versions">Версии служб</string>
+    <string name="loading">Загрузка…</string>
+    <string name="svc_name_mihomo">mihomo</string>
+    <string name="svc_name_magitrickle">MagiTrickle</string>
+    <string name="svc_name_zapret">zapret</string>
+    <string name="svc_name_zapret2">zapret2</string>
+    <string name="version_unknown">версия неизвестна</string>
+    <string name="check_for_updates">Проверить обновления</string>
+    <string name="update_to_version">Обновить до %1$s</string>
+    <string name="whats_new_in">Что нового в %1$s</string>
+    <string name="mihomo_up_to_date">%1$s — последняя</string>
+    <string name="mihomo_updating">Обновление mihomo…</string>
+    <string name="mihomo_update_confirm_title">Обновить mihomo?</string>
+    <string name="mihomo_update_confirm_text">mihomo будет остановлен, заменён на новую версию и перезапущен. Это может занять некоторое время и ненадолго прервёт маршрутизацию трафика.</string>
+
+    <!-- Router reboot -->
+    <string name="reboot_router">Reboot</string>
+    <string name="reboot_confirm_title">Перезагрузить роутер?</string>
+    <string name="reboot_confirm_text">Роутер и все подключённые сервисы будут недоступны 1–2 минуты. Активные соединения оборвутся.</string>
+    <string name="reboot_confirm_button">Перезагрузить</string>
+    <string name="rebooting_title">Роутер перезагружается…</string>
+    <string name="rebooting_hint">Обычно это занимает 1–2 минуты.</string>
+    <string name="reboot_countdown">~%1$d с</string>
+    <string name="reboot_check_ready">Роутер уже должен подняться — проверьте подключение.</string>
+    <string name="hide_overlay">Скрыть</string>
 
     <string name="settings_about_title">О приложении</string>
     <string name="settings_about_desc">Версия и сведения о приложении</string>
@@ -130,6 +343,8 @@
     <string name="token">Токен</string>
     <string name="show">Показать</string>
     <string name="hide">Скрыть</string>
+    <string name="section_fallback">Резервный адрес</string>
+    <string name="fallback_hint">Необязательно — используется автоматически, когда основной адрес не отвечает (например, адрес Tailscale). Оставьте хост пустым, чтобы отключить.</string>
     <string name="section_default_target">Цель по умолчанию</string>
     <string name="section_appearance">Внешний вид</string>
     <string name="theme_system">Системная</string>
@@ -154,6 +369,9 @@
     <string name="err_bad_domain">Неверный формат домена</string>
     <string name="err_empty_domain">Домен пуст</string>
     <string name="err_bad_service">Неизвестная служба</string>
+    <string name="err_bad_host">Неверный хост</string>
+    <string name="err_bad_mac">Неверный MAC-адрес</string>
+    <string name="err_etherwake_missing">На роутере не установлен etherwake</string>
     <string name="err_bad_engine">Неизвестный движок</string>
     <string name="err_bad_strategy">Номер стратегии вне допустимого диапазона</string>
     <string name="err_strategy_unconfirmed">Роутер не подтвердил изменение стратегии</string>

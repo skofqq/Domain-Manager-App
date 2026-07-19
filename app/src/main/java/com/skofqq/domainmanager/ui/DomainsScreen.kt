@@ -1,5 +1,7 @@
 package com.skofqq.domainmanager.ui
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
@@ -8,6 +10,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,13 +25,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -36,6 +39,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
@@ -44,19 +49,26 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -73,10 +85,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -92,6 +104,8 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.DomainStatus
+import com.skofqq.domainmanager.data.MagitrickleGroup
+import com.skofqq.domainmanager.data.RouterProfile
 import com.skofqq.domainmanager.util.extractDomain
 import kotlinx.coroutines.launch
 
@@ -260,11 +274,34 @@ private fun EngineSwitcher(
 fun DomainsScreen(
     domainsViewModel: DomainsViewModel,
     strategiesViewModel: StrategiesViewModel,
+    magitrickleGroupsViewModel: MagitrickleGroupsViewModel,
+    routerInfoViewModel: RouterInfoViewModel,
+    routerProfiles: List<RouterProfile>,
+    activeRouterId: String,
+    onSelectRouter: (String) -> Unit,
     onOpenStatus: () -> Unit,
+    /** True right after opening via the "mihomo_update" App Shortcut — auto-opens the router sheet once. */
+    autoOpenRouterSheet: Boolean = false,
+    onAutoOpenRouterSheetConsumed: () -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val pagerState = rememberPagerState { 2 }
     val scope = rememberCoroutineScope()
+
+    var showRouterSheet by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(autoOpenRouterSheet) {
+        if (autoOpenRouterSheet) {
+            showRouterSheet = true
+            onAutoOpenRouterSheetConsumed()
+        }
+    }
+
+    // Backs the "already in group X" typing hint on both pages below — loaded
+    // once up front so it's ready before the user starts typing.
+    val magitrickleGroupsState by magitrickleGroupsViewModel.state.collectAsState()
+    LaunchedEffect(Unit) {
+        if (magitrickleGroupsState.groups == null) magitrickleGroupsViewModel.refresh()
+    }
 
     // Engine switcher state for the Strategies page, hoisted here because its
     // trigger lives in the top bar. The override is per-visit: it resets when the
@@ -279,30 +316,47 @@ fun DomainsScreen(
 
     Scaffold(
         topBar = {
-            LargeTopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(stringResource(R.string.domains))
-                        Spacer(Modifier.weight(1f))
-                        // Compact "zapret2 ▾" dropdown pinned to the right edge —
-                        // only while the Strategies page shows an engine list;
-                        // irrelevant on Routing.
-                        if (onStrategiesPage && activeEngine != null && shownEngine != null) {
-                            EngineSwitcher(
-                                shown = shownEngine,
-                                active = activeEngine,
-                                onSelect = { engineOverride = it },
-                            )
+            Column {
+                // Full-width router bar — moved out of the cramped title row so
+                // it reads as its own destination, not an accessory next to the
+                // engine picker. Always visible: the active router matters to
+                // every page of every tab.
+                if (routerProfiles.isNotEmpty()) {
+                    RouterInfoBar(
+                        profiles = routerProfiles,
+                        activeId = activeRouterId,
+                        onClick = { showRouterSheet = true },
+                    )
+                }
+                LargeTopAppBar(
+                    title = {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(stringResource(R.string.domains))
+                            Spacer(Modifier.weight(1f))
+                            // Compact "zapret2 ▾" dropdown pinned to the right edge —
+                            // only while the Strategies page shows an engine list;
+                            // irrelevant on Routing.
+                            if (onStrategiesPage && activeEngine != null && shownEngine != null) {
+                                EngineSwitcher(
+                                    shown = shownEngine,
+                                    active = activeEngine,
+                                    onSelect = { engineOverride = it },
+                                )
+                            }
                         }
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+                    },
+                    // The router bar above already claims the status-bar inset —
+                    // without zeroing it here the LargeTopAppBar would pad twice.
+                    windowInsets = WindowInsets(0),
+                    scrollBehavior = scrollBehavior,
+                )
+            }
         },
         contentWindowInsets = WindowInsets(0),
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -326,18 +380,345 @@ fun DomainsScreen(
                 modifier = Modifier.fillMaxSize(),
             ) { page ->
                 when (page) {
-                    0 -> RoutingTab(domainsViewModel)
-                    1 -> StrategiesTab(strategiesViewModel, engineOverride, onOpenStatus)
+                    0 -> RoutingTab(domainsViewModel, magitrickleGroupsState.groups)
+                    1 -> StrategiesTab(strategiesViewModel, engineOverride, onOpenStatus, magitrickleGroupsState.groups)
                 }
             }
         }
     }
+
+    if (showRouterSheet) {
+        RouterInfoSheet(
+            profiles = routerProfiles,
+            activeId = activeRouterId,
+            onSelectRouter = onSelectRouter,
+            viewModel = routerInfoViewModel,
+            onDismiss = { showRouterSheet = false },
+        )
+    }
+}
+
+/**
+ * Full-width bar replacing the old cramped title-row pill: the active router's
+ * name/host, stretched across the screen, tapping opens [RouterInfoSheet].
+ */
+@Composable
+private fun RouterInfoBar(
+    profiles: List<RouterProfile>,
+    activeId: String,
+    onClick: () -> Unit,
+) {
+    val active = profiles.firstOrNull { it.id == activeId } ?: profiles.firstOrNull() ?: return
+    Surface(
+        onClick = onClick,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = active.name.ifEmpty { active.host },
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = "${active.host}:${active.port}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Icon(
+                Icons.Filled.KeyboardArrowDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/**
+ * Router bar's expanded panel: (a) the router-switching list, relocated from
+ * the old title-row dropdown, (b) installed versions of the four managed
+ * services (item 9 of the "10 features" request), (c) mihomo's check-update /
+ * update-with-confirm flow plus a changelog link — the only service with such
+ * an action.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RouterInfoSheet(
+    profiles: List<RouterProfile>,
+    activeId: String,
+    onSelectRouter: (String) -> Unit,
+    viewModel: RouterInfoViewModel,
+    onDismiss: () -> Unit,
+) {
+    val state by viewModel.state.collectAsState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Re-fetched every time the sheet opens — versions/update-availability can
+    // change on the router between visits and are cheap to re-read.
+    LaunchedEffect(Unit) { viewModel.loadVersions() }
+
+    var pendingUpdateConfirm by remember { mutableStateOf(false) }
+    LaunchedEffect(state.updateSucceeded) {
+        if (state.updateSucceeded) viewModel.clearUpdateSucceeded()
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.router_sheet_routers),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+            profiles.forEach { profile ->
+                val selected = profile.id == activeId
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.medium)
+                        .let {
+                            if (selected) it.background(
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
+                            ) else it
+                        }
+                        .clickable { onSelectRouter(profile.id) }
+                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            profile.name.ifEmpty { profile.host },
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            "${profile.host}:${profile.port}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    if (selected) Icon(Icons.Filled.Check, contentDescription = null)
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            Text(
+                text = stringResource(R.string.router_sheet_versions),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+
+            if (state.versionsLoading && state.versions == null) {
+                Row(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    Text(
+                        stringResource(R.string.loading),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else if (state.versionsError != null) {
+                Text(
+                    text = state.versionsError!!.resolve(),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+            } else {
+                val versions = state.versions
+                VersionRow(stringResource(R.string.svc_name_mihomo), versions?.mihomo)
+                MihomoUpdateSection(
+                    state = state,
+                    onCheckUpdate = { viewModel.checkMihomoUpdate() },
+                    onRequestUpdate = { pendingUpdateConfirm = true },
+                )
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                VersionRow(stringResource(R.string.svc_name_magitrickle), versions?.magitrickle)
+                VersionRow(stringResource(R.string.svc_name_zapret), versions?.zapret)
+                VersionRow(stringResource(R.string.svc_name_zapret2), versions?.zapret2)
+            }
+        }
+    }
+
+    if (pendingUpdateConfirm) {
+        AlertDialog(
+            onDismissRequest = { pendingUpdateConfirm = false },
+            title = { Text(stringResource(R.string.mihomo_update_confirm_title)) },
+            text = { Text(stringResource(R.string.mihomo_update_confirm_text)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingUpdateConfirm = false
+                        viewModel.confirmMihomoUpdate()
+                    },
+                ) { Text(stringResource(R.string.update)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingUpdateConfirm = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
 }
 
 @Composable
-private fun RoutingTab(viewModel: DomainsViewModel) {
+private fun VersionRow(name: String, version: String?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Text(
+            text = version?.takeIf { it.isNotBlank() } ?: stringResource(R.string.version_unknown),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/**
+ * Only mihomo has an update flow — plain-version rows for the other three
+ * services never show these controls.
+ */
+@Composable
+private fun MihomoUpdateSection(
+    state: RouterInfoUiState,
+    onCheckUpdate: () -> Unit,
+    onRequestUpdate: () -> Unit,
+) {
+    val context = LocalContext.current
+    val info = state.updateInfo
+
+    if (state.updating) {
+        Row(
+            modifier = Modifier.padding(start = 0.dp, top = 2.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+            Text(
+                stringResource(R.string.mihomo_updating),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        return
+    }
+
+    // The button itself never disappears — only its label/action changes with
+    // the check result: "Проверить обновления" → (up to date: still tappable to
+    // recheck) → (update available: becomes "Обновить", now triggers the
+    // confirm-gated mihomo_update instead of a recheck). A real Button, not a
+    // TextButton — it reads as an action here, not a hyperlink.
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        if (info != null && info.updateAvailable) {
+            FilledTonalButton(onClick = onRequestUpdate, modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    Icons.Filled.SystemUpdate,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.update_to_version, info.latest))
+            }
+        } else {
+            OutlinedButton(
+                onClick = onCheckUpdate,
+                enabled = !state.checkingUpdate,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                if (state.checkingUpdate) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.check_for_updates))
+                } else if (info != null) {
+                    Text(stringResource(R.string.mihomo_up_to_date, info.current))
+                } else {
+                    Text(stringResource(R.string.check_for_updates))
+                }
+            }
+        }
+    }
+
+    if (info != null && info.updateAvailable) {
+        Text(
+            text = stringResource(R.string.whats_new_in, info.latest),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .padding(start = 4.dp, bottom = 8.dp)
+                .clickable {
+                    val url = "https://github.com/MetaCubeX/mihomo/releases/tag/${info.latest}"
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                },
+        )
+    }
+
+    state.checkUpdateError?.let {
+        Text(
+            text = it.resolve(),
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+        )
+    }
+    state.updateError?.let {
+        Text(
+            text = it.resolve(),
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+        )
+    }
+}
+
+@Composable
+private fun RoutingTab(viewModel: DomainsViewModel, magitrickleGroups: List<MagitrickleGroup>?) {
     val state by viewModel.state.collectAsState()
-    var input by rememberSaveable { mutableStateOf("") }
+    // One field, two jobs: the text filters the list live AND is the input for
+    // the add action (+ / IME) — the pre-search separate "Domain" field is gone.
+    var query by rememberSaveable { mutableStateOf("") }
     var dialogEntry by remember { mutableStateOf<DomainStatus?>(null) }
     var editEntry by remember { mutableStateOf<DomainStatus?>(null) }
     val focusManager = LocalFocusManager.current
@@ -351,9 +732,9 @@ private fun RoutingTab(viewModel: DomainsViewModel) {
     }
 
     fun submit() {
-        if (input.isBlank()) return
+        if (query.isBlank()) return
         focusManager.clearFocus()
-        if (viewModel.addDomain(input)) input = ""
+        if (viewModel.addDomain(query)) query = ""
     }
 
     // First load (no cache yet) → skeleton rows; refreshes of already-shown data
@@ -361,100 +742,100 @@ private fun RoutingTab(viewModel: DomainsViewModel) {
     val firstLoad = state.domains == null && state.error == null
     val skeletonBrush = if (firstLoad) shimmerBrush() else null
 
-    PullToRefreshBox(
-        isRefreshing = state.isRefreshing && !firstLoad,
-        onRefresh = { viewModel.refresh() },
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Same pinned SearchBar look as the Strategies page, but this one also
+        // carries the old add-field's features: paste while empty, + / IME-action
+        // to add the typed domain.
+        RoutingSearchAddBar(
+            query = query,
+            onQueryChange = { query = it },
+            addEnabled = query.isNotBlank() && state.busyDomain == null,
+            onPaste = {
+                // URL-looking clip → registrable domain (same heuristic as the
+                // share flow); plain text → paste as-is for manual editing.
+                val clip = clipboard.getText()?.text?.trim().orEmpty()
+                if (clip.isNotBlank()) {
+                    query = extractDomain(clip) ?: clip
+                }
+            },
+            onAdd = ::submit,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+        )
+        // Domain already routed elsewhere via a MagiTrickle group (not the Custom
+        // one — that's already covered by the mihomo/MagiTrickle row indicators).
+        val existingGroup = remember(query, magitrickleGroups) { matchMagitrickleGroup(magitrickleGroups, query) }
+        existingGroup?.let { groupName ->
+            Text(
+                text = stringResource(R.string.domain_in_group, groupName),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp),
+            )
+        }
+        // Bottom padding: breathing room between the search bar (+ hint, if any)
+        // and the first list row (the list's own 8dp top padding alone read as "stuck").
+        Spacer(Modifier.height(8.dp))
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing && !firstLoad,
+            onRefresh = { viewModel.refresh() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
         ) {
-            item {
-                OutlinedTextField(
-                    value = input,
-                    onValueChange = { input = it },
-                    label = { Text(stringResource(R.string.domain)) },
-                    placeholder = { Text(stringResource(R.string.domain_placeholder)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Uri,
-                        imeAction = ImeAction.Done,
-                    ),
-                    keyboardActions = KeyboardActions(onDone = { submit() }),
-                    trailingIcon = {
-                        Row {
-                            IconButton(
-                                onClick = {
-                                    // URL-looking clip → registrable domain (same
-                                    // heuristic as the share flow); plain text →
-                                    // paste as-is for manual editing.
-                                    val clip = clipboard.getText()?.text?.trim().orEmpty()
-                                    if (clip.isNotBlank()) {
-                                        input = extractDomain(clip) ?: clip
-                                    }
-                                },
-                            ) {
-                                Icon(
-                                    Icons.Filled.ContentPaste,
-                                    contentDescription = stringResource(R.string.paste_from_clipboard),
-                                )
-                            }
-                            IconButton(
-                                onClick = ::submit,
-                                enabled = input.isNotBlank() && state.busyDomain == null,
-                            ) {
-                                Icon(
-                                    Icons.Filled.Add,
-                                    contentDescription = stringResource(R.string.add_domain),
-                                )
-                            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                state.error?.let { message ->
+                    item { ErrorCard(message) }
+                }
+
+                if (skeletonBrush != null) {
+                    items(8) { SkeletonDomainRow(skeletonBrush) }
+                }
+
+                val domains = state.domains
+                if (domains != null) {
+                    val filter = query.trim()
+                    val filtered =
+                        if (filter.isEmpty()) domains
+                        else domains.filter { it.domain.contains(filter, ignoreCase = true) }
+                    if (filtered.isEmpty() && !state.isRefreshing) {
+                        item {
+                            Text(
+                                text = stringResource(
+                                    if (domains.isEmpty()) R.string.no_domains
+                                    else R.string.search_no_results
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 32.dp),
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-
-            state.error?.let { message ->
-                item { ErrorCard(message) }
-            }
-
-            if (skeletonBrush != null) {
-                items(8) { SkeletonDomainRow(skeletonBrush) }
-            }
-
-            val domains = state.domains
-            if (domains != null) {
-                if (domains.isEmpty() && !state.isRefreshing) {
-                    item {
-                        Text(
-                            text = stringResource(R.string.no_domains),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 32.dp),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium,
+                    }
+                    items(filtered, key = { it.domain }) { entry ->
+                        DomainRow(
+                            entry = entry,
+                            busy = state.busyDomain == entry.domain,
+                            actionsEnabled = state.busyDomain == null,
+                            onLongPress = { editEntry = entry },
+                            onDelete = {
+                                if (entry.mihomo && entry.magitrickle) {
+                                    viewModel.removeFromTarget(entry.domain, "both")
+                                } else {
+                                    // Flags disagree (e.g. an old manual MagiTrickle entry):
+                                    // let the user pick what to change instead of touching both.
+                                    dialogEntry = entry
+                                }
+                            },
                         )
                     }
-                }
-                items(domains, key = { it.domain }) { entry ->
-                    DomainRow(
-                        entry = entry,
-                        busy = state.busyDomain == entry.domain,
-                        actionsEnabled = state.busyDomain == null,
-                        onLongPress = { editEntry = entry },
-                        onDelete = {
-                            if (entry.mihomo && entry.magitrickle) {
-                                viewModel.removeFromTarget(entry.domain, "both")
-                            } else {
-                                // Flags disagree (e.g. an old manual MagiTrickle entry):
-                                // let the user pick what to change instead of touching both.
-                                dialogEntry = entry
-                            }
-                        },
-                    )
                 }
             }
         }
@@ -532,6 +913,67 @@ private fun RoutingTab(viewModel: DomainsViewModel) {
             },
         )
     }
+}
+
+/**
+ * Routing's single top field: same collapsed SearchBar as Strategies, filtering
+ * as you type, plus the old add-field's actions — paste (while empty), clear and
+ * add (while filled); the IME action also submits the add.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RoutingSearchAddBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    addEnabled: Boolean,
+    onPaste: () -> Unit,
+    onAdd: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SearchBar(
+        inputField = {
+            SearchBarDefaults.InputField(
+                query = query,
+                onQueryChange = onQueryChange,
+                onSearch = { onAdd() },
+                expanded = false,
+                onExpandedChange = {},
+                placeholder = { Text(stringResource(R.string.search_or_add_domain)) },
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = {
+                    Row {
+                        if (query.isEmpty()) {
+                            IconButton(onClick = onPaste) {
+                                Icon(
+                                    Icons.Filled.ContentPaste,
+                                    contentDescription = stringResource(R.string.paste_from_clipboard),
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = { onQueryChange("") }) {
+                                Icon(
+                                    Icons.Filled.Close,
+                                    contentDescription = stringResource(R.string.clear_search),
+                                )
+                            }
+                            IconButton(onClick = onAdd, enabled = addEnabled) {
+                                Icon(
+                                    Icons.Filled.Add,
+                                    contentDescription = stringResource(R.string.add_domain),
+                                )
+                            }
+                        }
+                    }
+                },
+            )
+        },
+        expanded = false,
+        onExpandedChange = {},
+        // Default SearchBar insets add status-bar top padding even under a
+        // TopAppBar — same suppression as the Strategies search.
+        windowInsets = WindowInsets(0),
+        modifier = modifier,
+    ) {}
 }
 
 @OptIn(ExperimentalFoundationApi::class)

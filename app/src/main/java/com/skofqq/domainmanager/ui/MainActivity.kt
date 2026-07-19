@@ -1,5 +1,6 @@
 package com.skofqq.domainmanager.ui
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -48,28 +49,99 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.lerp
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.drop
+import androidx.compose.runtime.collectAsState
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.skofqq.domainmanager.R
+import com.skofqq.domainmanager.data.HistoryStore
 import com.skofqq.domainmanager.data.PrefsStore
 import com.skofqq.domainmanager.data.RouterApi
 import com.skofqq.domainmanager.ui.theme.DomainManagerTheme
+import com.skofqq.domainmanager.worker.RouterMonitorWorker
 
 class MainActivity : AppCompatActivity() {
     private val prefs by lazy { PrefsStore(this) }
     private val api by lazy { RouterApi(prefs, applicationContext) }
-    private val domainsViewModel by viewModels<DomainsViewModel> { DomainsViewModel.Factory(api) }
-    private val strategiesViewModel by viewModels<StrategiesViewModel> { StrategiesViewModel.Factory(api) }
+    private val history by lazy { HistoryStore.get(this) }
+    private val domainsViewModel by viewModels<DomainsViewModel> { DomainsViewModel.Factory(api, history) }
+    private val strategiesViewModel by viewModels<StrategiesViewModel> { StrategiesViewModel.Factory(api, history) }
     private val servicesViewModel by viewModels<ServicesViewModel> { ServicesViewModel.Factory(api) }
-    private val settingsViewModel by viewModels<SettingsViewModel> { SettingsViewModel.Factory(prefs, api) }
+    private val mihomoViewModel by viewModels<MihomoViewModel> { MihomoViewModel.Factory(api) }
+    private val diagnosticsViewModel by viewModels<DiagnosticsViewModel> { DiagnosticsViewModel.Factory(api) }
+    private val magitrickleGroupsViewModel by viewModels<MagitrickleGroupsViewModel> {
+        MagitrickleGroupsViewModel.Factory(api)
+    }
+    private val routerInfoViewModel by viewModels<RouterInfoViewModel> { RouterInfoViewModel.Factory(api) }
+    private val settingsViewModel by viewModels<SettingsViewModel> {
+        SettingsViewModel.Factory(prefs, api, applicationContext)
+    }
     private val backupViewModel by viewModels<BackupViewModel> { BackupViewModel.Factory(api) }
+
+    /**
+     * "shortcut_action" from a tapped App Shortcut's intent — read once in
+     * onCreate, refreshed by onNewIntent when the activity is already on top
+     * (singleTop). MainNavigation consumes and clears it via [consumeShortcutAction].
+     */
+    private var pendingShortcutAction by mutableStateOf<String?>(null)
+
+    /** Only set for the "zapret_restart" shortcut — which engine it was published for. */
+    private var pendingShortcutZapretEngine by mutableStateOf<String?>(null)
+
+    private fun consumeShortcutAction() {
+        pendingShortcutAction = null
+        pendingShortcutZapretEngine = null
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingShortcutAction = intent.getStringExtra(EXTRA_SHORTCUT_ACTION)
+        pendingShortcutZapretEngine = intent.getStringExtra(EXTRA_SHORTCUT_ZAPRET_ENGINE)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         applyStartupWindowBackground()
+        pendingShortcutAction = intent?.getStringExtra(EXTRA_SHORTCUT_ACTION)
+        pendingShortcutZapretEngine = intent?.getStringExtra(EXTRA_SHORTCUT_ZAPRET_ENGINE)
+        // Ensure the enabled shortcuts are actually published — covers first
+        // launch after install/update, not only after a Settings change. The
+        // zapret_restart entry needs a fresh svc_list to know which engine is
+        // running, so it only appears once the Compose-side refresh below lands.
+        AppShortcuts.publish(applicationContext, prefs.enabledShortcutIds)
+        // Re-affirm the monitor schedule on every cold start too — WorkManager
+        // survives app updates on its own, but this is a cheap safety net.
+        if (prefs.monitoringEnabled) {
+            RouterMonitorWorker.reschedule(applicationContext, prefs.monitoringIntervalMinutes)
+        }
         setContent {
             val darkTheme = isDarkTheme(settingsViewModel.themeMode)
+            // Active router switched (title-bar chip or the Settings radio):
+            // every screen drops the old router's data and re-fetches — the
+            // skeleton states show, never the previous router's numbers.
+            LaunchedEffect(Unit) {
+                prefs.activeProfileIdFlow.drop(1).collect {
+                    domainsViewModel.reset()
+                    strategiesViewModel.reset()
+                    servicesViewModel.reset()
+                    mihomoViewModel.reset()
+                    diagnosticsViewModel.reset()
+                    magitrickleGroupsViewModel.reset()
+                    routerInfoViewModel.reset()
+                }
+            }
+            // Keeps the "zapret_restart" shortcut's label pointed at whichever
+            // engine is actually running — refreshed on every cold start and every
+            // time svc_list changes (service start/stop/restart from any screen).
+            LaunchedEffect(Unit) { servicesViewModel.refresh() }
+            val shortcutServicesState by servicesViewModel.state.collectAsState()
+            LaunchedEffect(shortcutServicesState.services) {
+                val services = shortcutServicesState.services ?: return@LaunchedEffect
+                val activeZapret = services.firstOrNull { it.service in ZAPRET_ENGINES && it.running }?.service
+                AppShortcuts.publish(applicationContext, prefs.enabledShortcutIds, activeZapret)
+            }
             // Re-style system bars when the in-app theme diverges from the system one,
             // otherwise status-bar icons lose contrast on a forced light/dark background.
             LaunchedEffect(darkTheme) {
@@ -108,8 +180,15 @@ class MainActivity : AppCompatActivity() {
                                 domainsViewModel = domainsViewModel,
                                 strategiesViewModel = strategiesViewModel,
                                 servicesViewModel = servicesViewModel,
+                                mihomoViewModel = mihomoViewModel,
+                                diagnosticsViewModel = diagnosticsViewModel,
+                                magitrickleGroupsViewModel = magitrickleGroupsViewModel,
+                                routerInfoViewModel = routerInfoViewModel,
                                 settingsViewModel = settingsViewModel,
                                 backupViewModel = backupViewModel,
+                                pendingShortcutAction = pendingShortcutAction,
+                                pendingShortcutZapretEngine = pendingShortcutZapretEngine,
+                                onShortcutActionConsumed = ::consumeShortcutAction,
                             )
                         } else {
                             AppLockScreen(onUnlocked = { unlocked = true })
@@ -168,6 +247,9 @@ private data class TabSpec(
 
 private const val TAB_DOMAINS = 0
 private const val TAB_STATUS = 1
+private const val TAB_SETTINGS = 2
+
+private val ZAPRET_ENGINES = setOf("zapret", "zapret2")
 
 private val TABS = listOf(
     TabSpec(R.string.domains, Icons.Filled.Public, Icons.Outlined.Public),
@@ -180,11 +262,47 @@ private fun MainNavigation(
     domainsViewModel: DomainsViewModel,
     strategiesViewModel: StrategiesViewModel,
     servicesViewModel: ServicesViewModel,
+    mihomoViewModel: MihomoViewModel,
+    diagnosticsViewModel: DiagnosticsViewModel,
+    magitrickleGroupsViewModel: MagitrickleGroupsViewModel,
+    routerInfoViewModel: RouterInfoViewModel,
     settingsViewModel: SettingsViewModel,
     backupViewModel: BackupViewModel,
+    pendingShortcutAction: String?,
+    pendingShortcutZapretEngine: String?,
+    onShortcutActionConsumed: () -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(TAB_DOMAINS) }
     var backProgress by remember { mutableFloatStateOf(0f) }
+
+    // Every confirmation-requiring shortcut only NAVIGATES — reboot/mihomo-update
+    // land on the screen that already carries the explicit confirm dialog, nothing
+    // fires on its own. Speed test and zapret restart are the exception: neither
+    // is destructive, so both run immediately, no extra tap.
+    var openDevicesFromShortcut by remember { mutableStateOf(false) }
+    var openDiagnosticsFromShortcut by remember { mutableStateOf(false) }
+    var openMihomoUpdateFromShortcut by remember { mutableStateOf(false) }
+    var openSpeedtestSubscreenFromShortcut by remember { mutableStateOf(false) }
+    var autoRunSpeedtestFromShortcut by remember { mutableStateOf(false) }
+    LaunchedEffect(pendingShortcutAction) {
+        when (pendingShortcutAction) {
+            "status" -> selectedTab = TAB_STATUS
+            "devices" -> { selectedTab = TAB_STATUS; openDevicesFromShortcut = true }
+            "reboot" -> { selectedTab = TAB_SETTINGS; openDiagnosticsFromShortcut = true }
+            "mihomo_update" -> { selectedTab = TAB_DOMAINS; openMihomoUpdateFromShortcut = true }
+            "speedtest" -> {
+                selectedTab = TAB_STATUS
+                openSpeedtestSubscreenFromShortcut = true
+                autoRunSpeedtestFromShortcut = true
+            }
+            "zapret_restart" -> {
+                selectedTab = TAB_STATUS
+                pendingShortcutZapretEngine?.let { servicesViewModel.restart(it) }
+            }
+            else -> return@LaunchedEffect
+        }
+        onShortcutActionConsumed()
+    }
 
     // Domains is the single root of the back graph: back from any other tab returns
     // there, and back from Domains leaves the app (no handler enabled → the system
@@ -238,13 +356,45 @@ private fun MainNavigation(
                 },
         ) {
             when (selectedTab) {
-                TAB_DOMAINS -> DomainsScreen(
-                    domainsViewModel,
-                    strategiesViewModel,
-                    onOpenStatus = { selectedTab = TAB_STATUS },
+                TAB_DOMAINS -> {
+                    val routerProfiles by settingsViewModel.profiles.collectAsState()
+                    val activeRouterId by settingsViewModel.activeProfileId.collectAsState()
+                    DomainsScreen(
+                        domainsViewModel,
+                        strategiesViewModel,
+                        magitrickleGroupsViewModel,
+                        routerInfoViewModel,
+                        routerProfiles = routerProfiles,
+                        activeRouterId = activeRouterId,
+                        onSelectRouter = { settingsViewModel.setActiveProfile(it) },
+                        onOpenStatus = { selectedTab = TAB_STATUS },
+                        autoOpenRouterSheet = openMihomoUpdateFromShortcut,
+                        onAutoOpenRouterSheetConsumed = { openMihomoUpdateFromShortcut = false },
+                    )
+                }
+                TAB_STATUS -> ServicesScreen(
+                    servicesViewModel,
+                    mihomoViewModel,
+                    diagnosticsViewModel,
+                    magitrickleGroupsViewModel,
+                    initialSubScreen = when {
+                        openDevicesFromShortcut -> "devices"
+                        openSpeedtestSubscreenFromShortcut -> "diagnostics"
+                        else -> null
+                    },
+                    onInitialSubScreenConsumed = {
+                        openDevicesFromShortcut = false
+                        openSpeedtestSubscreenFromShortcut = false
+                    },
+                    autoRunSpeedtest = autoRunSpeedtestFromShortcut,
+                    onAutoRunSpeedtestConsumed = { autoRunSpeedtestFromShortcut = false },
                 )
-                TAB_STATUS -> ServicesScreen(servicesViewModel)
-                2 -> SettingsScreen(settingsViewModel, backupViewModel)
+                TAB_SETTINGS -> SettingsScreen(
+                    settingsViewModel,
+                    backupViewModel,
+                    initialSubScreen = if (openDiagnosticsFromShortcut) "diagnostics" else null,
+                    onInitialSubScreenConsumed = { openDiagnosticsFromShortcut = false },
+                )
             }
         }
     }

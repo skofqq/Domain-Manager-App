@@ -80,6 +80,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skofqq.domainmanager.R
+import com.skofqq.domainmanager.data.MagitrickleGroup
 import com.skofqq.domainmanager.data.StrategyEntry
 import com.skofqq.domainmanager.util.extractDomain
 import kotlinx.coroutines.launch
@@ -98,6 +99,7 @@ fun StrategiesTab(
     viewModel: StrategiesViewModel,
     engineOverride: String?,
     onOpenStatus: () -> Unit,
+    magitrickleGroups: List<MagitrickleGroup>?,
 ) {
     val activeState by viewModel.activeEngineState.collectAsState()
 
@@ -164,6 +166,7 @@ fun StrategiesTab(
                 EngineStrategiesPage(
                     viewModel,
                     shown,
+                    magitrickleGroups,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
@@ -217,6 +220,7 @@ private fun NoEngineRunningState(onOpenStatus: () -> Unit, onRetry: () -> Unit) 
 private fun EngineStrategiesPage(
     viewModel: StrategiesViewModel,
     engine: String,
+    magitrickleGroups: List<MagitrickleGroup>?,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state(engine).collectAsState()
@@ -238,9 +242,12 @@ private fun EngineStrategiesPage(
             DomainSearchBar(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
+                // Same search-to-list gap as the Routing page (8dp here + the
+                // list's 8dp top padding).
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp),
             )
             PullToRefreshBox(
                 isRefreshing = state.isRefreshing && !firstLoad,
@@ -323,6 +330,7 @@ private fun EngineStrategiesPage(
             engine = engine,
             state = state,
             min = min,
+            magitrickleGroups = magitrickleGroups,
             onDismiss = { showAddSheet = false },
         )
     }
@@ -347,6 +355,7 @@ private fun AddDomainSheet(
     engine: String,
     state: EngineStrategiesUiState,
     min: Int,
+    magitrickleGroups: List<MagitrickleGroup>?,
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState()
@@ -404,6 +413,18 @@ private fun AddDomainSheet(
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
+            // Domain already routed elsewhere via a MagiTrickle group (not Custom —
+            // that one's covered by the router's own routing state instead).
+            val existingGroup = remember(input, magitrickleGroups) {
+                matchMagitrickleGroup(magitrickleGroups, input)
+            }
+            existingGroup?.let { groupName ->
+                Text(
+                    text = stringResource(R.string.domain_in_group, groupName),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
             StrategyControl(
                 value = chosen,
                 min = min,
@@ -519,10 +540,13 @@ private fun EngineInfoBanner(running: Boolean, modifier: Modifier = Modifier) {
     }
 }
 
-/** Collapsed M3 SearchBar filtering the domain list by substring as you type. */
+/**
+ * Collapsed M3 SearchBar filtering the domain list by substring as you type.
+ * Shared with the Routing tab so both Domains pages get the same search look.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DomainSearchBar(
+internal fun DomainSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,

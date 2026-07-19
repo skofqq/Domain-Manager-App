@@ -86,6 +86,231 @@ sealed class StrategyResult {
     data class NetworkError(val kind: NetFailure, val detail: String? = null) : StrategyResult()
 }
 
+/** Router health snapshot (action=sys_info). [wanIp] is empty when WAN is down — not an error. */
+data class SysInfo(
+    val uptimeSeconds: Long,
+    val load1: Double,
+    val load5: Double,
+    val load15: Double,
+    val memTotalKb: Long,
+    val memFreeKb: Long,
+    val memAvailableKb: Long,
+    val wanIp: String,
+    /** Public IPv6 (action=sys_info "wan_ipv6"); empty when the WAN has no IPv6 — hide, not an error. */
+    val wanIpv6: String,
+    /** e.g. "FriendlyElec NanoPi R3S" */
+    val model: String,
+    /** e.g. "ImmortalWrt 25.12.0 r37854-4b24da3b4c5c" */
+    val firmware: String,
+    /** null when the board has no cpu-thermal zone — not an error, just no data on this board. */
+    val cpuTempC: Double?,
+)
+
+sealed class SysInfoResult {
+    data class Success(val info: SysInfo) : SysInfoResult()
+    data class ApiError(val code: Int, val error: String) : SysInfoResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : SysInfoResult()
+}
+
+/**
+ * One LAN client (action=devices). [name] is empty when the device sent no hostname.
+ * [type] is FREE TEXT from a user-maintained DHCP tag on the router ("Smart Speaker",
+ * "ZigBee Gateway", …) — never treat it as an enum, match by keywords only.
+ */
+data class LanDevice(val name: String, val ip: String, val mac: String, val type: String)
+
+sealed class DevicesResult {
+    data class Success(val devices: List<LanDevice>) : DevicesResult()
+    data class ApiError(val code: Int, val error: String) : DevicesResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : DevicesResult()
+}
+
+/** One rule inside a MagiTrickle group; [rule] is the domain/namespace text it matches. */
+data class MagitrickleRule(
+    val id: String,
+    val type: String,
+    val rule: String,
+    val enable: Boolean,
+)
+
+/**
+ * One MagiTrickle rule group (action=magitrickle_groups returns ALL of them —
+ * Custom plus whatever else is configured on the router: Anime, Block, …).
+ */
+data class MagitrickleGroup(
+    val id: String,
+    val name: String,
+    val rules: List<MagitrickleRule>,
+)
+
+sealed class MagitrickleGroupsResult {
+    data class Success(val groups: List<MagitrickleGroup>) : MagitrickleGroupsResult()
+    data class ApiError(val code: Int, val error: String) : MagitrickleGroupsResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : MagitrickleGroupsResult()
+}
+
+/** A switchable mihomo proxy group (type Selector): [now] is the active node out of [all]. */
+data class MihomoGroup(val name: String, val now: String, val all: List<String>)
+
+/**
+ * Per-node capabilities straight from the raw mihomo /proxies payload: protocol
+ * [type] plus UDP / TCP Fast Open support flags. Present for every proxy entry,
+ * groups included (their type is Selector/URLTest/…).
+ */
+data class MihomoNodeInfo(val type: String, val udp: Boolean, val tfo: Boolean, val xudp: Boolean)
+
+sealed class MihomoProxiesResult {
+    data class Success(
+        val groups: List<MihomoGroup>,
+        /** name → info for ALL proxies (nodes and groups alike). */
+        val nodes: Map<String, MihomoNodeInfo>,
+    ) : MihomoProxiesResult()
+    data class ApiError(val code: Int, val error: String) : MihomoProxiesResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : MihomoProxiesResult()
+}
+
+data class MihomoConnection(
+    val id: String,
+    /** metadata.host, falling back to the destination IP when there is no SNI/host. */
+    val host: String,
+    /** LAN IP the connection came from (metadata.sourceIP); empty when mihomo omits it. */
+    val sourceIP: String,
+    /** Proxy chain, group first (mihomo sends it exit-node first — reversed at parse time). */
+    val chains: List<String>,
+    val download: Long,
+    val upload: Long,
+)
+
+/**
+ * One poll of action=mihomo_connections. The API has no live traffic stream —
+ * clients derive speed from the delta of the totals between two polls.
+ */
+data class MihomoConnectionsSnapshot(
+    val downloadTotal: Long,
+    val uploadTotal: Long,
+    val connections: List<MihomoConnection>,
+)
+
+sealed class MihomoConnectionsResult {
+    data class Success(val snapshot: MihomoConnectionsSnapshot) : MihomoConnectionsResult()
+    data class ApiError(val code: Int, val error: String) : MihomoConnectionsResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : MihomoConnectionsResult()
+}
+
+/**
+ * One action=ping run (3 packets, router-side). [avgMs] is null at 100% loss.
+ * [host] may be an IP or a domain.
+ */
+data class PingInfo(
+    val host: String,
+    val reachable: Boolean,
+    val lossPercent: Int,
+    val avgMs: Double?,
+)
+
+sealed class PingResult {
+    data class Success(val info: PingInfo) : PingResult()
+    data class ApiError(val code: Int, val error: String) : PingResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : PingResult()
+}
+
+/** One traceroute hop; [ip] and [ms] are both null for a non-answering hop (the "*"). */
+data class TraceHop(val hop: Int, val ip: String?, val ms: Double?)
+
+sealed class TracerouteResult {
+    data class Success(val host: String, val hops: List<TraceHop>) : TracerouteResult()
+    data class ApiError(val code: Int, val error: String) : TracerouteResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : TracerouteResult()
+}
+
+/** action=speedtest: the ROUTER's WAN download speed, not the phone's Wi-Fi. */
+data class SpeedtestInfo(val downloadMbps: Double, val bytesPerSec: Long)
+
+sealed class SpeedtestResult {
+    data class Success(val info: SpeedtestInfo) : SpeedtestResult()
+    data class ApiError(val code: Int, val error: String) : SpeedtestResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : SpeedtestResult()
+}
+
+sealed class GroupDelayResult {
+    /**
+     * node name → latency ms. A node that did not answer within mihomo's 5 s test
+     * window is simply ABSENT from the map (not 0/null) — that absence is the
+     * "not responding" signal.
+     */
+    data class Success(val delays: Map<String, Int>) : GroupDelayResult()
+    data class ApiError(val code: Int, val error: String) : GroupDelayResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : GroupDelayResult()
+}
+
+/** action=disk_info: /overlay usage. All fields are always present (never null/empty on a healthy router). */
+data class DiskInfo(
+    val mount: String,
+    val totalKb: Long,
+    val usedKb: Long,
+    val availableKb: Long,
+    val usedPercent: Int,
+)
+
+sealed class DiskInfoResult {
+    data class Success(val info: DiskInfo) : DiskInfoResult()
+    data class ApiError(val code: Int, val error: String) : DiskInfoResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : DiskInfoResult()
+}
+
+/**
+ * action=service_log: up to 100 logread lines grep'd by service name. An empty
+ * [lines] list is a legitimate answer (nothing logged under that substring), not
+ * an error — magitrickle/zapret/zapret2 commonly have none.
+ */
+sealed class ServiceLogResult {
+    data class Success(val lines: List<String>) : ServiceLogResult()
+    data class ApiError(val code: Int, val error: String) : ServiceLogResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : ServiceLogResult()
+}
+
+/** action=versions: one field per managed service. Empty string = version could not be determined. */
+data class ServiceVersions(
+    val mihomo: String,
+    val magitrickle: String,
+    val zapret: String,
+    val zapret2: String,
+)
+
+sealed class VersionsResult {
+    data class Success(val versions: ServiceVersions) : VersionsResult()
+    data class ApiError(val code: Int, val error: String) : VersionsResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : VersionsResult()
+}
+
+/** action=mihomo_check_update. */
+data class MihomoUpdateInfo(val current: String, val latest: String, val updateAvailable: Boolean)
+
+sealed class MihomoCheckUpdateResult {
+    data class Success(val info: MihomoUpdateInfo) : MihomoCheckUpdateResult()
+    data class ApiError(val code: Int, val error: String) : MihomoCheckUpdateResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : MihomoCheckUpdateResult()
+}
+
+/**
+ * action=mihomo_node_ipv6: a LIVE per-node AAAA check (real DNS lookups on the
+ * router) — deliberately never cached client-side, results can differ between
+ * calls on subscriptions with dynamic DNS.
+ */
+sealed class NodeIpv6Result {
+    /** node name → has-IPv6; a node absent from the router's answer is simply unknown, not false. */
+    data class Success(val ipv6ByNode: Map<String, Boolean>) : NodeIpv6Result()
+    data class ApiError(val code: Int, val error: String) : NodeIpv6Result()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : NodeIpv6Result()
+}
+
+/** For actions whose success payload carries no data (reboot, mihomo_select, connection close). */
+sealed class OkResult {
+    data object Success : OkResult()
+    data class ApiError(val code: Int, val error: String) : OkResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : OkResult()
+}
+
 sealed class TestResult {
     data object Connected : TestResult()
     data object ConnectedBadToken : TestResult()
@@ -122,17 +347,63 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
     /**
      * Executes one GET and records it (token-masked) in [ApiLog] for the
      * Diagnostics screen — both successes and transport failures.
+     * [shortConnect] caps the connect timeout at [FAILOVER_CONNECT_SECONDS] so a
+     * dead primary address fails fast before the fallback attempt.
+     * [minReadSeconds] RAISES the read timeout when the user's configured timeout is
+     * shorter — for router-side actions that legitimately take long (speedtest,
+     * traceroute, ping, group delay test).
      */
-    private fun fetch(url: HttpUrl): HttpReply {
+    private fun fetch(
+        url: HttpUrl,
+        shortConnect: Boolean = false,
+        minReadSeconds: Int? = null,
+    ): HttpReply {
         val started = System.currentTimeMillis()
         try {
-            val response = lanClient().newCall(Request.Builder().url(url).build()).execute()
+            val client = lanClient().let { base ->
+                var built = base
+                if (shortConnect && built.connectTimeoutMillis > FAILOVER_CONNECT_SECONDS * 1000) {
+                    built = built.newBuilder()
+                        .connectTimeout(FAILOVER_CONNECT_SECONDS.toLong(), TimeUnit.SECONDS)
+                        .build()
+                }
+                if (minReadSeconds != null && built.readTimeoutMillis < minReadSeconds * 1000) {
+                    built = built.newBuilder()
+                        .readTimeout(minReadSeconds.toLong(), TimeUnit.SECONDS)
+                        .build()
+                }
+                built
+            }
+            val response = client.newCall(Request.Builder().url(url).build()).execute()
             val body = response.body?.string()
             ApiLog.record(url, response.code, body, System.currentTimeMillis() - started, null)
             return HttpReply(response.code, response.isSuccessful, body)
         } catch (e: Exception) {
             ApiLog.record(url, null, null, System.currentTimeMillis() - started, detailOf(e))
             throw e
+        }
+    }
+
+    /**
+     * Builds the query against the saved primary address and executes it; when a
+     * fallback address is configured (e.g. Tailscale) and the primary attempt fails
+     * at the transport level, the same query is retried against the fallback —
+     * automatic failover, no manual switch. HTTP error responses are NOT failover
+     * triggers: the router answered.
+     */
+    private fun fetchApi(minReadSeconds: Int? = null, query: HttpUrl.Builder.() -> Unit): HttpReply {
+        val fallbackHost = prefs.fallbackHost.trim()
+        val primary = buildUrl(prefs.routerHost, prefs.routerPort, query)
+        if (fallbackHost.isEmpty()) return fetch(primary, minReadSeconds = minReadSeconds)
+        return try {
+            fetch(primary, shortConnect = true, minReadSeconds = minReadSeconds)
+        } catch (primaryError: Exception) {
+            val fallback = try {
+                buildUrl(fallbackHost, prefs.fallbackPort, query)
+            } catch (_: Exception) {
+                throw primaryError
+            }
+            fetch(fallback, minReadSeconds = minReadSeconds)
         }
     }
 
@@ -201,19 +472,13 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
 
     /** Runs on IO thread — caller must dispatch off main thread. */
     fun callApi(domain: String, action: String = "status", target: String? = null): ApiResult {
-        val url = try {
-            buildUrl(prefs.routerHost, prefs.routerPort) {
+        return try {
+            val reply = fetchApi {
                 addQueryParameter("token", prefs.token)
                 addQueryParameter("domain", domain)
                 addQueryParameter("action", action)
                 addQueryParameter("target", target ?: prefs.defaultTarget)
             }
-        } catch (e: Exception) {
-            return ApiResult.NetworkError(NetFailure.INVALID_ADDRESS, e.message)
-        }
-
-        return try {
-            val reply = fetch(url)
             val body = reply.body
                 ?: return ApiResult.NetworkError(NetFailure.EMPTY_RESPONSE)
             val json = JSONObject(body)
@@ -239,17 +504,11 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
      * so a domain's two flags can disagree. Runs on IO thread.
      */
     fun listDomains(): ListResult {
-        val url = try {
-            buildUrl(prefs.routerHost, prefs.routerPort) {
+        return try {
+            val reply = fetchApi {
                 addQueryParameter("token", prefs.token)
                 addQueryParameter("action", "list")
             }
-        } catch (e: Exception) {
-            return ListResult.NetworkError(NetFailure.INVALID_ADDRESS, e.message)
-        }
-
-        return try {
-            val reply = fetch(url)
             val body = reply.body
                 ?: return ListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
             val json = JSONObject(body)
@@ -278,17 +537,11 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
 
     /** Fetches state of all managed router services (action=svc_list). Runs on IO thread. */
     fun listServices(): ServiceListResult {
-        val url = try {
-            buildUrl(prefs.routerHost, prefs.routerPort) {
+        return try {
+            val reply = fetchApi {
                 addQueryParameter("token", prefs.token)
                 addQueryParameter("action", "svc_list")
             }
-        } catch (e: Exception) {
-            return ServiceListResult.NetworkError(NetFailure.INVALID_ADDRESS, e.message)
-        }
-
-        return try {
-            val reply = fetch(url)
             val body = reply.body
                 ?: return ServiceListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
             val json = JSONObject(body)
@@ -312,18 +565,12 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
      * waits for procd to settle. Runs on IO thread.
      */
     fun serviceAction(service: String, action: String): ServiceResult {
-        val url = try {
-            buildUrl(prefs.routerHost, prefs.routerPort) {
+        return try {
+            val reply = fetchApi {
                 addQueryParameter("token", prefs.token)
                 addQueryParameter("action", action)
                 addQueryParameter("service", service)
             }
-        } catch (e: Exception) {
-            return ServiceResult.NetworkError(NetFailure.INVALID_ADDRESS, e.message)
-        }
-
-        return try {
-            val reply = fetch(url)
             val body = reply.body
                 ?: return ServiceResult.NetworkError(NetFailure.EMPTY_RESPONSE)
             val json = JSONObject(body)
@@ -339,18 +586,12 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
 
     /** Fetches per-domain strategies for one engine (action=strat_list). Read-only, never restarts anything. */
     fun listStrategies(engine: String): StrategyListResult {
-        val url = try {
-            buildUrl(prefs.routerHost, prefs.routerPort) {
+        return try {
+            val reply = fetchApi {
                 addQueryParameter("token", prefs.token)
                 addQueryParameter("action", "strat_list")
                 addQueryParameter("engine", engine)
             }
-        } catch (e: Exception) {
-            return StrategyListResult.NetworkError(NetFailure.INVALID_ADDRESS, e.message)
-        }
-
-        return try {
-            val reply = fetch(url)
             val body = reply.body
                 ?: return StrategyListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
             val json = JSONObject(body)
@@ -382,20 +623,14 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
      * confirmation, never per keystroke/slider tick.
      */
     fun strategyAction(engine: String, domain: String, action: String, strategy: Int? = null): StrategyResult {
-        val url = try {
-            buildUrl(prefs.routerHost, prefs.routerPort) {
+        return try {
+            val reply = fetchApi {
                 addQueryParameter("token", prefs.token)
                 addQueryParameter("action", action)
                 addQueryParameter("engine", engine)
                 addQueryParameter("domain", domain)
                 if (strategy != null) addQueryParameter("strategy", strategy.toString())
             }
-        } catch (e: Exception) {
-            return StrategyResult.NetworkError(NetFailure.INVALID_ADDRESS, e.message)
-        }
-
-        return try {
-            val reply = fetch(url)
             val body = reply.body
                 ?: return StrategyResult.NetworkError(NetFailure.EMPTY_RESPONSE)
             val json = JSONObject(body)
@@ -409,6 +644,558 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
             }
         } catch (e: Exception) {
             StrategyResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Router health snapshot (action=sys_info). Runs on IO thread. */
+    fun sysInfo(): SysInfoResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "sys_info")
+            }
+            val body = reply.body
+                ?: return SysInfoResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                SysInfoResult.Success(
+                    SysInfo(
+                        uptimeSeconds = json.getLong("uptime_seconds"),
+                        load1 = json.getDouble("load1"),
+                        load5 = json.getDouble("load5"),
+                        load15 = json.getDouble("load15"),
+                        memTotalKb = json.getLong("mem_total_kb"),
+                        memFreeKb = json.getLong("mem_free_kb"),
+                        memAvailableKb = json.getLong("mem_available_kb"),
+                        wanIp = json.optString("wan_ip", ""),
+                        wanIpv6 = json.optString("wan_ipv6", ""),
+                        model = json.optString("model", ""),
+                        firmware = json.optString("firmware", ""),
+                        // optDouble returns NaN for both a missing key and a JSON null —
+                        // either way there's no reading for this board.
+                        cpuTempC = json.optDouble("cpu_temp_c", Double.NaN).takeUnless { it.isNaN() },
+                    )
+                )
+            } else {
+                SysInfoResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            SysInfoResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Connected LAN devices (action=devices). Runs on IO thread. */
+    fun listDevices(): DevicesResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "devices")
+            }
+            val body = reply.body
+                ?: return DevicesResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.getJSONArray("devices")
+                val devices = buildList {
+                    for (i in 0 until array.length()) {
+                        val entry = array.getJSONObject(i)
+                        add(
+                            LanDevice(
+                                name = entry.optString("name", ""),
+                                ip = entry.getString("ip"),
+                                mac = entry.getString("mac"),
+                                type = entry.optString("type", ""),
+                            )
+                        )
+                    }
+                }
+                DevicesResult.Success(devices)
+            } else {
+                DevicesResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            DevicesResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Reboots the router (action=reboot). The API answers immediately and the real
+     * reboot follows ~2 s later; the router is then unreachable for 1–2 minutes.
+     * Callers MUST have shown an explicit confirmation first. Runs on IO thread.
+     */
+    fun reboot(): OkResult = okAction { addQueryParameter("action", "reboot") }
+
+    /**
+     * mihomo Selector groups (action=mihomo_proxies — a transparent pass-through of
+     * the Clash-compatible controller API). Non-Selector groups have no switch and
+     * are skipped, as is the synthetic GLOBAL group. Runs on IO thread.
+     */
+    fun mihomoProxies(): MihomoProxiesResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "mihomo_proxies")
+            }
+            val body = reply.body
+                ?: return MihomoProxiesResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val proxies = json.getJSONObject("proxies")
+                val nodes = mutableMapOf<String, MihomoNodeInfo>()
+                val groups = buildList {
+                    for (name in proxies.keys()) {
+                        if (name == "GLOBAL") continue
+                        val entry = proxies.getJSONObject(name)
+                        // udp/tfo/type ride along in mihomo's raw payload for every
+                        // proxy — recorded for all entries so the node sheet can
+                        // badge protocol/UDP/TFO without a second call.
+                        nodes[name] = MihomoNodeInfo(
+                            type = entry.optString("type", ""),
+                            udp = entry.optBoolean("udp", false),
+                            tfo = entry.optBoolean("tfo", false),
+                            xudp = entry.optBoolean("xudp", false),
+                        )
+                        if (entry.optString("type") != "Selector") continue
+                        val allArray = entry.optJSONArray("all") ?: continue
+                        val all = buildList {
+                            for (i in 0 until allArray.length()) add(allArray.getString(i))
+                        }
+                        add(MihomoGroup(name, entry.optString("now", ""), all))
+                    }
+                }
+                MihomoProxiesResult.Success(groups, nodes)
+            } else {
+                MihomoProxiesResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            MihomoProxiesResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * ALL MagiTrickle rule groups (action=magitrickle_groups — a transparent
+     * pass-through of MagiTrickle's own API), not just the Custom group this app
+     * otherwise manages. Read-only. Runs on IO thread.
+     */
+    fun magitrickleGroups(): MagitrickleGroupsResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "magitrickle_groups")
+            }
+            val body = reply.body
+                ?: return MagitrickleGroupsResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.getJSONArray("groups")
+                val groups = buildList {
+                    for (i in 0 until array.length()) {
+                        val g = array.getJSONObject(i)
+                        val rulesArray = g.optJSONArray("rules")
+                        val rules = buildList {
+                            for (r in 0 until (rulesArray?.length() ?: 0)) {
+                                val ruleObj = rulesArray!!.getJSONObject(r)
+                                add(
+                                    MagitrickleRule(
+                                        id = ruleObj.optString("id", ""),
+                                        type = ruleObj.optString("type", ""),
+                                        rule = ruleObj.optString("rule", ""),
+                                        enable = ruleObj.optBoolean("enable", true),
+                                    )
+                                )
+                            }
+                        }
+                        add(
+                            MagitrickleGroup(
+                                id = g.getString("id"),
+                                name = g.getString("name"),
+                                rules = rules,
+                            )
+                        )
+                    }
+                }
+                MagitrickleGroupsResult.Success(groups)
+            } else {
+                MagitrickleGroupsResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            MagitrickleGroupsResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Active mihomo connections + traffic totals (action=mihomo_connections). Runs on IO thread. */
+    fun mihomoConnections(): MihomoConnectionsResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "mihomo_connections")
+            }
+            val body = reply.body
+                ?: return MihomoConnectionsResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                // mihomo sends "connections": null (not []) when nothing is active.
+                val array = json.optJSONArray("connections")
+                val connections = buildList {
+                    for (i in 0 until (array?.length() ?: 0)) {
+                        val entry = array!!.getJSONObject(i)
+                        val meta = entry.optJSONObject("metadata")
+                        val host = meta?.optString("host").orEmpty()
+                            .ifEmpty { meta?.optString("destinationIP").orEmpty() }
+                        val chainsArray = entry.optJSONArray("chains")
+                        val chains = buildList {
+                            for (c in 0 until (chainsArray?.length() ?: 0)) {
+                                add(chainsArray!!.getString(c))
+                            }
+                        }.reversed()
+                        add(
+                            MihomoConnection(
+                                id = entry.getString("id"),
+                                host = host,
+                                sourceIP = meta?.optString("sourceIP").orEmpty(),
+                                chains = chains,
+                                download = entry.optLong("download", 0L),
+                                upload = entry.optLong("upload", 0L),
+                            )
+                        )
+                    }
+                }
+                MihomoConnectionsResult.Success(
+                    MihomoConnectionsSnapshot(
+                        downloadTotal = json.optLong("downloadTotal", 0L),
+                        uploadTotal = json.optLong("uploadTotal", 0L),
+                        connections = connections,
+                    )
+                )
+            } else {
+                MihomoConnectionsResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            MihomoConnectionsResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Switches the active node of a Selector group (action=mihomo_select). Group and
+     * proxy names may contain unicode/emoji — plain UTF-8 strings, the URL builder
+     * percent-encodes them and the server re-encodes when proxying to mihomo.
+     */
+    fun mihomoSelect(group: String, proxy: String): OkResult = okAction {
+        addQueryParameter("action", "mihomo_select")
+        addQueryParameter("group", group)
+        addQueryParameter("proxy", proxy)
+    }
+
+    /**
+     * Closes one mihomo connection (action=mihomo_connection_close). The router
+     * answers ok:true even for an already-gone id — success does not prove the
+     * connection was still alive.
+     */
+    fun mihomoConnectionClose(id: String): OkResult = okAction {
+        addQueryParameter("action", "mihomo_connection_close")
+        addQueryParameter("id", id)
+    }
+
+    /**
+     * Router-side ping, 3 packets (action=ping). [host] is an IP or a domain.
+     * Blocks for several seconds on an unreachable host. Runs on IO thread.
+     */
+    fun ping(host: String): PingResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = PING_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "ping")
+                addQueryParameter("host", host)
+            }
+            val body = reply.body
+                ?: return PingResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                PingResult.Success(
+                    PingInfo(
+                        host = json.optString("host", host),
+                        reachable = json.getBoolean("reachable"),
+                        lossPercent = json.optInt("loss_percent", if (json.getBoolean("reachable")) 0 else 100),
+                        avgMs = if (json.isNull("avg_ms")) null else json.getDouble("avg_ms"),
+                    )
+                )
+            } else {
+                PingResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            PingResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Router-side traceroute (action=traceroute). The router answers with the FULL
+     * hop list in one response — this can take tens of seconds when intermediate
+     * hops time out. Runs on IO thread.
+     */
+    fun traceroute(host: String): TracerouteResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = TRACEROUTE_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "traceroute")
+                addQueryParameter("host", host)
+            }
+            val body = reply.body
+                ?: return TracerouteResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.getJSONArray("hops")
+                val hops = buildList {
+                    for (i in 0 until array.length()) {
+                        val entry = array.getJSONObject(i)
+                        add(
+                            TraceHop(
+                                hop = entry.getInt("hop"),
+                                ip = if (entry.isNull("ip")) null else entry.getString("ip"),
+                                ms = if (entry.isNull("ms")) null else entry.getDouble("ms"),
+                            )
+                        )
+                    }
+                }
+                TracerouteResult.Success(json.optString("host", host), hops)
+            } else {
+                TracerouteResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            TracerouteResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * WAN download speed measured BY THE ROUTER (action=speedtest). A long
+     * synchronous call — several seconds, up to ~25 s server-side; callers must
+     * show a progress indicator. Runs on IO thread.
+     */
+    fun speedtest(): SpeedtestResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = SPEEDTEST_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "speedtest")
+            }
+            val body = reply.body
+                ?: return SpeedtestResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                SpeedtestResult.Success(
+                    SpeedtestInfo(
+                        downloadMbps = json.getDouble("download_mbps"),
+                        bytesPerSec = json.optLong("bytes_per_sec", 0L),
+                    )
+                )
+            } else {
+                SpeedtestResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            SpeedtestResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Wake-on-LAN magic packet (action=wake). ok:true only means the packet was
+     * SENT — WoL gives no confirmation the device actually woke up, so the UI must
+     * not promise more than "packet sent". Strict AA:BB:CC:DD:EE:FF MAC format.
+     */
+    fun wake(mac: String): OkResult = okAction {
+        addQueryParameter("action", "wake")
+        addQueryParameter("mac", mac)
+    }
+
+    /**
+     * mihomo's built-in latency test for ALL nodes of one group at once
+     * (action=mihomo_group_delay — same mechanism as zashboard's Test button).
+     * Nodes that don't answer within 5 s are absent from the result map.
+     */
+    fun mihomoGroupDelay(group: String): GroupDelayResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = GROUP_DELAY_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "mihomo_group_delay")
+                addQueryParameter("group", group)
+            }
+            val body = reply.body
+                ?: return GroupDelayResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val delays = buildMap {
+                    for (name in json.keys()) put(name, json.getInt(name))
+                }
+                GroupDelayResult.Success(delays)
+            } else {
+                GroupDelayResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            GroupDelayResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Overlay filesystem usage (action=disk_info). Runs on IO thread. */
+    fun diskInfo(): DiskInfoResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "disk_info")
+            }
+            val body = reply.body
+                ?: return DiskInfoResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                DiskInfoResult.Success(
+                    DiskInfo(
+                        mount = json.optString("mount", ""),
+                        totalKb = json.getLong("total_kb"),
+                        usedKb = json.getLong("used_kb"),
+                        availableKb = json.getLong("available_kb"),
+                        usedPercent = json.getInt("used_percent"),
+                    )
+                )
+            } else {
+                DiskInfoResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            DiskInfoResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Up to 100 logread lines grep'd for [service] (action=service_log). An empty
+     * list is a legitimate answer, not an error. Runs on IO thread.
+     */
+    fun serviceLog(service: String): ServiceLogResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "service_log")
+                addQueryParameter("service", service)
+            }
+            val body = reply.body
+                ?: return ServiceLogResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.optJSONArray("lines")
+                val lines = buildList {
+                    for (i in 0 until (array?.length() ?: 0)) add(array!!.getString(i))
+                }
+                ServiceLogResult.Success(lines)
+            } else {
+                ServiceLogResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            ServiceLogResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Installed version of all four managed services (action=versions). Runs on IO thread. */
+    fun versions(): VersionsResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "versions")
+            }
+            val body = reply.body
+                ?: return VersionsResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                VersionsResult.Success(
+                    ServiceVersions(
+                        mihomo = json.optString("mihomo", ""),
+                        magitrickle = json.optString("magitrickle", ""),
+                        zapret = json.optString("zapret", ""),
+                        zapret2 = json.optString("zapret2", ""),
+                    )
+                )
+            } else {
+                VersionsResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            VersionsResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Checks GitHub for a newer mihomo release (action=mihomo_check_update). Runs on IO thread. */
+    fun mihomoCheckUpdate(): MihomoCheckUpdateResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = VERSION_CHECK_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "mihomo_check_update")
+            }
+            val body = reply.body
+                ?: return MihomoCheckUpdateResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                MihomoCheckUpdateResult.Success(
+                    MihomoUpdateInfo(
+                        current = json.optString("current", ""),
+                        latest = json.optString("latest", ""),
+                        updateAvailable = json.getBoolean("update_available"),
+                    )
+                )
+            } else {
+                MihomoCheckUpdateResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            MihomoCheckUpdateResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Replaces the mihomo binary and restarts the service (action=mihomo_update).
+     * Same class of action as reboot — callers MUST collect an explicit
+     * confirmation first. A synchronous call that can take a noticeable while.
+     */
+    fun mihomoUpdate(): OkResult = okAction(minReadSeconds = MIHOMO_UPDATE_READ_SECONDS) {
+        addQueryParameter("action", "mihomo_update")
+    }
+
+    /**
+     * LIVE per-node IPv6 (AAAA) reachability (action=mihomo_node_ipv6) — a real DNS
+     * round-trip per node on the router, deliberately uncached client-side (see
+     * [NodeIpv6Result]). Slower than mihomo_proxies; call it separately so it never
+     * blocks the first paint of the node list. Runs on IO thread.
+     */
+    fun mihomoNodeIpv6(): NodeIpv6Result {
+        return try {
+            val reply = fetchApi(minReadSeconds = NODE_IPV6_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "mihomo_node_ipv6")
+            }
+            val body = reply.body
+                ?: return NodeIpv6Result.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.getJSONArray("nodes")
+                val map = buildMap {
+                    for (i in 0 until array.length()) {
+                        val entry = array.getJSONObject(i)
+                        put(entry.getString("name"), entry.optBoolean("ipv6", false))
+                    }
+                }
+                NodeIpv6Result.Success(map)
+            } else {
+                NodeIpv6Result.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            NodeIpv6Result.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Shared runner for actions whose success payload is just {"ok":true}. */
+    private fun okAction(minReadSeconds: Int? = null, query: HttpUrl.Builder.() -> Unit): OkResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = minReadSeconds) {
+                addQueryParameter("token", prefs.token)
+                query()
+            }
+            val body = reply.body
+                ?: return OkResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) OkResult.Success
+            else OkResult.ApiError(reply.code, json.optString("error", "unknown"))
+        } catch (e: Exception) {
+            OkResult.NetworkError(classify(e), detailOf(e))
         }
     }
 
@@ -447,6 +1234,9 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         is SocketTimeoutException -> NetFailure.TIMEOUT
         is ConnectException, is NoRouteToHostException -> NetFailure.UNREACHABLE
         is UnknownHostException -> NetFailure.UNKNOWN_HOST
+        // HttpUrl.Builder throws this for a malformed host/port (fetchApi builds
+        // the URL inside the shared try now).
+        is IllegalArgumentException -> NetFailure.INVALID_ADDRESS
         else -> NetFailure.OTHER
     }
 
@@ -468,6 +1258,21 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
     companion object {
         const val MIN_TIMEOUT_SECONDS = 3
         const val MAX_TIMEOUT_SECONDS = 60
+        /** Connect timeout for the primary attempt when a fallback address exists. */
+        const val FAILOVER_CONNECT_SECONDS = 3
+        // Floor read timeouts for the long-running diagnostic actions — the
+        // user-configured timeout (3..60 s, default 10) is meant for instant CGI
+        // calls and would cut these off mid-run.
+        private const val PING_READ_SECONDS = 20
+        private const val TRACEROUTE_READ_SECONDS = 90
+        private const val SPEEDTEST_READ_SECONDS = 40
+        private const val GROUP_DELAY_READ_SECONDS = 20
+        // mihomo_check_update calls out to GitHub from the router; mihomo_update
+        // downloads+swaps the binary and restarts the daemon; mihomo_node_ipv6 does
+        // one live DNS round-trip per subscription node.
+        private const val VERSION_CHECK_READ_SECONDS = 20
+        private const val MIHOMO_UPDATE_READ_SECONDS = 60
+        private const val NODE_IPV6_READ_SECONDS = 30
     }
 }
 

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Declarative App Actions hook: Assistant's ADD_ITEM_TO_LIST built-in intent
+    ("добавь X в список…") maps the spoken item name onto the same headless
+    DeepLinkActivity that Tasker calls via routerdomains://add?domain=X.
+    NOTE: Assistant only fulfills BIIs for apps distributed via Play — until then
+    the deep link itself is the reliable automation surface.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <capability android:name="actions.intent.ADD_ITEM_TO_LIST">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.skofqq.domainmanager"
+            android:targetClass="com.skofqq.domainmanager.ui.DeepLinkActivity">
+            <parameter
+                android:name="listItem.name"
+                android:key="domain" />
+        </intent>
+    </capability>
+</shortcuts>
