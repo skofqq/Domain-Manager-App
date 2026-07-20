@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.BackEventCompat
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
@@ -18,6 +19,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -47,6 +49,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.drop
@@ -60,6 +63,21 @@ import com.skofqq.domainmanager.ui.theme.DomainManagerTheme
 import com.skofqq.domainmanager.worker.RouterMonitorWorker
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        /**
+         * Set right before AppCompatDelegate.setApplicationLocales() (see
+         * applyLocale() in SettingsActivity.kt), read once in onCreate below.
+         * savedInstanceState alone isn't a reliable "this is a locale-change
+         * recreate, not a cold start" signal — depending on API level,
+         * AppCompat's ActivityRecreator can relaunch via finish()+startActivity()
+         * with a fresh intent instead of a true Activity.recreate(), which
+         * doesn't guarantee a saved-instance bundle reaches the new onCreate.
+         * An explicit in-process flag works regardless of which path it takes.
+         */
+        @Volatile
+        var skipSplashOnNextCreate = false
+    }
+
     private val prefs by lazy { PrefsStore(this) }
     private val api by lazy { RouterApi(prefs, applicationContext) }
     private val history by lazy { HistoryStore.get(this) }
@@ -100,10 +118,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        // The manifest theme is Theme.DomainManager.Splash so a genuine cold
+        // start gets the native splash screen — but a locale change (Settings →
+        // Language) also re-enters onCreate on a fresh Activity instance, which
+        // would otherwise flash that splash theme's dark background before
+        // postSplashScreenTheme swaps it out. skipSplashOnNextCreate is the
+        // reliable signal for that (see its doc); savedInstanceState alone is
+        // kept only as a harmless extra fallback for ordinary config changes.
+        val skipSplash = skipSplashOnNextCreate || savedInstanceState != null
+        skipSplashOnNextCreate = false
+        if (skipSplash) {
+            setTheme(R.style.Theme_DomainManager)
+            // Window/Resources are already available pre-super() (set up during
+            // Activity.attach()). Applying the real background THIS early — before
+            // the window surface is ever composited — closes the gap where the
+            // static XML windowBackground (brand color) could otherwise still be
+            // what a transition snapshot captures instead of the dynamic-color-
+            // aware runtime value (useDynamicColor defaults to true).
+            applyStartupWindowBackground()
+        } else {
+            installSplashScreen()
+        }
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        applyStartupWindowBackground()
+        if (!skipSplash) applyStartupWindowBackground()
         pendingShortcutAction = intent?.getStringExtra(EXTRA_SHORTCUT_ACTION)
         pendingShortcutZapretEngine = intent?.getStringExtra(EXTRA_SHORTCUT_ZAPRET_ENGINE)
         // Ensure the enabled shortcuts are actually published — covers first
@@ -274,6 +312,7 @@ private fun MainNavigation(
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(TAB_DOMAINS) }
     var backProgress by remember { mutableFloatStateOf(0f) }
+    var backSwipeEdge by remember { mutableIntStateOf(BackEventCompat.EDGE_LEFT) }
 
     // Every confirmation-requiring shortcut only NAVIGATES — reboot/mihomo-update
     // land on the screen that already carries the explicit confirm dialog, nothing
@@ -310,7 +349,10 @@ private fun MainNavigation(
     // their own handler deeper in the composition, which takes priority.
     PredictiveBackHandler(enabled = selectedTab != TAB_DOMAINS) { events ->
         try {
-            events.collect { backProgress = it.progress }
+            events.collect {
+                backProgress = it.progress
+                backSwipeEdge = it.swipeEdge
+            }
             selectedTab = TAB_DOMAINS
         } catch (e: CancellationException) {
             throw e
@@ -345,56 +387,76 @@ private fun MainNavigation(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                // Predictive back preview: the leaving tab shrinks slightly with the
-                // swipe, hinting at the return to Domains.
-                .graphicsLayer {
-                    val scale = lerp(1f, 0.94f, backProgress)
-                    scaleX = scale
-                    scaleY = scale
-                    alpha = lerp(1f, 0.85f, backProgress)
-                },
+                .padding(innerPadding),
         ) {
-            when (selectedTab) {
-                TAB_DOMAINS -> {
-                    val routerProfiles by settingsViewModel.profiles.collectAsState()
-                    val activeRouterId by settingsViewModel.activeProfileId.collectAsState()
-                    DomainsScreen(
-                        domainsViewModel,
-                        strategiesViewModel,
-                        magitrickleGroupsViewModel,
-                        routerInfoViewModel,
-                        routerProfiles = routerProfiles,
-                        activeRouterId = activeRouterId,
-                        onSelectRouter = { settingsViewModel.setActiveProfile(it) },
-                        onOpenStatus = { selectedTab = TAB_STATUS },
-                        autoOpenRouterSheet = openMihomoUpdateFromShortcut,
-                        onAutoOpenRouterSheetConsumed = { openMihomoUpdateFromShortcut = false },
-                    )
-                }
-                TAB_STATUS -> ServicesScreen(
-                    servicesViewModel,
-                    mihomoViewModel,
-                    diagnosticsViewModel,
+            // Peeks Domains behind the leaving tab while the gesture is in
+            // progress, same as the system draws for cross-activity predictive
+            // back. Only mounted during an active swipe, so switching tabs
+            // normally still mounts/unmounts Domains exactly as before.
+            if (selectedTab == TAB_DOMAINS || backProgress > 0f) {
+                val routerProfiles by settingsViewModel.profiles.collectAsState()
+                val activeRouterId by settingsViewModel.activeProfileId.collectAsState()
+                DomainsScreen(
+                    domainsViewModel,
+                    strategiesViewModel,
                     magitrickleGroupsViewModel,
-                    initialSubScreen = when {
-                        openDevicesFromShortcut -> "devices"
-                        openSpeedtestSubscreenFromShortcut -> "diagnostics"
-                        else -> null
-                    },
-                    onInitialSubScreenConsumed = {
-                        openDevicesFromShortcut = false
-                        openSpeedtestSubscreenFromShortcut = false
-                    },
-                    autoRunSpeedtest = autoRunSpeedtestFromShortcut,
-                    onAutoRunSpeedtestConsumed = { autoRunSpeedtestFromShortcut = false },
+                    routerInfoViewModel,
+                    routerProfiles = routerProfiles,
+                    activeRouterId = activeRouterId,
+                    onSelectRouter = { settingsViewModel.setActiveProfile(it) },
+                    onOpenStatus = { selectedTab = TAB_STATUS },
+                    autoOpenRouterSheet = openMihomoUpdateFromShortcut,
+                    onAutoOpenRouterSheetConsumed = { openMihomoUpdateFromShortcut = false },
                 )
-                TAB_SETTINGS -> SettingsScreen(
-                    settingsViewModel,
-                    backupViewModel,
-                    initialSubScreen = if (openDiagnosticsFromShortcut) "diagnostics" else null,
-                    onInitialSubScreenConsumed = { openDiagnosticsFromShortcut = false },
-                )
+            }
+            if (selectedTab != TAB_DOMAINS) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        // Predictive back preview: the leaving tab shrinks and gains
+                        // rounded corners with the swipe, hinting at the return to
+                        // Domains — same treatment the system draws for
+                        // cross-activity predictive back.
+                        .graphicsLayer {
+                            val scale = lerp(1f, 0.94f, backProgress)
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = lerp(
+                                0f,
+                                if (backSwipeEdge == BackEventCompat.EDGE_LEFT) 24f else -24f,
+                                backProgress,
+                            )
+                            alpha = lerp(1f, 0.85f, backProgress)
+                            shape = RoundedCornerShape(lerp(0f, 28f, backProgress).dp)
+                            clip = true
+                        },
+                ) {
+                    when (selectedTab) {
+                        TAB_STATUS -> ServicesScreen(
+                            servicesViewModel,
+                            mihomoViewModel,
+                            diagnosticsViewModel,
+                            magitrickleGroupsViewModel,
+                            initialSubScreen = when {
+                                openDevicesFromShortcut -> "devices"
+                                openSpeedtestSubscreenFromShortcut -> "diagnostics"
+                                else -> null
+                            },
+                            onInitialSubScreenConsumed = {
+                                openDevicesFromShortcut = false
+                                openSpeedtestSubscreenFromShortcut = false
+                            },
+                            autoRunSpeedtest = autoRunSpeedtestFromShortcut,
+                            onAutoRunSpeedtestConsumed = { autoRunSpeedtestFromShortcut = false },
+                        )
+                        TAB_SETTINGS -> SettingsScreen(
+                            settingsViewModel,
+                            backupViewModel,
+                            initialSubScreen = if (openDiagnosticsFromShortcut) "diagnostics" else null,
+                            onInitialSubScreenConsumed = { openDiagnosticsFromShortcut = false },
+                        )
+                    }
+                }
             }
         }
     }

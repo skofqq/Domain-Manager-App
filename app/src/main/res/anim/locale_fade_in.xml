@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Softer/longer than android.R.anim.fade_in for the locale-change recreate
+     crossfade (see applyLocale() in SettingsActivity.kt) — the stock system
+     fade is short and linear, abrupt enough to still read as a "flash" even
+     once the window background actually matches. -->
+<alpha xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fromAlpha="0.0"
+    android:toAlpha="1.0"
+    android:duration="280"
+    android:interpolator="@android:interpolator/decelerate_quad" />

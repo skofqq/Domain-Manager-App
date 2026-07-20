@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.BackEventCompat
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -94,6 +95,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -185,6 +187,7 @@ fun SettingsScreen(
 ) {
     var subScreen by rememberSaveable { mutableStateOf<String?>(null) }
     var backProgress by remember { mutableFloatStateOf(0f) }
+    var backSwipeEdge by remember { mutableIntStateOf(BackEventCompat.EDGE_LEFT) }
 
     LaunchedEffect(initialSubScreen) {
         if (initialSubScreen != null) {
@@ -195,12 +198,15 @@ fun SettingsScreen(
 
     // Pops the child screen first; the root's back-to-Domains handler in
     // MainNavigation only fires once this one is disabled. Predictive-back aware:
-    // the swipe progress drives a scale/alpha preview of the leaving child (same
-    // treatment as the bottom-tab handler in MainNavigation), commits on gesture
-    // completion and snaps back on cancel.
+    // the swipe progress drives a scale/corner-radius/alpha preview of the leaving
+    // child (same treatment as the bottom-tab handler in MainNavigation), commits
+    // on gesture completion and snaps back on cancel.
     PredictiveBackHandler(enabled = subScreen != null) { events ->
         try {
-            events.collect { backProgress = it.progress }
+            events.collect {
+                backProgress = it.progress
+                backSwipeEdge = it.swipeEdge
+            }
             subScreen = null
         } catch (e: CancellationException) {
             throw e
@@ -210,28 +216,44 @@ fun SettingsScreen(
     }
 
     val child = subScreen
-    if (child == null) {
-        SettingsRootScreen(onOpen = { subScreen = it })
-    } else {
-        Box(
-            modifier = Modifier.graphicsLayer {
-                val scale = lerp(1f, 0.94f, backProgress)
-                scaleX = scale
-                scaleY = scale
-                alpha = lerp(1f, 0.85f, backProgress)
-            },
-        ) {
-            when (child) {
-                "appearance" -> AppearanceSettingsScreen(viewModel, onBack = { subScreen = null })
-                "language" -> LanguageSettingsScreen(onBack = { subScreen = null })
-                "auth" -> AuthSettingsScreen(viewModel, onBack = { subScreen = null })
-                "security" -> SecuritySettingsScreen(viewModel, onBack = { subScreen = null })
-                "backup" -> BackupSettingsScreen(backupViewModel, onBack = { subScreen = null })
-                "history" -> HistorySettingsScreen(viewModel, onBack = { subScreen = null })
-                "diagnostics" -> DiagnosticsSettingsScreen(viewModel, onBack = { subScreen = null })
-                "monitoring" -> MonitoringSettingsScreen(viewModel, onBack = { subScreen = null })
-                "shortcuts" -> ShortcutsSettingsScreen(viewModel, onBack = { subScreen = null })
-                "about" -> AboutSettingsScreen(onBack = { subScreen = null })
+    Box(Modifier.fillMaxSize()) {
+        // Peeks the root behind the leaving child while the gesture is in
+        // progress, same as the system draws for cross-activity predictive back.
+        // Only mounted during an active swipe, so returning to the root still
+        // remounts it fresh once the child is gone.
+        if (child == null || backProgress > 0f) {
+            SettingsRootScreen(onOpen = { subScreen = it })
+        }
+        if (child != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val scale = lerp(1f, 0.94f, backProgress)
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = lerp(
+                            0f,
+                            if (backSwipeEdge == BackEventCompat.EDGE_LEFT) 24f else -24f,
+                            backProgress,
+                        )
+                        alpha = lerp(1f, 0.85f, backProgress)
+                        shape = RoundedCornerShape(lerp(0f, 28f, backProgress).dp)
+                        clip = true
+                    },
+            ) {
+                when (child) {
+                    "appearance" -> AppearanceSettingsScreen(viewModel, onBack = { subScreen = null })
+                    "language" -> LanguageSettingsScreen(onBack = { subScreen = null })
+                    "auth" -> AuthSettingsScreen(viewModel, onBack = { subScreen = null })
+                    "security" -> SecuritySettingsScreen(viewModel, onBack = { subScreen = null })
+                    "backup" -> BackupSettingsScreen(backupViewModel, onBack = { subScreen = null })
+                    "history" -> HistorySettingsScreen(viewModel, onBack = { subScreen = null })
+                    "diagnostics" -> DiagnosticsSettingsScreen(viewModel, onBack = { subScreen = null })
+                    "monitoring" -> MonitoringSettingsScreen(viewModel, onBack = { subScreen = null })
+                    "shortcuts" -> ShortcutsSettingsScreen(viewModel, onBack = { subScreen = null })
+                    "about" -> AboutSettingsScreen(onBack = { subScreen = null })
+                }
             }
         }
     }
@@ -718,28 +740,36 @@ private fun LanguageSettingsScreen(onBack: () -> Unit) {
 }
 
 private fun applyLocale(activity: Activity?, tag: String) {
+    // Set BEFORE triggering the change: whichever path AppCompat's
+    // ActivityRecreator takes (true recreate() or finish()+relaunch), this
+    // flag is what onCreate() checks to skip the splash screen — see its
+    // doc comment in MainActivity.kt for why savedInstanceState alone isn't
+    // reliable enough on its own.
+    MainActivity.skipSplashOnNextCreate = true
     AppCompatDelegate.setApplicationLocales(
         if (tag.isEmpty()) LocaleListCompat.getEmptyLocaleList()
         else LocaleListCompat.forLanguageTags(tag)
     )
     // setApplicationLocales() recreates the activity; the default relaunch has no
-    // transition, which reads as a flash. Crossfade it instead.
+    // transition, which reads as a flash. Crossfade it instead — a custom, longer,
+    // eased fade (R.anim.locale_fade_*) rather than the stock system fade_in/
+    // fade_out, which is short and linear enough to still read as a flash on its own.
     when {
         activity == null -> Unit
         Build.VERSION.SDK_INT >= 34 -> {
             activity.overrideActivityTransition(
                 Activity.OVERRIDE_TRANSITION_OPEN,
-                android.R.anim.fade_in,
-                android.R.anim.fade_out,
+                R.anim.locale_fade_in,
+                R.anim.locale_fade_out,
             )
             activity.overrideActivityTransition(
                 Activity.OVERRIDE_TRANSITION_CLOSE,
-                android.R.anim.fade_in,
-                android.R.anim.fade_out,
+                R.anim.locale_fade_in,
+                R.anim.locale_fade_out,
             )
         }
         else -> @Suppress("DEPRECATION")
-        activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        activity.overridePendingTransition(R.anim.locale_fade_in, R.anim.locale_fade_out)
     }
 }
 
@@ -756,26 +786,57 @@ private const val NEW_PROFILE_ID = "__new__"
 @Composable
 private fun AuthSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var backProgress by remember { mutableFloatStateOf(0f) }
+    var backSwipeEdge by remember { mutableIntStateOf(BackEventCompat.EDGE_LEFT) }
     // Pops the editor back to the list before the list pops back to the
     // settings root (this handler sits deeper than SettingsScreen's).
     PredictiveBackHandler(enabled = editingId != null) { events ->
         try {
-            events.collect { }
+            events.collect {
+                backProgress = it.progress
+                backSwipeEdge = it.swipeEdge
+            }
             editingId = null
         } catch (e: CancellationException) {
             throw e
+        } finally {
+            backProgress = 0f
         }
     }
     val editing = editingId
-    if (editing == null) {
-        ProfileListScreen(
-            viewModel = viewModel,
-            onBack = onBack,
-            onEdit = { editingId = it },
-            onAdd = { editingId = NEW_PROFILE_ID },
-        )
-    } else {
-        ProfileEditScreen(viewModel, profileId = editing, onBack = { editingId = null })
+    Box(Modifier.fillMaxSize()) {
+        // Peeks the profile list behind the leaving editor while the gesture is
+        // in progress. Only mounted during an active swipe, so returning to the
+        // list still remounts it fresh once the editor is gone.
+        if (editing == null || backProgress > 0f) {
+            ProfileListScreen(
+                viewModel = viewModel,
+                onBack = onBack,
+                onEdit = { editingId = it },
+                onAdd = { editingId = NEW_PROFILE_ID },
+            )
+        }
+        if (editing != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val scale = lerp(1f, 0.94f, backProgress)
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = lerp(
+                            0f,
+                            if (backSwipeEdge == BackEventCompat.EDGE_LEFT) 24f else -24f,
+                            backProgress,
+                        )
+                        alpha = lerp(1f, 0.85f, backProgress)
+                        shape = RoundedCornerShape(lerp(0f, 28f, backProgress).dp)
+                        clip = true
+                    },
+            ) {
+                ProfileEditScreen(viewModel, profileId = editing, onBack = { editingId = null })
+            }
+        }
     }
 }
 

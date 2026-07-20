@@ -5,6 +5,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import androidx.activity.BackEventCompat
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
@@ -62,6 +64,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -111,6 +114,7 @@ fun ServicesScreen(
 ) {
     var subScreen by rememberSaveable { mutableStateOf<String?>(null) }
     var backProgress by remember { mutableFloatStateOf(0f) }
+    var backSwipeEdge by remember { mutableIntStateOf(BackEventCompat.EDGE_LEFT) }
 
     LaunchedEffect(initialSubScreen) {
         if (initialSubScreen != null) {
@@ -121,7 +125,10 @@ fun ServicesScreen(
 
     PredictiveBackHandler(enabled = subScreen != null) { events ->
         try {
-            events.collect { backProgress = it.progress }
+            events.collect {
+                backProgress = it.progress
+                backSwipeEdge = it.swipeEdge
+            }
             subScreen = null
         } catch (e: CancellationException) {
             throw e
@@ -131,37 +138,53 @@ fun ServicesScreen(
     }
 
     val child = subScreen
-    if (child == null) {
-        StatusRootScreen(
-            viewModel = viewModel,
-            onOpenDevices = { subScreen = "devices" },
-            onOpenMihomo = { subScreen = "mihomo" },
-            onOpenDiagnostics = { subScreen = "diagnostics" },
-            onOpenMagitrickleGroups = { subScreen = "magitrickle_groups" },
-        )
-    } else {
-        Box(
-            modifier = Modifier.graphicsLayer {
-                val scale = lerp(1f, 0.94f, backProgress)
-                scaleX = scale
-                scaleY = scale
-                alpha = lerp(1f, 0.85f, backProgress)
-            },
-        ) {
-            when (child) {
-                "devices" -> DevicesScreen(viewModel, onBack = { subScreen = null })
-                "mihomo" -> MihomoScreen(mihomoViewModel, onBack = { subScreen = null })
-                "diagnostics" -> DiagnosticsScreen(
-                    viewModel = diagnosticsViewModel,
-                    wanIp = viewModel.state.collectAsState().value.sysInfo?.wanIp?.takeIf { it.isNotEmpty() },
-                    onBack = { subScreen = null },
-                    autoRunSpeedtest = autoRunSpeedtest,
-                    onAutoRunSpeedtestConsumed = onAutoRunSpeedtestConsumed,
-                )
-                "magitrickle_groups" -> MagitrickleGroupsScreen(
-                    viewModel = magitrickleGroupsViewModel,
-                    onBack = { subScreen = null },
-                )
+    Box(Modifier.fillMaxSize()) {
+        // Peeks the root behind the leaving child while the gesture is in
+        // progress, same as the system draws for cross-activity predictive back.
+        // Only mounted during an active swipe, so returning to the root still
+        // remounts it fresh (and re-triggers its refresh) once the child is gone.
+        if (child == null || backProgress > 0f) {
+            StatusRootScreen(
+                viewModel = viewModel,
+                onOpenDevices = { subScreen = "devices" },
+                onOpenMihomo = { subScreen = "mihomo" },
+                onOpenDiagnostics = { subScreen = "diagnostics" },
+                onOpenMagitrickleGroups = { subScreen = "magitrickle_groups" },
+            )
+        }
+        if (child != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val scale = lerp(1f, 0.94f, backProgress)
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = lerp(
+                            0f,
+                            if (backSwipeEdge == BackEventCompat.EDGE_LEFT) 24f else -24f,
+                            backProgress,
+                        )
+                        alpha = lerp(1f, 0.85f, backProgress)
+                        shape = RoundedCornerShape(lerp(0f, 28f, backProgress).dp)
+                        clip = true
+                    },
+            ) {
+                when (child) {
+                    "devices" -> DevicesScreen(viewModel, onBack = { subScreen = null })
+                    "mihomo" -> MihomoScreen(mihomoViewModel, onBack = { subScreen = null })
+                    "diagnostics" -> DiagnosticsScreen(
+                        viewModel = diagnosticsViewModel,
+                        wanIp = viewModel.state.collectAsState().value.sysInfo?.wanIp?.takeIf { it.isNotEmpty() },
+                        onBack = { subScreen = null },
+                        autoRunSpeedtest = autoRunSpeedtest,
+                        onAutoRunSpeedtestConsumed = onAutoRunSpeedtestConsumed,
+                    )
+                    "magitrickle_groups" -> MagitrickleGroupsScreen(
+                        viewModel = magitrickleGroupsViewModel,
+                        onBack = { subScreen = null },
+                    )
+                }
             }
         }
     }
