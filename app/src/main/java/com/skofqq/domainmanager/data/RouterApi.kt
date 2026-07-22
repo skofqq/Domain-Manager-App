@@ -86,6 +86,73 @@ sealed class StrategyResult {
     data class NetworkError(val kind: NetFailure, val detail: String? = null) : StrategyResult()
 }
 
+/**
+ * One zapret2 profile slot (action=z2profile_list) — always exactly 9 of these,
+ * with fixed keys "1".."9" that never change between calls or routers.
+ */
+data class Z2Profile(
+    val key: String,
+    /** "tls" | "udp" | "http" — purely informational protocol tag for the UI badge. */
+    val proto: String,
+    /** Upper bound of THIS profile's own range (1..max) — each profile has its own max, not a shared tlsmax. */
+    val max: Int,
+    val strategy: Int,
+    val name: String,
+)
+
+sealed class Z2ProfileListResult {
+    data class Success(val profiles: List<Z2Profile>) : Z2ProfileListResult()
+    data class ApiError(val code: Int, val error: String) : Z2ProfileListResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : Z2ProfileListResult()
+}
+
+/** action=z2profile_rollback: [rolledBack]=false means "nothing to roll back", not an error. zapret v1 has no equivalent — z1profile_apply is irreversible. */
+data class Z2RollbackInfo(val rolledBack: Boolean, val message: String)
+
+sealed class Z2RollbackResult {
+    data class Success(val info: Z2RollbackInfo) : Z2RollbackResult()
+    data class ApiError(val code: Int, val error: String) : Z2RollbackResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : Z2RollbackResult()
+}
+
+/**
+ * One zapret v1 category slot (action=z1profile_list) — always exactly these 4,
+ * with fixed STRING keys "udp_yt"|"tcp_yt"|"gv"|"rkn" (unlike zapret2's numeric
+ * keys). No protocol tag (zapret v1 categories carry no such field — don't show
+ * a proto badge for this list). [strategy]=0 is a legitimate "default strategy /
+ * not personally set" state, not an error and not "still loading".
+ */
+data class Z1Profile(
+    val key: String,
+    val max: Int,
+    val strategy: Int,
+    val name: String,
+)
+
+sealed class Z1ProfileListResult {
+    data class Success(val profiles: List<Z1Profile>) : Z1ProfileListResult()
+    data class ApiError(val code: Int, val error: String) : Z1ProfileListResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : Z1ProfileListResult()
+}
+
+/** One reachability probe from action=checkconn — shared by both zapret engines, not engine-specific. [ok] means "got any HTTP response", not specifically 200. */
+data class CheckEntry(val name: String, val ok: Boolean, val code: String)
+
+sealed class CheckResult {
+    data class Success(val checks: List<CheckEntry>) : CheckResult()
+    data class ApiError(val code: Int, val error: String) : CheckResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : CheckResult()
+}
+
+/** action=voice_status / voice_set: Discord/WhatsApp/Telegram voice-traffic handling mode, for either zapret engine. */
+data class VoiceInfo(val engine: String, val mode: String)
+
+sealed class VoiceResult {
+    data class Success(val info: VoiceInfo) : VoiceResult()
+    data class ApiError(val code: Int, val error: String) : VoiceResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : VoiceResult()
+}
+
 /** Router health snapshot (action=sys_info). [wanIp] is empty when WAN is down — not an error. */
 data class SysInfo(
     val uptimeSeconds: Long,
@@ -644,6 +711,241 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
             }
         } catch (e: Exception) {
             StrategyResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** zapret2's fixed 9-slot profile list (action=z2profile_list). Read-only. Runs on IO thread. */
+    fun z2ProfileList(): Z2ProfileListResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "z2profile_list")
+            }
+            val body = reply.body
+                ?: return Z2ProfileListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                Z2ProfileListResult.Success(parseZ2Profiles(json))
+            } else {
+                Z2ProfileListResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            Z2ProfileListResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Applies changed zapret2 profile strategies (action=z2profile_apply&values=key:strategy,…
+     * — only the changed pairs need to be sent). WARNING: if zapret2 is currently running, this
+     * restarts its daemon — call only from an explicit "Apply" confirmation, never per slider
+     * tick. The router answers with a FRESH z2profile_list; callers should update the UI
+     * straight from this response, no follow-up call needed. Runs on IO thread.
+     */
+    fun z2ProfileApply(values: Map<String, Int>): Z2ProfileListResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "z2profile_apply")
+                addQueryParameter("values", values.entries.joinToString(",") { "${it.key}:${it.value}" })
+            }
+            val body = reply.body
+                ?: return Z2ProfileListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                Z2ProfileListResult.Success(parseZ2Profiles(json))
+            } else {
+                Z2ProfileListResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            Z2ProfileListResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    private fun parseZ2Profiles(json: JSONObject): List<Z2Profile> {
+        val array = json.getJSONArray("profiles")
+        return buildList {
+            for (i in 0 until array.length()) {
+                val entry = array.getJSONObject(i)
+                add(
+                    Z2Profile(
+                        key = entry.getString("key"),
+                        proto = entry.getString("proto"),
+                        max = entry.getInt("max"),
+                        strategy = entry.getInt("strategy"),
+                        name = entry.getString("name"),
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * Reverts to the previous applied zapret2 profile set (action=z2profile_rollback).
+     * [Z2RollbackInfo.rolledBack]=false is a normal answer ("nothing to undo"), not an error —
+     * show it as a neutral message, never as a failure. Runs on IO thread.
+     */
+    fun z2ProfileRollback(): Z2RollbackResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "z2profile_rollback")
+            }
+            val body = reply.body
+                ?: return Z2RollbackResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                Z2RollbackResult.Success(
+                    Z2RollbackInfo(
+                        rolledBack = json.getBoolean("rolled_back"),
+                        message = json.optString("message", ""),
+                    )
+                )
+            } else {
+                Z2RollbackResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            Z2RollbackResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * zapret v1's fixed 4-category list (action=z1profile_list). No proto tag, unlike
+     * z2profile_list — strings keys "udp_yt"|"tcp_yt"|"gv"|"rkn". Read-only. Runs on IO thread.
+     */
+    fun z1ProfileList(): Z1ProfileListResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "z1profile_list")
+            }
+            val body = reply.body
+                ?: return Z1ProfileListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                Z1ProfileListResult.Success(parseZ1Profiles(json))
+            } else {
+                Z1ProfileListResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            Z1ProfileListResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Applies changed zapret v1 category strategies (action=z1profile_apply&values=key:strategy,…
+     * — only the changed pairs need to be sent). Unlike zapret2's z2profile_apply, this does
+     * NOT restart the whole daemon: each new strategy takes effect immediately for new
+     * connections when zapret is the running engine. There is no rollback for this endpoint —
+     * z4r/IndeecFOX gives no undo. The router answers with a FRESH z1profile_list; callers
+     * should update the UI straight from this response. Runs on IO thread.
+     */
+    fun z1ProfileApply(values: Map<String, Int>): Z1ProfileListResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "z1profile_apply")
+                addQueryParameter("values", values.entries.joinToString(",") { "${it.key}:${it.value}" })
+            }
+            val body = reply.body
+                ?: return Z1ProfileListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                Z1ProfileListResult.Success(parseZ1Profiles(json))
+            } else {
+                Z1ProfileListResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            Z1ProfileListResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    private fun parseZ1Profiles(json: JSONObject): List<Z1Profile> {
+        val array = json.getJSONArray("profiles")
+        return buildList {
+            for (i in 0 until array.length()) {
+                val entry = array.getJSONObject(i)
+                add(
+                    Z1Profile(
+                        key = entry.getString("key"),
+                        max = entry.getInt("max"),
+                        strategy = entry.getInt("strategy"),
+                        name = entry.getString("name"),
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * Reachability probe (action=checkconn — shared by both zapret engines, not
+     * engine-specific) — a synchronous call that takes 2-4 s on the router; callers must
+     * show a spinner. [CheckEntry.ok] means "got any HTTP response" (403/301 included), not
+     * specifically 200. Runs on IO thread.
+     */
+    fun checkConnectivity(): CheckResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = CHECK_CONN_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "checkconn")
+            }
+            val body = reply.body
+                ?: return CheckResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.getJSONArray("checks")
+                val checks = buildList {
+                    for (i in 0 until array.length()) {
+                        val entry = array.getJSONObject(i)
+                        add(
+                            CheckEntry(
+                                name = entry.getString("name"),
+                                ok = entry.getBoolean("ok"),
+                                code = entry.optString("code", ""),
+                            )
+                        )
+                    }
+                }
+                CheckResult.Success(checks)
+            } else {
+                CheckResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            CheckResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Reads the voice-traffic handling mode for [engine] (action=voice_status). Runs on IO thread. */
+    fun voiceStatus(engine: String): VoiceResult = voiceResultOf {
+        addQueryParameter("action", "voice_status")
+        addQueryParameter("engine", engine)
+    }
+
+    /**
+     * Switches the voice-traffic handling mode (action=voice_set). Callers must take the
+     * new mode FROM the response, not the value they sent — the router is authoritative.
+     */
+    fun voiceSet(engine: String, mode: String): VoiceResult = voiceResultOf {
+        addQueryParameter("action", "voice_set")
+        addQueryParameter("engine", engine)
+        addQueryParameter("mode", mode)
+    }
+
+    private fun voiceResultOf(query: HttpUrl.Builder.() -> Unit): VoiceResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                query()
+            }
+            val body = reply.body
+                ?: return VoiceResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                VoiceResult.Success(VoiceInfo(engine = json.getString("engine"), mode = json.getString("mode")))
+            } else {
+                VoiceResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            VoiceResult.NetworkError(classify(e), detailOf(e))
         }
     }
 
@@ -1273,6 +1575,8 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         private const val VERSION_CHECK_READ_SECONDS = 20
         private const val MIHOMO_UPDATE_READ_SECONDS = 60
         private const val NODE_IPV6_READ_SECONDS = 30
+        // checkconn probes several hosts from the router, 2-4 s typical.
+        private const val CHECK_CONN_READ_SECONDS = 15
     }
 }
 

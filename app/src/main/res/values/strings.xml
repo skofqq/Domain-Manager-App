@@ -51,6 +51,26 @@
         <item quantity="other">%d domains</item>
     </plurals>
 
+    <!-- zapret2 profiles -->
+    <string name="z2_profiles_title">zapret2 profiles</string>
+    <string name="z2_proto_tls">TLS</string>
+    <string name="z2_proto_udp">QUIC / UDP</string>
+    <string name="z2_proto_http">HTTP</string>
+    <string name="z2_apply_hint">Changes to the active engine apply with a brief restart.</string>
+    <string name="z2_rollback">Roll back</string>
+    <string name="z2_rollback_done">Rolled back to the previous set</string>
+    <string name="z2_rollback_nothing">Nothing saved to roll back to</string>
+
+    <!-- zapret v1 profiles -->
+    <string name="z1_profiles_title">zapret profiles</string>
+
+    <!-- Shared by both zapret profile screens -->
+    <string name="profile_caption">key %1$s · now: %2$d</string>
+    <string name="check_reachability">Check reachability</string>
+    <string name="voice_title">Voice calls — Discord/WhatsApp/Telegram</string>
+    <string name="voice_custom">Custom</string>
+    <string name="voice_bolvan">bol-van scripts</string>
+
     <!-- Status (services) screen -->
     <string name="health_model">Model</string>
     <string name="health_firmware">Firmware</string>

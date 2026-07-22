@@ -105,6 +105,8 @@ fun ServicesScreen(
     mihomoViewModel: MihomoViewModel,
     diagnosticsViewModel: DiagnosticsViewModel,
     magitrickleGroupsViewModel: MagitrickleGroupsViewModel,
+    z2ProfilesViewModel: Z2ProfilesViewModel,
+    z1ProfilesViewModel: Z1ProfilesViewModel,
     /** Non-null once, right after opening via an App Shortcut — e.g. "devices". */
     initialSubScreen: String? = null,
     onInitialSubScreenConsumed: () -> Unit = {},
@@ -150,6 +152,8 @@ fun ServicesScreen(
                 onOpenMihomo = { subScreen = "mihomo" },
                 onOpenDiagnostics = { subScreen = "diagnostics" },
                 onOpenMagitrickleGroups = { subScreen = "magitrickle_groups" },
+                onOpenZ2Profiles = { subScreen = "z2profiles" },
+                onOpenZ1Profiles = { subScreen = "z1profiles" },
             )
         }
         if (child != null) {
@@ -184,6 +188,14 @@ fun ServicesScreen(
                         viewModel = magitrickleGroupsViewModel,
                         onBack = { subScreen = null },
                     )
+                    "z2profiles" -> Z2ProfilesScreen(
+                        viewModel = z2ProfilesViewModel,
+                        onBack = { subScreen = null },
+                    )
+                    "z1profiles" -> Z1ProfilesScreen(
+                        viewModel = z1ProfilesViewModel,
+                        onBack = { subScreen = null },
+                    )
                 }
             }
         }
@@ -198,6 +210,8 @@ private fun StatusRootScreen(
     onOpenMihomo: () -> Unit,
     onOpenDiagnostics: () -> Unit,
     onOpenMagitrickleGroups: () -> Unit,
+    onOpenZ2Profiles: () -> Unit,
+    onOpenZ1Profiles: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -265,11 +279,17 @@ private fun StatusRootScreen(
                             onRestart = { viewModel.restart(svc.service) },
                             onOpenLog = { viewModel.openServiceLog(svc.service) },
                             // mihomo drills into its own screen; MagiTrickle
-                            // drills into the read-only groups overview; zapret
-                            // strategies already live in Domains — no entry point.
-                            onOpen = when (svc.service) {
-                                "mihomo" -> onOpenMihomo
-                                "magitrickle" -> onOpenMagitrickleGroups
+                            // drills into the read-only groups overview. Each
+                            // zapret engine's profile switcher is only reachable
+                            // while THAT engine is the actually detected running
+                            // one — same svc_list-driven gating the Strategies
+                            // auto-select uses, just expressed as "no chevron"
+                            // here instead of "no tab".
+                            onOpen = when {
+                                svc.service == "mihomo" -> onOpenMihomo
+                                svc.service == "magitrickle" -> onOpenMagitrickleGroups
+                                svc.service == ENGINE_ZAPRET2 && svc.running -> onOpenZ2Profiles
+                                svc.service == ENGINE_ZAPRET && svc.running -> onOpenZ1Profiles
                                 else -> null
                             },
                         )

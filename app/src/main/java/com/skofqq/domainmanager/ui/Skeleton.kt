@@ -109,6 +109,28 @@ fun SkeletonStrategyRow(brush: Brush) {
     }
 }
 
+/** zapret2 profile row placeholder: name + badge caption bar, stepper on the right. */
+@Composable
+fun SkeletonProfileRow(brush: Brush) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .padding(start = 16.dp, end = 8.dp)
+                .height(60.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                SkeletonBox(brush, Modifier.fillMaxWidth(0.6f).height(14.dp))
+                SkeletonBox(brush, Modifier.fillMaxWidth(0.4f).height(10.dp))
+            }
+            SkeletonBox(brush, Modifier.size(32.dp), CircleShape)
+            SkeletonBox(brush, Modifier.width(20.dp).height(14.dp))
+            SkeletonBox(brush, Modifier.size(32.dp), CircleShape)
+        }
+    }
+}
+
 /** Status service card placeholder: title, two indicator bars, two action buttons. */
 @Composable
 fun SkeletonServiceCard(brush: Brush) {
