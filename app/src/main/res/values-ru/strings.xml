@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Domain Manager</string>
+    <string name="app_name">Helm</string>
 
     <!-- Navigation -->
     <string name="settings">Настройки</string>
@@ -218,7 +218,7 @@
     <string name="lock_mode_token_desc">Подтверждение перед показом токена в «Авторизации»</string>
     <string name="lock_mode_app">Всё приложение</string>
     <string name="lock_mode_app_desc">Биометрия или PIN при каждом запуске</string>
-    <string name="unlock_title">Разблокируйте Domain Manager</string>
+    <string name="unlock_title">Разблокируйте Helm</string>
     <string name="unlock">Разблокировать</string>
     <string name="auth_to_show_token">Подтвердите, чтобы показать токен</string>
 
@@ -251,7 +251,7 @@
     <string name="qr_show_warning">Код содержит адрес, порт и токен доступа в открытом виде — показывайте его только доверенным устройствам.</string>
     <string name="qr_scanned">Отсканировано — проверьте поля и нажмите «Сохранить»</string>
     <string name="qr_plain_hint">Долгое нажатие по коду — переключение на обычный QR (для капризных сканеров) и обратно.</string>
-    <string name="qr_invalid">Это не QR-код настроек Domain Manager</string>
+    <string name="qr_invalid">Это не QR-код настроек Helm</string>
 
     <!-- History -->
     <string name="section_history">История</string>
@@ -383,6 +383,77 @@
     <string name="test_connected_no_token">Подключено (токен не настроен на роутере)</string>
     <string name="test_http_error">Ошибка: HTTP %1$d</string>
 
+    <!-- Rule providers (external rule-sets bound to a proxy group) -->
+    <string name="section_rule_providers">Наборы правил</string>
+    <string name="rule_providers_title">Наборы правил</string>
+    <string name="rule_providers_entry_desc">Внешние списки, привязанные к proxy-группе</string>
+    <string name="rule_providers_hint">Наборы правил скачивает и обновляет сам роутер. Совпавший трафик уходит в ту proxy-группу, к которой привязан список.</string>
+    <string name="rule_providers_empty">Наборы правил ещё не добавлены. Нажмите «Добавить», чтобы привязать список к proxy-группе.</string>
+    <plurals name="n_rule_providers">
+        <item quantity="one">%d набор добавлен</item>
+        <item quantity="few">%d набора добавлено</item>
+        <item quantity="many">%d наборов добавлено</item>
+        <item quantity="other">%d набора добавлено</item>
+    </plurals>
+    <plurals name="n_hours">
+        <item quantity="one">Раз в %d час</item>
+        <item quantity="few">Раз в %d часа</item>
+        <item quantity="many">Раз в %d часов</item>
+        <item quantity="other">Раз в %d часа</item>
+    </plurals>
+    <string name="provider_routed_to">→ %1$s</string>
+    <string name="provider_delete_title">Удалить набор правил?</string>
+    <string name="provider_delete_text">«%1$s» и его правило маршрутизации будут удалены с роутера. Proxy-группа «%2$s» останется — группами управляют на самом роутере.</string>
+    <string name="provider_removed">«%1$s» удалён</string>
+    <string name="provider_not_found">На роутере не было «%1$s»</string>
+    <string name="provider_added">«%1$s» добавлен и привязан к %2$s</string>
+
+    <string name="provider_add_title">Новый набор правил</string>
+    <string name="provider_step">Шаг %1$d из %2$d</string>
+    <string name="next">Далее</string>
+    <string name="provider_custom_url">Свой URL</string>
+    <string name="provider_custom_url_desc">Любой https-источник, не только из списка ниже</string>
+    <string name="provider_url">URL набора правил</string>
+    <string name="provider_url_hint">Должен начинаться с https://</string>
+    <string name="provider_url_invalid">Укажите полную ссылку https://</string>
+    <string name="provider_behavior">Тип списка</string>
+    <string name="provider_behavior_hint">Что внутри списка: домены, диапазоны IP или классические смешанные правила.</string>
+    <string name="behavior_domain">Домены</string>
+    <string name="behavior_ipcidr">IP-адреса</string>
+    <string name="behavior_classical">Классический</string>
+    <string name="provider_format">Формат</string>
+    <string name="provider_format_hint">MRS — компактный бинарный формат, меньше и быстрее, чем YAML или обычный текст.</string>
+    <string name="provider_name">Имя</string>
+    <string name="provider_name_hint">Строчные латинские буквы, цифры и «-», начиная с буквы</string>
+    <string name="provider_name_invalid">Только строчные латинские буквы, цифры и «-», начиная с буквы</string>
+    <string name="provider_name_taken">Набор с таким именем уже есть</string>
+    <string name="provider_interval">Частота обновления</string>
+    <string name="interval_hour">Раз в час</string>
+    <string name="interval_6h">Раз в 6 часов</string>
+    <string name="interval_day">Раз в день</string>
+    <string name="interval_week">Раз в неделю</string>
+    <string name="provider_fetch_proxy">Скачивать через прокси</string>
+    <string name="provider_fetch_proxy_hint">Через какую proxy-группу роутер скачивает этот список. Пригодится, когда источник (например, GitHub) не открывается напрямую. К маршрутизации совпавшего трафика отношения не имеет.</string>
+    <string name="provider_fetch_proxy_none">Напрямую</string>
+    <string name="provider_group_hint">Куда маршрутизировать трафик, совпавший с этим списком.</string>
+    <string name="provider_group_existing">Существующая</string>
+    <string name="provider_group_new">Новая группа</string>
+    <string name="provider_new_group_name">Имя новой группы</string>
+    <string name="provider_new_group_hint">Роутер создаст эту proxy-группу</string>
+    <string name="provider_new_group_taken">На роутере уже есть группа с таким именем — выберите её как существующую</string>
+    <string name="provider_new_group_note">Новая группа создаётся на роутере. Удаление набора правил группу не удаляет — это делается на самом роутере.</string>
+    <string name="provider_no_groups">Роутер не вернул ни одной proxy-группы</string>
+    <string name="provider_add_slow_note">Роутер скачивает список и проверяет получившийся конфиг — это может занять некоторое время.</string>
+
+
+    <!-- Live source catalog (MetaCubeX/meta-rules-dat, branch meta) -->
+    <string name="catalog_search">Поиск по каталогу</string>
+    <string name="catalog_refresh">Обновить каталог</string>
+    <string name="catalog_loading">Загрузка каталога…</string>
+    <string name="catalog_count">%1$d из %2$d файлов</string>
+    <string name="catalog_no_results">Ничего не найдено. Для источника вне этого каталога используйте «Свой URL».</string>
+    <string name="catalog_not_updated">Каталог не обновлён</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Неверный токен — проверьте настройки</string>
     <string name="err_token_not_configured">Токен не настроен на роутере</string>
@@ -395,6 +466,20 @@
     <string name="err_bad_engine">Неизвестный движок</string>
     <string name="err_bad_strategy">Номер стратегии вне допустимого диапазона</string>
     <string name="err_strategy_unconfirmed">Роутер не подтвердил изменение стратегии</string>
+    <string name="err_bad_provider_name">Недопустимое имя набора правил</string>
+    <string name="err_bad_url">Роутер не принял этот URL</string>
+    <string name="err_bad_behavior">Недопустимый тип списка</string>
+    <string name="err_bad_format">Недопустимый формат</string>
+    <string name="err_bad_interval">Частота обновления вне диапазона (60 с – 7 дней)</string>
+    <string name="err_missing_group">Не выбрана proxy-группа</string>
+    <string name="err_group_both_set">Выберите либо существующую группу, либо новую — не обе сразу</string>
+    <string name="err_group_not_found">Такой proxy-группы на роутере больше нет — вернитесь и выберите другую</string>
+    <string name="err_bad_new_group">Недопустимое имя новой группы</string>
+    <string name="err_provider_exists">На роутере уже есть набор правил с таким именем</string>
+    <string name="err_group_exists">На роутере уже есть группа с таким именем — выберите её как существующую</string>
+    <string name="err_mihomo_config_test_failed">Роутер отклонил получившийся конфиг mihomo — набор правил не добавлен. Проверьте URL, тип списка и формат.</string>
+    <string name="err_catalog_rate_limited">GitHub временно ограничил запросы (60 в час на IP без токена). Попробуйте позже или введите URL вручную.</string>
+    <string name="err_catalog_http">GitHub ответил ошибкой HTTP %1$d</string>
     <string name="err_generic">Ошибка %1$d: %2$s</string>
     <string name="err_timeout">Роутер не отвечает. Убедитесь, что телефон подключён к Wi-Fi роутера и порт указан верно.</string>
     <string name="err_unreachable">Не удалось подключиться к роутеру — проверьте адрес и порт.</string>

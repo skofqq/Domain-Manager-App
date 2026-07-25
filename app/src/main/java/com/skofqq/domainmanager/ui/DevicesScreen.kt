@@ -92,6 +92,8 @@ import com.skofqq.domainmanager.data.LanDevice
 internal fun StatusChildScaffold(
     title: String,
     onBack: () -> Unit,
+    /** Optional FAB slot — only the rule-providers child uses one so far. */
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -110,6 +112,7 @@ internal fun StatusChildScaffold(
                 scrollBehavior = scrollBehavior,
             )
         },
+        floatingActionButton = floatingActionButton,
         contentWindowInsets = WindowInsets(0),
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding -> content(padding) }

@@ -49,6 +49,22 @@ fun apiErrorMessage(code: Int, error: String): UiMessage = when (error) {
     "etherwake_not_installed" -> UiMessage(R.string.err_etherwake_missing)
     "bad_engine" -> UiMessage(R.string.err_bad_engine)
     "bad_strategy" -> UiMessage(R.string.err_bad_strategy)
+    // Rule providers. group_not_found / group_exists / provider_exists are the
+    // ones a user actually hits (the group was changed on the router since the
+    // list was fetched, or the name is already in use) — each gets its own text
+    // so the add flow never falls back to a generic failure.
+    "bad_provider_name" -> UiMessage(R.string.err_bad_provider_name)
+    "bad_url" -> UiMessage(R.string.err_bad_url)
+    "bad_behavior" -> UiMessage(R.string.err_bad_behavior)
+    "bad_format" -> UiMessage(R.string.err_bad_format)
+    "bad_interval" -> UiMessage(R.string.err_bad_interval)
+    "missing_group" -> UiMessage(R.string.err_missing_group)
+    "group_and_new_group_both_set" -> UiMessage(R.string.err_group_both_set)
+    "group_not_found" -> UiMessage(R.string.err_group_not_found)
+    "bad_new_group" -> UiMessage(R.string.err_bad_new_group)
+    "provider_exists" -> UiMessage(R.string.err_provider_exists)
+    "group_exists" -> UiMessage(R.string.err_group_exists)
+    "mihomo_config_test_failed" -> UiMessage(R.string.err_mihomo_config_test_failed)
     // 502: the mihomo controller itself is down — a distinct case from our API failing.
     "mihomo_unreachable" -> UiMessage(R.string.err_mihomo_unreachable)
     "mihomo_select_failed" -> UiMessage(R.string.err_mihomo_select_failed)

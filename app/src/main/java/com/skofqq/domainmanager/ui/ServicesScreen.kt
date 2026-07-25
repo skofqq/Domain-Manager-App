@@ -107,6 +107,7 @@ fun ServicesScreen(
     magitrickleGroupsViewModel: MagitrickleGroupsViewModel,
     z2ProfilesViewModel: Z2ProfilesViewModel,
     z1ProfilesViewModel: Z1ProfilesViewModel,
+    ruleProvidersViewModel: RuleProvidersViewModel,
     /** Non-null once, right after opening via an App Shortcut — e.g. "devices". */
     initialSubScreen: String? = null,
     onInitialSubScreenConsumed: () -> Unit = {},
@@ -176,7 +177,11 @@ fun ServicesScreen(
             ) {
                 when (child) {
                     "devices" -> DevicesScreen(viewModel, onBack = { subScreen = null })
-                    "mihomo" -> MihomoScreen(mihomoViewModel, onBack = { subScreen = null })
+                    "mihomo" -> MihomoScreen(
+                        viewModel = mihomoViewModel,
+                        ruleProvidersViewModel = ruleProvidersViewModel,
+                        onBack = { subScreen = null },
+                    )
                     "diagnostics" -> DiagnosticsScreen(
                         viewModel = diagnosticsViewModel,
                         wanIp = viewModel.state.collectAsState().value.sysInfo?.wanIp?.takeIf { it.isNotEmpty() },

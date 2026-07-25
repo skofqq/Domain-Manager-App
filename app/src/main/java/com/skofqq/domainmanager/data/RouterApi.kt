@@ -371,6 +371,50 @@ sealed class NodeIpv6Result {
     data class NetworkError(val kind: NetFailure, val detail: String? = null) : NodeIpv6Result()
 }
 
+/**
+ * One mihomo rule-provider group added through this app (action=provider_list).
+ * [provider] is ALREADY stripped of the router's internal "helm-" prefix — show
+ * and send it exactly as it comes back. [group] is the proxy-group matched
+ * traffic is routed to, NOT the group the rule-set itself is downloaded through.
+ */
+data class RuleProvider(
+    val provider: String,
+    val url: String,
+    /** Refresh period in seconds (60..604800). */
+    val interval: Int,
+    /** "domain" | "ipcidr" | "classical" */
+    val behavior: String,
+    /** "mrs" | "yaml" | "text" */
+    val format: String,
+    val group: String,
+)
+
+sealed class ProxyGroupsResult {
+    /** Every proxy-group configured on the router, in router order. */
+    data class Success(val groups: List<String>) : ProxyGroupsResult()
+    data class ApiError(val code: Int, val error: String) : ProxyGroupsResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : ProxyGroupsResult()
+}
+
+sealed class RuleProviderListResult {
+    data class Success(val providers: List<RuleProvider>) : RuleProviderListResult()
+    data class ApiError(val code: Int, val error: String) : RuleProviderListResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : RuleProviderListResult()
+}
+
+sealed class RuleProviderAddResult {
+    data class Success(val provider: RuleProvider) : RuleProviderAddResult()
+    data class ApiError(val code: Int, val error: String) : RuleProviderAddResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : RuleProviderAddResult()
+}
+
+sealed class RuleProviderRemoveResult {
+    /** [removed]=false means the router had no such provider — a no-op, not a failure. */
+    data class Success(val provider: String, val removed: Boolean) : RuleProviderRemoveResult()
+    data class ApiError(val code: Int, val error: String) : RuleProviderRemoveResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : RuleProviderRemoveResult()
+}
+
 /** For actions whose success payload carries no data (reboot, mihomo_select, connection close). */
 sealed class OkResult {
     data object Success : OkResult()
@@ -1075,6 +1119,147 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
     }
 
     /**
+     * Every proxy-group name configured on the router (action=pg_list) — unlike
+     * [mihomoProxies] this is the router's own config view, so it also lists
+     * groups that are not Selectors. Used to pick the destination group (and the
+     * optional download group) when adding a rule-provider. Runs on IO thread.
+     */
+    fun proxyGroups(): ProxyGroupsResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "pg_list")
+            }
+            val body = reply.body
+                ?: return ProxyGroupsResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.getJSONArray("groups")
+                val groups = buildList {
+                    for (i in 0 until array.length()) add(array.getString(i))
+                }
+                ProxyGroupsResult.Success(groups)
+            } else {
+                ProxyGroupsResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            ProxyGroupsResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Rule-provider groups added through this app (action=provider_list). Only
+     * ours — rule-providers configured on the router by other means are not
+     * listed and cannot be removed from here. Runs on IO thread.
+     */
+    fun ruleProviders(): RuleProviderListResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "provider_list")
+            }
+            val body = reply.body
+                ?: return RuleProviderListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.getJSONArray("providers")
+                val providers = buildList {
+                    for (i in 0 until array.length()) add(parseRuleProvider(array.getJSONObject(i)))
+                }
+                RuleProviderListResult.Success(providers)
+            } else {
+                RuleProviderListResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            RuleProviderListResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Adds a rule-provider and its routing rule (action=provider_add). Exactly one
+     * of [group] (existing) / [newGroup] (created on the fly) must be non-null —
+     * the router answers 400 group_and_new_group_both_set / missing_group otherwise.
+     * [fetchProxy] is a completely separate thing: the proxy-group the ROUTER
+     * downloads the rule-set through, for sources it can't reach directly.
+     *
+     * Slow: the router fetches the URL and runs a full mihomo config test before
+     * answering, hence the raised read timeout. Runs on IO thread.
+     */
+    fun ruleProviderAdd(
+        provider: String,
+        url: String,
+        behavior: String,
+        format: String,
+        interval: Int,
+        group: String? = null,
+        newGroup: String? = null,
+        fetchProxy: String? = null,
+    ): RuleProviderAddResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = PROVIDER_ADD_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "provider_add")
+                addQueryParameter("provider", provider)
+                addQueryParameter("url", url)
+                addQueryParameter("behavior", behavior)
+                addQueryParameter("format", format)
+                addQueryParameter("interval", interval.toString())
+                group?.let { addQueryParameter("group", it) }
+                newGroup?.let { addQueryParameter("new_group", it) }
+                fetchProxy?.let { addQueryParameter("fetch_proxy", it) }
+            }
+            val body = reply.body
+                ?: return RuleProviderAddResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                RuleProviderAddResult.Success(parseRuleProvider(json))
+            } else {
+                RuleProviderAddResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            RuleProviderAddResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Removes a rule-provider and its routing rule (action=provider_remove). A
+     * proxy-group that was created for it stays — group management is deliberately
+     * out of this app's scope, by design.
+     */
+    fun ruleProviderRemove(provider: String): RuleProviderRemoveResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "provider_remove")
+                addQueryParameter("provider", provider)
+            }
+            val body = reply.body
+                ?: return RuleProviderRemoveResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                RuleProviderRemoveResult.Success(
+                    provider = json.optString("provider", provider),
+                    removed = json.optBoolean("removed", false),
+                )
+            } else {
+                RuleProviderRemoveResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            RuleProviderRemoveResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Shared by provider_list rows and the provider_add reply — identical shape. */
+    private fun parseRuleProvider(entry: JSONObject) = RuleProvider(
+        provider = entry.getString("provider"),
+        url = entry.optString("url", ""),
+        interval = entry.optInt("interval", DEFAULT_PROVIDER_INTERVAL),
+        behavior = entry.optString("behavior", ""),
+        format = entry.optString("format", ""),
+        group = entry.optString("group", ""),
+    )
+
+    /**
      * ALL MagiTrickle rule groups (action=magitrickle_groups — a transparent
      * pass-through of MagiTrickle's own API), not just the Custom group this app
      * otherwise manages. Read-only. Runs on IO thread.
@@ -1577,6 +1762,19 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         private const val NODE_IPV6_READ_SECONDS = 30
         // checkconn probes several hosts from the router, 2-4 s typical.
         private const val CHECK_CONN_READ_SECONDS = 15
+        // provider_add makes the router download the rule-set from the internet
+        // and run a full mihomo config test before it answers.
+        private const val PROVIDER_ADD_READ_SECONDS = 60
+
+        /** Refresh period used when the router omits it / the UI has no explicit choice: once a day. */
+        const val DEFAULT_PROVIDER_INTERVAL = 86400
+        const val MIN_PROVIDER_INTERVAL = 60
+        const val MAX_PROVIDER_INTERVAL = 604800
+
+        /** Router-side rule is `[a-z][a-z0-9-]*` — validated here so a bad name never reaches the API. */
+        private val PROVIDER_NAME_REGEX = Regex("^[a-z][a-z0-9-]*$")
+
+        fun isValidProviderName(name: String): Boolean = PROVIDER_NAME_REGEX.matches(name)
     }
 }
 

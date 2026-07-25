@@ -1,5 +1,7 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.activity.BackEventCompat
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -48,7 +50,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,12 +62,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import androidx.compose.foundation.clickable
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import kotlin.coroutines.cancellation.CancellationException
 import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.MihomoConnection
 import com.skofqq.domainmanager.data.MihomoGroup
@@ -75,8 +83,81 @@ import com.skofqq.domainmanager.data.MihomoNodeInfo
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MihomoScreen(viewModel: MihomoViewModel, onBack: () -> Unit) {
+fun MihomoScreen(
+    viewModel: MihomoViewModel,
+    ruleProvidersViewModel: RuleProvidersViewModel,
+    onBack: () -> Unit,
+) {
+    // Rule providers are a push screen one level deeper than this one. Its
+    // predictive-back handler is registered from inside this composition, so it
+    // takes priority over ServicesScreen's child→root handler and back walks
+    // providers → mihomo → Status root.
+    var providersOpen by rememberSaveable { mutableStateOf(false) }
+    var backProgress by remember { mutableFloatStateOf(0f) }
+    var backSwipeEdge by remember { mutableIntStateOf(BackEventCompat.EDGE_LEFT) }
+
+    PredictiveBackHandler(enabled = providersOpen) { events ->
+        try {
+            events.collect {
+                backProgress = it.progress
+                backSwipeEdge = it.swipeEdge
+            }
+            providersOpen = false
+        } catch (e: CancellationException) {
+            throw e
+        } finally {
+            backProgress = 0f
+        }
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        if (!providersOpen || backProgress > 0f) {
+            MihomoRootScreen(
+                viewModel = viewModel,
+                ruleProvidersViewModel = ruleProvidersViewModel,
+                onBack = onBack,
+                onOpenRuleProviders = { providersOpen = true },
+            )
+        }
+        if (providersOpen) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val scale = lerp(1f, 0.94f, backProgress)
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = lerp(
+                            0f,
+                            if (backSwipeEdge == BackEventCompat.EDGE_LEFT) 24f else -24f,
+                            backProgress,
+                        )
+                        alpha = lerp(1f, 0.85f, backProgress)
+                        shape = RoundedCornerShape(lerp(0f, 28f, backProgress).dp)
+                        clip = true
+                    },
+            ) {
+                RuleProvidersScreen(
+                    viewModel = ruleProvidersViewModel,
+                    onBack = { providersOpen = false },
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MihomoRootScreen(
+    viewModel: MihomoViewModel,
+    ruleProvidersViewModel: RuleProvidersViewModel,
+    onBack: () -> Unit,
+    onOpenRuleProviders: () -> Unit,
+) {
     val state by viewModel.state.collectAsState()
+    // Count only — the providers screen owns the loading; this shows whatever it
+    // already knows and a generic subtitle before the first visit.
+    val providersState by ruleProvidersViewModel.state.collectAsState()
     // Name, not the object: the sheet must show fresh "now" after a re-fetch.
     var sheetGroupName by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -179,6 +260,15 @@ fun MihomoScreen(viewModel: MihomoViewModel, onBack: () -> Unit) {
                         )
                     }
                 }
+            }
+
+            // --- Rule providers (external rule-sets bound to a proxy group) ---
+            item { SectionLabel(stringResource(R.string.section_rule_providers)) }
+            item {
+                RuleProvidersEntryCard(
+                    count = providersState.providers?.size,
+                    onClick = onOpenRuleProviders,
+                )
             }
 
             // --- Active connections ---

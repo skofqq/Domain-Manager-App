@@ -59,6 +59,7 @@ import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.HistoryStore
 import com.skofqq.domainmanager.data.PrefsStore
 import com.skofqq.domainmanager.data.RouterApi
+import com.skofqq.domainmanager.data.RuleCatalogStore
 import com.skofqq.domainmanager.ui.theme.DomainManagerTheme
 import com.skofqq.domainmanager.worker.RouterMonitorWorker
 
@@ -91,6 +92,10 @@ class MainActivity : AppCompatActivity() {
     }
     private val z2ProfilesViewModel by viewModels<Z2ProfilesViewModel> { Z2ProfilesViewModel.Factory(api) }
     private val z1ProfilesViewModel by viewModels<Z1ProfilesViewModel> { Z1ProfilesViewModel.Factory(api) }
+    private val ruleCatalogStore by lazy { RuleCatalogStore(applicationContext) }
+    private val ruleProvidersViewModel by viewModels<RuleProvidersViewModel> {
+        RuleProvidersViewModel.Factory(api, ruleCatalogStore)
+    }
     private val routerInfoViewModel by viewModels<RouterInfoViewModel> { RouterInfoViewModel.Factory(api) }
     private val settingsViewModel by viewModels<SettingsViewModel> {
         SettingsViewModel.Factory(prefs, api, applicationContext)
@@ -172,6 +177,7 @@ class MainActivity : AppCompatActivity() {
                     routerInfoViewModel.reset()
                     z2ProfilesViewModel.reset()
                     z1ProfilesViewModel.reset()
+                    ruleProvidersViewModel.reset()
                 }
             }
             // Keeps the "zapret_restart" shortcut's label pointed at whichever
@@ -227,6 +233,7 @@ class MainActivity : AppCompatActivity() {
                                 magitrickleGroupsViewModel = magitrickleGroupsViewModel,
                                 z2ProfilesViewModel = z2ProfilesViewModel,
                                 z1ProfilesViewModel = z1ProfilesViewModel,
+                                ruleProvidersViewModel = ruleProvidersViewModel,
                                 routerInfoViewModel = routerInfoViewModel,
                                 settingsViewModel = settingsViewModel,
                                 backupViewModel = backupViewModel,
@@ -311,6 +318,7 @@ private fun MainNavigation(
     magitrickleGroupsViewModel: MagitrickleGroupsViewModel,
     z2ProfilesViewModel: Z2ProfilesViewModel,
     z1ProfilesViewModel: Z1ProfilesViewModel,
+    ruleProvidersViewModel: RuleProvidersViewModel,
     routerInfoViewModel: RouterInfoViewModel,
     settingsViewModel: SettingsViewModel,
     backupViewModel: BackupViewModel,
@@ -447,6 +455,7 @@ private fun MainNavigation(
                             magitrickleGroupsViewModel,
                             z2ProfilesViewModel,
                             z1ProfilesViewModel,
+                            ruleProvidersViewModel,
                             initialSubScreen = when {
                                 openDevicesFromShortcut -> "devices"
                                 openSpeedtestSubscreenFromShortcut -> "diagnostics"
