@@ -96,6 +96,10 @@ class MainActivity : AppCompatActivity() {
     private val ruleProvidersViewModel by viewModels<RuleProvidersViewModel> {
         RuleProvidersViewModel.Factory(api, ruleCatalogStore)
     }
+    private val subscriptionsViewModel by viewModels<SubscriptionsViewModel> {
+        SubscriptionsViewModel.Factory(api)
+    }
+    private val torViewModel by viewModels<TorViewModel> { TorViewModel.Factory(api) }
     private val routerInfoViewModel by viewModels<RouterInfoViewModel> { RouterInfoViewModel.Factory(api) }
     private val settingsViewModel by viewModels<SettingsViewModel> {
         SettingsViewModel.Factory(prefs, api, applicationContext)
@@ -178,6 +182,8 @@ class MainActivity : AppCompatActivity() {
                     z2ProfilesViewModel.reset()
                     z1ProfilesViewModel.reset()
                     ruleProvidersViewModel.reset()
+                    subscriptionsViewModel.reset()
+                    torViewModel.reset()
                 }
             }
             // Keeps the "zapret_restart" shortcut's label pointed at whichever
@@ -234,6 +240,8 @@ class MainActivity : AppCompatActivity() {
                                 z2ProfilesViewModel = z2ProfilesViewModel,
                                 z1ProfilesViewModel = z1ProfilesViewModel,
                                 ruleProvidersViewModel = ruleProvidersViewModel,
+                                subscriptionsViewModel = subscriptionsViewModel,
+                                torViewModel = torViewModel,
                                 routerInfoViewModel = routerInfoViewModel,
                                 settingsViewModel = settingsViewModel,
                                 backupViewModel = backupViewModel,
@@ -319,6 +327,8 @@ private fun MainNavigation(
     z2ProfilesViewModel: Z2ProfilesViewModel,
     z1ProfilesViewModel: Z1ProfilesViewModel,
     ruleProvidersViewModel: RuleProvidersViewModel,
+    subscriptionsViewModel: SubscriptionsViewModel,
+    torViewModel: TorViewModel,
     routerInfoViewModel: RouterInfoViewModel,
     settingsViewModel: SettingsViewModel,
     backupViewModel: BackupViewModel,
@@ -456,6 +466,8 @@ private fun MainNavigation(
                             z2ProfilesViewModel,
                             z1ProfilesViewModel,
                             ruleProvidersViewModel,
+                            subscriptionsViewModel,
+                            torViewModel,
                             initialSubScreen = when {
                                 openDevicesFromShortcut -> "devices"
                                 openSpeedtestSubscreenFromShortcut -> "diagnostics"

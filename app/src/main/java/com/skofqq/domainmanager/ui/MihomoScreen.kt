@@ -86,23 +86,24 @@ import com.skofqq.domainmanager.data.MihomoNodeInfo
 fun MihomoScreen(
     viewModel: MihomoViewModel,
     ruleProvidersViewModel: RuleProvidersViewModel,
+    subscriptionsViewModel: SubscriptionsViewModel,
     onBack: () -> Unit,
 ) {
-    // Rule providers are a push screen one level deeper than this one. Its
-    // predictive-back handler is registered from inside this composition, so it
-    // takes priority over ServicesScreen's child→root handler and back walks
-    // providers → mihomo → Status root.
-    var providersOpen by rememberSaveable { mutableStateOf(false) }
+    // Rule providers and subscriptions are push screens one level deeper than
+    // this one. The predictive-back handler is registered from inside this
+    // composition, so it takes priority over ServicesScreen's child→root handler
+    // and back walks child → mihomo → Status root.
+    var child by rememberSaveable { mutableStateOf<String?>(null) }
     var backProgress by remember { mutableFloatStateOf(0f) }
     var backSwipeEdge by remember { mutableIntStateOf(BackEventCompat.EDGE_LEFT) }
 
-    PredictiveBackHandler(enabled = providersOpen) { events ->
+    PredictiveBackHandler(enabled = child != null) { events ->
         try {
             events.collect {
                 backProgress = it.progress
                 backSwipeEdge = it.swipeEdge
             }
-            providersOpen = false
+            child = null
         } catch (e: CancellationException) {
             throw e
         } finally {
@@ -111,15 +112,17 @@ fun MihomoScreen(
     }
 
     Box(Modifier.fillMaxSize()) {
-        if (!providersOpen || backProgress > 0f) {
+        if (child == null || backProgress > 0f) {
             MihomoRootScreen(
                 viewModel = viewModel,
                 ruleProvidersViewModel = ruleProvidersViewModel,
+                subscriptionsViewModel = subscriptionsViewModel,
                 onBack = onBack,
-                onOpenRuleProviders = { providersOpen = true },
+                onOpenRuleProviders = { child = "providers" },
+                onOpenSubscriptions = { child = "subscriptions" },
             )
         }
-        if (providersOpen) {
+        if (child != null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -137,10 +140,16 @@ fun MihomoScreen(
                         clip = true
                     },
             ) {
-                RuleProvidersScreen(
-                    viewModel = ruleProvidersViewModel,
-                    onBack = { providersOpen = false },
-                )
+                when (child) {
+                    "providers" -> RuleProvidersScreen(
+                        viewModel = ruleProvidersViewModel,
+                        onBack = { child = null },
+                    )
+                    "subscriptions" -> SubscriptionsScreen(
+                        viewModel = subscriptionsViewModel,
+                        onBack = { child = null },
+                    )
+                }
             }
         }
     }
@@ -151,13 +160,16 @@ fun MihomoScreen(
 private fun MihomoRootScreen(
     viewModel: MihomoViewModel,
     ruleProvidersViewModel: RuleProvidersViewModel,
+    subscriptionsViewModel: SubscriptionsViewModel,
     onBack: () -> Unit,
     onOpenRuleProviders: () -> Unit,
+    onOpenSubscriptions: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
-    // Count only — the providers screen owns the loading; this shows whatever it
-    // already knows and a generic subtitle before the first visit.
+    // Counts only — each child screen owns its own loading; these show whatever
+    // is already known and a generic subtitle before the first visit.
     val providersState by ruleProvidersViewModel.state.collectAsState()
+    val subscriptionsState by subscriptionsViewModel.state.collectAsState()
     // Name, not the object: the sheet must show fresh "now" after a re-fetch.
     var sheetGroupName by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -260,6 +272,15 @@ private fun MihomoRootScreen(
                         )
                     }
                 }
+            }
+
+            // --- Subscriptions (the shared node pool every group selects from) ---
+            item { SectionLabel(stringResource(R.string.section_subscriptions)) }
+            item {
+                SubscriptionsEntryCard(
+                    count = subscriptionsState.subscriptions?.size,
+                    onClick = onOpenSubscriptions,
+                )
             }
 
             // --- Rule providers (external rule-sets bound to a proxy group) ---

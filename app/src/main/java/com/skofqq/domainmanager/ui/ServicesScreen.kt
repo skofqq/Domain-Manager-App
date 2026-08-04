@@ -91,8 +91,12 @@ import com.skofqq.domainmanager.data.SysInfo
 import kotlinx.coroutines.CancellationException
 import java.util.Locale
 
-private fun serviceLabel(service: String) =
-    if (service == "magitrickle") "MagiTrickle" else service
+/** Only the services whose own branding differs from the router's lowercase id. */
+private fun serviceLabel(service: String) = when (service) {
+    "magitrickle" -> "MagiTrickle"
+    "tor" -> "Tor"
+    else -> service
+}
 
 /**
  * Status tab host: the root list plus two push screens (Devices, mihomo) with
@@ -108,6 +112,8 @@ fun ServicesScreen(
     z2ProfilesViewModel: Z2ProfilesViewModel,
     z1ProfilesViewModel: Z1ProfilesViewModel,
     ruleProvidersViewModel: RuleProvidersViewModel,
+    subscriptionsViewModel: SubscriptionsViewModel,
+    torViewModel: TorViewModel,
     /** Non-null once, right after opening via an App Shortcut — e.g. "devices". */
     initialSubScreen: String? = null,
     onInitialSubScreenConsumed: () -> Unit = {},
@@ -155,6 +161,7 @@ fun ServicesScreen(
                 onOpenMagitrickleGroups = { subScreen = "magitrickle_groups" },
                 onOpenZ2Profiles = { subScreen = "z2profiles" },
                 onOpenZ1Profiles = { subScreen = "z1profiles" },
+                onOpenTor = { subScreen = "tor" },
             )
         }
         if (child != null) {
@@ -180,6 +187,11 @@ fun ServicesScreen(
                     "mihomo" -> MihomoScreen(
                         viewModel = mihomoViewModel,
                         ruleProvidersViewModel = ruleProvidersViewModel,
+                        subscriptionsViewModel = subscriptionsViewModel,
+                        onBack = { subScreen = null },
+                    )
+                    "tor" -> TorScreen(
+                        viewModel = torViewModel,
                         onBack = { subScreen = null },
                     )
                     "diagnostics" -> DiagnosticsScreen(
@@ -217,6 +229,7 @@ private fun StatusRootScreen(
     onOpenMagitrickleGroups: () -> Unit,
     onOpenZ2Profiles: () -> Unit,
     onOpenZ1Profiles: () -> Unit,
+    onOpenTor: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -284,15 +297,17 @@ private fun StatusRootScreen(
                             onRestart = { viewModel.restart(svc.service) },
                             onOpenLog = { viewModel.openServiceLog(svc.service) },
                             // mihomo drills into its own screen; MagiTrickle
-                            // drills into the read-only groups overview. Each
-                            // zapret engine's profile switcher is only reachable
-                            // while THAT engine is the actually detected running
-                            // one — same svc_list-driven gating the Strategies
-                            // auto-select uses, just expressed as "no chevron"
-                            // here instead of "no tab".
+                            // drills into the read-only groups overview; Tor
+                            // into bridges + new identity + connection test.
+                            // Each zapret engine's profile switcher is only
+                            // reachable while THAT engine is the actually
+                            // detected running one — same svc_list-driven gating
+                            // the Strategies auto-select uses, just expressed as
+                            // "no chevron" here instead of "no tab".
                             onOpen = when {
                                 svc.service == "mihomo" -> onOpenMihomo
                                 svc.service == "magitrickle" -> onOpenMagitrickleGroups
+                                svc.service == "tor" -> onOpenTor
                                 svc.service == ENGINE_ZAPRET2 && svc.running -> onOpenZ2Profiles
                                 svc.service == ENGINE_ZAPRET && svc.running -> onOpenZ1Profiles
                                 else -> null
@@ -374,8 +389,9 @@ private fun ServiceLogSheetContent(state: ServiceLogUiState, onRefresh: () -> Un
 
 // --- Router health header (action=sys_info) ---------------------------------------
 
+/** Shared by the router health card and the Tor screen — both show an uptime_seconds field. */
 @Composable
-private fun formatUptime(seconds: Long): String {
+internal fun formatUptime(seconds: Long): String {
     val days = seconds / 86400
     val hours = (seconds % 86400) / 3600
     val minutes = (seconds % 3600) / 60
@@ -791,7 +807,7 @@ private fun ServiceCard(
 private val RunningGreen = Color(0xFF4CAF50)
 
 @Composable
-private fun RunningIndicator(running: Boolean, enabled: Boolean) {
+internal fun RunningIndicator(running: Boolean, enabled: Boolean) {
     // Derived on the client from the two existing flags:
     // running → green; stopped but enabled → red (should be running — failed);
     // stopped and disabled → grey (intentionally off).
@@ -819,7 +835,7 @@ private fun RunningIndicator(running: Boolean, enabled: Boolean) {
 }
 
 @Composable
-private fun AutostartIndicator(enabled: Boolean) {
+internal fun AutostartIndicator(enabled: Boolean) {
     val tint = if (enabled) MaterialTheme.colorScheme.primary
     else MaterialTheme.colorScheme.outline
     Row(

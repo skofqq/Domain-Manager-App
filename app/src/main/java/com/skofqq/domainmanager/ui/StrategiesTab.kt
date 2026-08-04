@@ -11,26 +11,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material3.CardDefaults
@@ -42,15 +36,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -75,12 +65,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skofqq.domainmanager.R
-import com.skofqq.domainmanager.data.MagitrickleGroup
 import com.skofqq.domainmanager.data.StrategyEntry
 import com.skofqq.domainmanager.util.extractDomain
 import kotlinx.coroutines.launch
@@ -99,7 +87,6 @@ fun StrategiesTab(
     viewModel: StrategiesViewModel,
     engineOverride: String?,
     onOpenStatus: () -> Unit,
-    magitrickleGroups: List<MagitrickleGroup>?,
 ) {
     val activeState by viewModel.activeEngineState.collectAsState()
 
@@ -161,12 +148,11 @@ fun StrategiesTab(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
                 )
                 // weight(1f), not fillMaxSize: without it the page measures at full
-                // column height, pushing its bottom (list padding + FAB anchor)
-                // off-screen — the FAB then covered the last row.
+                // column height and its bottom (the list's own padding) ends up
+                // off-screen.
                 EngineStrategiesPage(
                     viewModel,
                     shown,
-                    magitrickleGroups,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
@@ -220,119 +206,117 @@ private fun NoEngineRunningState(onOpenStatus: () -> Unit, onRetry: () -> Unit) 
 private fun EngineStrategiesPage(
     viewModel: StrategiesViewModel,
     engine: String,
-    magitrickleGroups: List<MagitrickleGroup>?,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state(engine).collectAsState()
     val min = viewModel.minStrategy(engine)
+    // One field, two jobs: the text filters the list live AND is the input for
+    // the add action (+ / IME) — same merged bar the Routing page uses.
     var searchQuery by rememberSaveable(engine) { mutableStateOf("") }
-    var showAddSheet by rememberSaveable(engine) { mutableStateOf(false) }
     var editEntry by remember { mutableStateOf<StrategyEntry?>(null) }
+    val focusManager = LocalFocusManager.current
+    val clipboard = LocalClipboardManager.current
 
     // Keyed on engine: the escape hatch swaps the shown engine in place.
     LaunchedEffect(engine) { viewModel.refresh(engine) }
+
+    fun submit() {
+        val q = searchQuery.trim()
+        if (q.isBlank()) return
+        focusManager.clearFocus()
+        // Added at the engine's minimum strategy — there is deliberately no
+        // strategy picker at add time; tapping the row edits it afterwards.
+        if (viewModel.addDomain(engine, q, min)) searchQuery = ""
+    }
 
     // First strat_list for this engine → skeleton rows; later refreshes keep the
     // pull indicator over the existing list.
     val firstLoad = state.domains == null && state.error == null
     val skeletonBrush = if (firstLoad) shimmerBrush() else null
 
-    Box(modifier = modifier) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            DomainSearchBar(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it },
-                // Same search-to-list gap as the Routing page (8dp here + the
-                // list's 8dp top padding).
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 8.dp),
-            )
-            PullToRefreshBox(
-                isRefreshing = state.isRefreshing && !firstLoad,
-                onRefresh = {
-                    viewModel.refresh(engine)
-                    viewModel.refreshActiveEngine()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+    Column(modifier = modifier) {
+        RoutingSearchAddBar(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            addEnabled = searchQuery.isNotBlank() && state.busyDomain == null && state.max != null,
+            onPaste = {
+                // URL-looking clip → registrable domain (same heuristic as the
+                // share flow); plain text → paste as-is for manual editing.
+                val clip = clipboard.getText()?.text?.trim().orEmpty()
+                if (clip.isNotBlank()) {
+                    searchQuery = extractDomain(clip) ?: clip
+                }
+            },
+            onAdd = ::submit,
+            // Same search-to-list gap as the Routing page (8dp here + the
+            // list's 8dp top padding).
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp),
+        )
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing && !firstLoad,
+            onRefresh = {
+                viewModel.refresh(engine)
+                viewModel.refreshActiveEngine()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    // Extra bottom room so the FAB never covers the last row.
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    state.error?.let { message ->
-                        item { ErrorCard(message) }
-                    }
+                state.error?.let { message ->
+                    item { ErrorCard(message) }
+                }
 
-                    if (skeletonBrush != null) {
-                        items(6) { SkeletonStrategyRow(skeletonBrush) }
-                    }
+                if (skeletonBrush != null) {
+                    items(6) { SkeletonStrategyRow(skeletonBrush) }
+                }
 
-                    val domains = state.domains
-                    if (domains != null) {
-                        val query = searchQuery.trim()
-                        val filtered =
-                            if (query.isEmpty()) domains
-                            else domains.filter { it.domain.contains(query, ignoreCase = true) }
-                        if (filtered.isEmpty() && !state.isRefreshing) {
-                            item {
-                                ListHint(
-                                    if (domains.isEmpty()) R.string.no_strat_domains
-                                    else R.string.search_no_results
-                                )
-                            }
+                val domains = state.domains
+                if (domains != null) {
+                    val query = searchQuery.trim()
+                    val filtered =
+                        if (query.isEmpty()) domains
+                        else domains.filter { it.domain.contains(query, ignoreCase = true) }
+                    if (filtered.isEmpty() && !state.isRefreshing) {
+                        item {
+                            ListHint(
+                                if (domains.isEmpty()) R.string.no_strat_domains
+                                else R.string.search_no_results
+                            )
                         }
-                        // Grouped by strategy number — locked.tsv on the router has the
-                        // same structure. Entries stay alphabetical inside a group (the
-                        // viewmodel keeps the list sorted by domain).
-                        filtered.groupBy { it.strategy }.toSortedMap().forEach { (strategy, entries) ->
-                            stickyHeader {
-                                StrategyGroupHeader(engine, strategy, entries.size)
-                            }
-                            // No item keys on purpose: zapret v1 can legitimately report
-                            // the same domain under two hostlist strategies, and duplicate
-                            // LazyColumn keys crash on scroll. Positional identity is fine.
-                            items(entries) { entry ->
-                                StrategyRow(
-                                    entry = entry,
-                                    busy = state.busyDomain == entry.domain,
-                                    actionsEnabled = state.busyDomain == null,
-                                    onClick = { editEntry = entry },
-                                    // Delete is button-only by design: horizontal swipes
-                                    // are taken by the nested pagers.
-                                    onDelete = { viewModel.removeDomain(engine, entry.domain) },
-                                )
-                            }
+                    }
+                    // Grouped by strategy number — locked.tsv on the router has the
+                    // same structure. Entries stay alphabetical inside a group (the
+                    // viewmodel keeps the list sorted by domain).
+                    filtered.groupBy { it.strategy }.toSortedMap().forEach { (strategy, entries) ->
+                        stickyHeader {
+                            StrategyGroupHeader(engine, strategy, entries.size)
+                        }
+                        // No item keys on purpose: zapret v1 can legitimately report
+                        // the same domain under two hostlist strategies, and duplicate
+                        // LazyColumn keys crash on scroll. Positional identity is fine.
+                        items(entries) { entry ->
+                            StrategyRow(
+                                entry = entry,
+                                busy = state.busyDomain == entry.domain,
+                                actionsEnabled = state.busyDomain == null,
+                                onClick = { editEntry = entry },
+                                // Delete is button-only by design: horizontal swipes
+                                // are taken by the nested pagers.
+                                onDelete = { viewModel.removeDomain(engine, entry.domain) },
+                            )
                         }
                     }
                 }
             }
         }
-
-        FloatingActionButton(
-            onClick = { showAddSheet = true },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(20.dp),
-        ) {
-            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_domain))
-        }
-    }
-
-    if (showAddSheet) {
-        AddDomainSheet(
-            viewModel = viewModel,
-            engine = engine,
-            state = state,
-            min = min,
-            magitrickleGroups = magitrickleGroups,
-            onDismiss = { showAddSheet = false },
-        )
     }
 
     editEntry?.let { entry ->
@@ -344,109 +328,6 @@ private fun EngineStrategiesPage(
             min = min,
             onDismiss = { editEntry = null },
         )
-    }
-}
-
-/** Bottom sheet with the add form: domain field + clipboard paste + strategy control. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddDomainSheet(
-    viewModel: StrategiesViewModel,
-    engine: String,
-    state: EngineStrategiesUiState,
-    min: Int,
-    magitrickleGroups: List<MagitrickleGroup>?,
-    onDismiss: () -> Unit,
-) {
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-    val focusManager = LocalFocusManager.current
-    val clipboard = LocalClipboardManager.current
-    var input by rememberSaveable(engine) { mutableStateOf("") }
-    var newStrategy by rememberSaveable(engine) { mutableIntStateOf(min) }
-    val max = state.max
-    val chosen = if (max != null) newStrategy.coerceIn(min, max) else newStrategy
-
-    fun close() {
-        scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 24.dp)
-                .imePadding(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.add_domain),
-                style = MaterialTheme.typography.titleLarge,
-            )
-            OutlinedTextField(
-                value = input,
-                onValueChange = { input = it },
-                label = { Text(stringResource(R.string.domain)) },
-                placeholder = { Text(stringResource(R.string.domain_placeholder)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                trailingIcon = {
-                    IconButton(
-                        onClick = {
-                            // URL-looking clip → registrable domain (same heuristic as
-                            // the share flow); plain text → paste as-is for editing.
-                            val clip = clipboard.getText()?.text?.trim().orEmpty()
-                            if (clip.isNotBlank()) {
-                                input = extractDomain(clip) ?: clip
-                            }
-                        },
-                    ) {
-                        Icon(
-                            Icons.Filled.ContentPaste,
-                            contentDescription = stringResource(R.string.paste_from_clipboard),
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            // Domain already routed elsewhere via a MagiTrickle group (not Custom —
-            // that one's covered by the router's own routing state instead).
-            val existingGroup = remember(input, magitrickleGroups) {
-                matchMagitrickleGroup(magitrickleGroups, input)
-            }
-            existingGroup?.let { groupName ->
-                Text(
-                    text = stringResource(R.string.domain_in_group, groupName),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.tertiary,
-                )
-            }
-            StrategyControl(
-                value = chosen,
-                min = min,
-                max = max,
-                engine = engine,
-                onChange = { newStrategy = it },
-            )
-            state.error?.let { ErrorCard(it) }
-            FilledTonalButton(
-                onClick = {
-                    focusManager.clearFocus()
-                    // Single strat_add with the final values — an active engine
-                    // restarts its daemon on every mutation.
-                    if (viewModel.addDomain(engine, input, chosen)) {
-                        input = ""
-                        close()
-                    }
-                },
-                enabled = input.isNotBlank() && state.busyDomain == null && max != null,
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text(stringResource(R.string.add)) }
-        }
     }
 }
 
@@ -538,48 +419,6 @@ private fun EngineInfoBanner(running: Boolean, modifier: Modifier = Modifier) {
             )
         }
     }
-}
-
-/**
- * Collapsed M3 SearchBar filtering the domain list by substring as you type.
- * Shared with the Routing tab so both Domains pages get the same search look.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun DomainSearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    SearchBar(
-        inputField = {
-            SearchBarDefaults.InputField(
-                query = query,
-                onQueryChange = onQueryChange,
-                onSearch = {},
-                expanded = false,
-                onExpandedChange = {},
-                placeholder = { Text(stringResource(R.string.search_domains)) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                trailingIcon = if (query.isNotEmpty()) {
-                    {
-                        IconButton(onClick = { onQueryChange("") }) {
-                            Icon(
-                                Icons.Filled.Close,
-                                contentDescription = stringResource(R.string.clear_search),
-                            )
-                        }
-                    }
-                } else null,
-            )
-        },
-        expanded = false,
-        onExpandedChange = {},
-        // Default SearchBar insets add status-bar top padding even under a
-        // TopAppBar — that was the visible gap above the search field.
-        windowInsets = WindowInsets(0),
-        modifier = modifier,
-    ) {}
 }
 
 /** Sticky section header: "Strategy 5 · 12 domains" (or "Shared pool" for zapret2's 0). */

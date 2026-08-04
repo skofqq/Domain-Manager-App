@@ -65,6 +65,16 @@ fun apiErrorMessage(code: Int, error: String): UiMessage = when (error) {
     "provider_exists" -> UiMessage(R.string.err_provider_exists)
     "group_exists" -> UiMessage(R.string.err_group_exists)
     "mihomo_config_test_failed" -> UiMessage(R.string.err_mihomo_config_test_failed)
+    // mihomo subscriptions. The base one is gated in the UI already — this text
+    // only ever shows if the router's own list said "removable" and then changed.
+    "subscription_exists" -> UiMessage(R.string.err_subscription_exists)
+    "subscription_not_found" -> UiMessage(R.string.err_subscription_not_found)
+    "cannot_remove_base_subscription" -> UiMessage(R.string.err_subscription_base_protected)
+    // Tor control port: "not ready" is transient (tor just started and hasn't
+    // written its cookie file yet), so the text says to retry rather than blaming
+    // the user's configuration.
+    "controlport_not_ready" -> UiMessage(R.string.err_tor_controlport_not_ready)
+    "controlport_command_failed" -> UiMessage(R.string.err_tor_controlport_failed)
     // 502: the mihomo controller itself is down — a distinct case from our API failing.
     "mihomo_unreachable" -> UiMessage(R.string.err_mihomo_unreachable)
     "mihomo_select_failed" -> UiMessage(R.string.err_mihomo_select_failed)

@@ -454,6 +454,72 @@
     <string name="catalog_no_results">Ничего не найдено. Для источника вне этого каталога используйте «Свой URL».</string>
     <string name="catalog_not_updated">Каталог не обновлён</string>
 
+    <!-- mihomo subscriptions (proxy providers feeding the shared node pool) -->
+    <string name="section_subscriptions">Подписки</string>
+    <string name="subscriptions_title">Подписки</string>
+    <string name="subscriptions_entry_desc">Списки узлов, из которых выбирает каждая proxy-группа</string>
+    <string name="subscriptions_hint">Все подписки объединяются в один общий пул узлов, поэтому добавленная подписка становится доступна во всех proxy-группах.</string>
+    <plurals name="n_subscriptions">
+        <item quantity="one">%d подписка</item>
+        <item quantity="few">%d подписки</item>
+        <item quantity="many">%d подписок</item>
+        <item quantity="other">%d подписки</item>
+    </plurals>
+    <string name="subscription_add_title">Новая подписка</string>
+    <string name="subscription_edit_title">Изменить URL</string>
+    <string name="subscription_edit">Изменить URL</string>
+    <string name="subscription_name">Имя</string>
+    <string name="subscription_name_placeholder">work-vpn</string>
+    <string name="subscription_name_fixed">Имя изменить нельзя — чтобы переименовать, удалите и добавьте заново</string>
+    <string name="subscription_url">URL подписки</string>
+    <string name="subscription_slow_note">Роутер проверяет конфиг и заново загружает список узлов — это может занять некоторое время.</string>
+    <string name="subscription_saved">«%1$s» сохранена</string>
+    <string name="subscription_removed">«%1$s» удалена</string>
+    <string name="subscription_not_found">На роутере не было «%1$s»</string>
+    <string name="subscription_base_protected">Встроена в конфиг роутера — отсюда не меняется</string>
+    <string name="subscription_delete_title">Удалить подписку?</string>
+    <string name="subscription_delete_text">«%1$s» и её узлы будут удалены с роутера. Сами proxy-группы останутся.</string>
+
+    <!-- Tor -->
+    <string name="tor_title">Tor</string>
+    <string name="tor_not_installed">Tor не установлен</string>
+    <string name="tor_not_installed_hint">На роутере нет пакета Tor — настраивать нечего.</string>
+    <string name="tor_bootstrap">Запуск</string>
+    <string name="tor_bootstrap_progress">%1$d%%</string>
+    <string name="tor_bridges_label">Мосты</string>
+    <plurals name="n_tor_bridges">
+        <item quantity="one">%d мост</item>
+        <item quantity="few">%d моста</item>
+        <item quantity="many">%d мостов</item>
+        <item quantity="other">%d моста</item>
+    </plurals>
+    <string name="tor_uptime">Время работы</string>
+    <string name="tor_socks_port">SOCKS</string>
+    <string name="tor_pac_url">PAC</string>
+    <string name="tor_new_identity">Новая личность</string>
+    <string name="tor_new_identity_hint">Новые цепочки для новых соединений. Быстрее перезапуска и не обрывает текущее соединение.</string>
+    <string name="tor_new_identity_sent">Запрошены новые цепочки</string>
+    <string name="tor_new_identity_failed">Управляющий порт ещё не готов — повторите через несколько секунд</string>
+    <string name="tor_test_title">Проверка подключения</string>
+    <string name="tor_test_hint">Роутер делает настоящий запрос через Tor — это занимает несколько секунд.</string>
+    <string name="tor_test_connection">Проверить подключение</string>
+    <string name="tor_testing">Проверка…</string>
+    <string name="tor_test_ok">Подключено через Tor</string>
+    <string name="tor_test_failed">Нет подключения</string>
+    <string name="tor_test_failed_hint">Tor ещё не запустился до конца, либо мосты недоступны.</string>
+    <string name="tor_bridges_title">Мосты</string>
+    <string name="tor_bridges_hint">Мосты помогают там, где заблокирован сам Tor. Возьмите их у Tor Project и вставьте строку как есть. Сохранение перезапускает Tor.</string>
+    <string name="tor_bridges_saving">Сохранение и перезапуск Tor…</string>
+    <string name="tor_no_bridges">Прямое подключение, без мостов</string>
+    <string name="tor_add_bridge">Добавить мост</string>
+    <string name="tor_bridge_line">Строка моста</string>
+    <string name="tor_bridge_placeholder">obfs4 1.2.3.4:443 FINGERPRINT cert=… iat-mode=0</string>
+    <string name="tor_bridge_hint">Вставьте строку целиком, ровно как получили.</string>
+    <string name="tor_bridge_added">Мост добавлен, Tor перезапущен</string>
+    <string name="tor_bridge_removed">Мост удалён, Tor перезапущен</string>
+    <string name="tor_bridge_delete_title">Удалить мост?</string>
+    <string name="tor_bridge_delete_text">Мост будет удалён с роутера, Tor перезапустится.</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Неверный токен — проверьте настройки</string>
     <string name="err_token_not_configured">Токен не настроен на роутере</string>
@@ -478,6 +544,11 @@
     <string name="err_provider_exists">На роутере уже есть набор правил с таким именем</string>
     <string name="err_group_exists">На роутере уже есть группа с таким именем — выберите её как существующую</string>
     <string name="err_mihomo_config_test_failed">Роутер отклонил получившийся конфиг mihomo — набор правил не добавлен. Проверьте URL, тип списка и формат.</string>
+    <string name="err_subscription_exists">Подписка с таким именем уже есть</string>
+    <string name="err_subscription_not_found">Такой подписки на роутере больше нет</string>
+    <string name="err_subscription_base_protected">Встроенную подписку удалить нельзя</string>
+    <string name="err_tor_controlport_not_ready">Управляющий порт Tor ещё не готов — повторите через несколько секунд</string>
+    <string name="err_tor_controlport_failed">Tor отклонил команду через управляющий порт</string>
     <string name="err_catalog_rate_limited">GitHub временно ограничил запросы (60 в час на IP без токена). Попробуйте позже или введите URL вручную.</string>
     <string name="err_catalog_http">GitHub ответил ошибкой HTTP %1$d</string>
     <string name="err_generic">Ошибка %1$d: %2$s</string>

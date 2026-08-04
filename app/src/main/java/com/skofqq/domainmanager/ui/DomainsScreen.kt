@@ -381,7 +381,7 @@ fun DomainsScreen(
             ) { page ->
                 when (page) {
                     0 -> RoutingTab(domainsViewModel, magitrickleGroupsState.groups)
-                    1 -> StrategiesTab(strategiesViewModel, engineOverride, onOpenStatus, magitrickleGroupsState.groups)
+                    1 -> StrategiesTab(strategiesViewModel, engineOverride, onOpenStatus)
                 }
             }
         }
@@ -916,13 +916,13 @@ private fun RoutingTab(viewModel: DomainsViewModel, magitrickleGroups: List<Magi
 }
 
 /**
- * Routing's single top field: same collapsed SearchBar as Strategies, filtering
- * as you type, plus the old add-field's actions — paste (while empty), clear and
- * add (while filled); the IME action also submits the add.
+ * The single top field shared by Routing and Strategies: a collapsed SearchBar
+ * that filters as you type, plus the old add-field's actions — paste (while
+ * empty), clear and add (while filled); the IME action also submits the add.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RoutingSearchAddBar(
+internal fun RoutingSearchAddBar(
     query: String,
     onQueryChange: (String) -> Unit,
     addEnabled: Boolean,

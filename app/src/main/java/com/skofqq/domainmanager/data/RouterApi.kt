@@ -415,6 +415,108 @@ sealed class RuleProviderRemoveResult {
     data class NetworkError(val kind: NetFailure, val detail: String? = null) : RuleProviderRemoveResult()
 }
 
+/**
+ * One mihomo proxy-provider subscription (action=subscription_list). Every
+ * subscription feeds the SAME shared node pool that all proxy-groups draw from —
+ * there is no per-group "which subscription" concept, by design.
+ * [removable]=false marks the base subscription baked into the router's config
+ * ("Subscribtion" — the spelling is a literal YAML key, not a typo to fix): the
+ * UI must not offer to remove or edit it.
+ */
+data class MihomoSubscription(
+    val name: String,
+    val url: String,
+    /** Refresh period in seconds, as configured on the router. */
+    val interval: Int,
+    val removable: Boolean,
+)
+
+sealed class SubscriptionListResult {
+    data class Success(val subscriptions: List<MihomoSubscription>) : SubscriptionListResult()
+    data class ApiError(val code: Int, val error: String) : SubscriptionListResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : SubscriptionListResult()
+}
+
+sealed class SubscriptionAddResult {
+    data class Success(val subscription: MihomoSubscription) : SubscriptionAddResult()
+    data class ApiError(val code: Int, val error: String) : SubscriptionAddResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : SubscriptionAddResult()
+}
+
+sealed class SubscriptionUpdateResult {
+    data class Success(val subscription: MihomoSubscription) : SubscriptionUpdateResult()
+    data class ApiError(val code: Int, val error: String) : SubscriptionUpdateResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : SubscriptionUpdateResult()
+}
+
+sealed class SubscriptionRemoveResult {
+    /** [removed]=false means the router had no such subscription — a no-op, not a failure. */
+    data class Success(val name: String, val removed: Boolean) : SubscriptionRemoveResult()
+    data class ApiError(val code: Int, val error: String) : SubscriptionRemoveResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : SubscriptionRemoveResult()
+}
+
+/**
+ * Tor daemon snapshot (action=tor_status). When Tor isn't installed the router
+ * answers with `{"installed":false}` and NOTHING else — every other field here is
+ * then its default, not real data.
+ * [bootstrap] is Tor's own 0..100 bootstrap percentage (0 while starting or
+ * reconnecting). [uptimeSeconds] is the tor PROCESS's uptime — it resets on every
+ * restart and is not a "time since the last new identity" counter.
+ */
+data class TorStatus(
+    val installed: Boolean,
+    val running: Boolean,
+    val enabled: Boolean,
+    val controlPort: Boolean,
+    val bootstrap: Int,
+    val bridges: Int,
+    val socksPort: Int,
+    val uptimeSeconds: Long,
+    val lanIp: String,
+    val pacUrl: String,
+)
+
+/**
+ * action=tor_test — a real connectivity check through Tor. [ok]=false with empty
+ * [ip]/[country] is a legitimate "not connected" verdict (not bootstrapped,
+ * bridges unreachable), not a transport failure. [country] is an ISO 3166-1
+ * alpha-2 code, or "?" when only the geo lookup failed.
+ */
+data class TorTestInfo(val ok: Boolean, val ip: String, val country: String)
+
+sealed class TorStatusResult {
+    data class Success(val status: TorStatus) : TorStatusResult()
+    data class ApiError(val code: Int, val error: String) : TorStatusResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : TorStatusResult()
+}
+
+sealed class TorTestResult {
+    data class Success(val info: TorTestInfo) : TorTestResult()
+    data class ApiError(val code: Int, val error: String) : TorTestResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : TorTestResult()
+}
+
+sealed class TorNewnymResult {
+    /** [ok]=false carries the router's own reason ("controlport_not_ready" — transient, retry). */
+    data class Success(val ok: Boolean) : TorNewnymResult()
+    data class ApiError(val code: Int, val error: String) : TorNewnymResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : TorNewnymResult()
+}
+
+sealed class TorBridgesListResult {
+    /** Each entry is one COMPLETE, opaque bridge line — never parsed or reformatted client-side. */
+    data class Success(val bridges: List<String>) : TorBridgesListResult()
+    data class ApiError(val code: Int, val error: String) : TorBridgesListResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : TorBridgesListResult()
+}
+
+sealed class TorBridgesSetResult {
+    data class Success(val status: TorStatus) : TorBridgesSetResult()
+    data class ApiError(val code: Int, val error: String) : TorBridgesSetResult()
+    data class NetworkError(val kind: NetFailure, val detail: String? = null) : TorBridgesSetResult()
+}
+
 /** For actions whose success payload carries no data (reboot, mihomo_select, connection close). */
 sealed class OkResult {
     data object Success : OkResult()
@@ -1249,6 +1351,272 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         }
     }
 
+    /**
+     * Every mihomo proxy-provider subscription on the router (action=subscription_list),
+     * base one included. Runs on IO thread.
+     */
+    fun subscriptions(): SubscriptionListResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "subscription_list")
+            }
+            val body = reply.body
+                ?: return SubscriptionListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.getJSONArray("subscriptions")
+                val subscriptions = buildList {
+                    for (i in 0 until array.length()) add(parseSubscription(array.getJSONObject(i)))
+                }
+                SubscriptionListResult.Success(subscriptions)
+            } else {
+                SubscriptionListResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            SubscriptionListResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Adds a subscription (action=subscription_add). [name] must match
+     * [isValidProviderName] and [url] [isValidSourceUrl] — both are pre-checked by
+     * the caller so a malformed value never reaches the router. The new node list
+     * merges into the shared pool every proxy-group already uses.
+     */
+    fun subscriptionAdd(name: String, url: String): SubscriptionAddResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = SUBSCRIPTION_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "subscription_add")
+                addQueryParameter("sub_name", name)
+                addQueryParameter("url", url)
+            }
+            val body = reply.body
+                ?: return SubscriptionAddResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                SubscriptionAddResult.Success(parseSubscription(json))
+            } else {
+                SubscriptionAddResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            SubscriptionAddResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Points an existing subscription at a new URL (action=subscription_update).
+     * The name is immutable — "renaming" is remove + add. Slow: the router makes
+     * mihomo re-fetch the node list right away instead of waiting for the next
+     * scheduled refresh, hence the raised read timeout.
+     */
+    fun subscriptionUpdate(name: String, url: String): SubscriptionUpdateResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = SUBSCRIPTION_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "subscription_update")
+                addQueryParameter("sub_name", name)
+                addQueryParameter("url", url)
+            }
+            val body = reply.body
+                ?: return SubscriptionUpdateResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                SubscriptionUpdateResult.Success(parseSubscription(json))
+            } else {
+                SubscriptionUpdateResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            SubscriptionUpdateResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Removes a subscription (action=subscription_remove). The base subscription
+     * cannot be removed — the router answers 400 cannot_remove_base_subscription,
+     * but the UI gates it on [MihomoSubscription.removable] instead of relying on
+     * that error path.
+     */
+    fun subscriptionRemove(name: String): SubscriptionRemoveResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "subscription_remove")
+                addQueryParameter("sub_name", name)
+            }
+            val body = reply.body
+                ?: return SubscriptionRemoveResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                SubscriptionRemoveResult.Success(
+                    name = json.optString("name", name),
+                    removed = json.optBoolean("removed", false),
+                )
+            } else {
+                SubscriptionRemoveResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            SubscriptionRemoveResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Shared by subscription_list rows and the add/update replies — identical shape. */
+    private fun parseSubscription(entry: JSONObject) = MihomoSubscription(
+        name = entry.getString("name"),
+        url = entry.optString("url", ""),
+        interval = entry.optInt("interval", DEFAULT_PROVIDER_INTERVAL),
+        removable = entry.optBoolean("removable", true),
+    )
+
+    // --- Tor ------------------------------------------------------------------------
+
+    /** Tor daemon state (action=tor_status). Read-only. Runs on IO thread. */
+    fun torStatus(): TorStatusResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "tor_status")
+            }
+            val body = reply.body
+                ?: return TorStatusResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                TorStatusResult.Success(parseTorStatus(json))
+            } else {
+                TorStatusResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            TorStatusResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Real connectivity check through Tor (action=tor_test) — the router makes an
+     * actual request over the SOCKS port, so it takes several seconds. An ok=false
+     * answer is a normal "not connected" verdict, not an error.
+     */
+    fun torTest(): TorTestResult {
+        return try {
+            val reply = fetchApi(minReadSeconds = TOR_TEST_READ_SECONDS) {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "tor_test")
+            }
+            val body = reply.body
+                ?: return TorTestResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                TorTestResult.Success(
+                    TorTestInfo(
+                        ok = json.optBoolean("ok", false),
+                        ip = json.optString("ip", ""),
+                        country = json.optString("country", ""),
+                    )
+                )
+            } else {
+                TorTestResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            TorTestResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Requests fresh circuits for NEW connections (action=tor_newnym) — not a
+     * restart: existing connections keep running until they close on their own.
+     * The router answers 502 with ok=false when the control port isn't ready yet
+     * (tor just started); that is transient and worth retrying.
+     */
+    fun torNewnym(): TorNewnymResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "tor_newnym")
+            }
+            val body = reply.body
+                ?: return TorNewnymResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                TorNewnymResult.Success(json.optBoolean("ok", false))
+            } else {
+                TorNewnymResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            TorNewnymResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /** Configured bridge lines (action=tor_bridges_list). An empty list means "direct connection". */
+    fun torBridgesList(): TorBridgesListResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "tor_bridges_list")
+            }
+            val body = reply.body
+                ?: return TorBridgesListResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                val array = json.optJSONArray("bridges")
+                val bridges = buildList {
+                    if (array != null) for (i in 0 until array.length()) add(array.getString(i))
+                }
+                TorBridgesListResult.Success(bridges)
+            } else {
+                TorBridgesListResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            TorBridgesListResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Replaces the WHOLE bridge list (action=tor_bridges_set) — there is no
+     * add/remove endpoint, callers compute the new full list themselves. An empty
+     * [bridges] is legal and means "no bridges, direct connection".
+     *
+     * This only rewrites /etc/tor/torrc: the new bridges take effect after a
+     * restart, so callers must follow up with serviceAction("tor", "svc_restart").
+     */
+    fun torBridgesSet(bridges: List<String>): TorBridgesSetResult {
+        return try {
+            val reply = fetchApi {
+                addQueryParameter("token", prefs.token)
+                addQueryParameter("action", "tor_bridges_set")
+                // One bridge line per real newline; OkHttp encodes the value.
+                addQueryParameter("bridges", bridges.joinToString("\n"))
+            }
+            val body = reply.body
+                ?: return TorBridgesSetResult.NetworkError(NetFailure.EMPTY_RESPONSE)
+            val json = JSONObject(body)
+            if (reply.ok) {
+                TorBridgesSetResult.Success(parseTorStatus(json))
+            } else {
+                TorBridgesSetResult.ApiError(reply.code, json.optString("error", "unknown"))
+            }
+        } catch (e: Exception) {
+            TorBridgesSetResult.NetworkError(classify(e), detailOf(e))
+        }
+    }
+
+    /**
+     * Shared by tor_status and the tor_bridges_set reply. Everything but
+     * "installed" is optional on purpose: a router without Tor answers
+     * `{"installed":false}` and nothing else.
+     */
+    private fun parseTorStatus(json: JSONObject) = TorStatus(
+        installed = json.optBoolean("installed", false),
+        running = json.optBoolean("running", false),
+        enabled = json.optBoolean("enabled", false),
+        controlPort = json.optBoolean("controlport", false),
+        bootstrap = json.optInt("bootstrap", 0),
+        bridges = json.optInt("bridges", 0),
+        socksPort = json.optInt("socks_port", 0),
+        uptimeSeconds = json.optLong("uptime_seconds", 0L),
+        lanIp = json.optString("lan_ip", ""),
+        pacUrl = json.optString("pac_url", ""),
+    )
+
     /** Shared by provider_list rows and the provider_add reply — identical shape. */
     private fun parseRuleProvider(entry: JSONObject) = RuleProvider(
         provider = entry.getString("provider"),
@@ -1765,16 +2133,34 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         // provider_add makes the router download the rule-set from the internet
         // and run a full mihomo config test before it answers.
         private const val PROVIDER_ADD_READ_SECONDS = 60
+        // subscription_add/_update rewrite the config, run mihomo's own syntax
+        // test and force an immediate re-fetch of the subscription's node list.
+        private const val SUBSCRIPTION_READ_SECONDS = 60
+        // tor_test makes a real request through the SOCKS port from the router.
+        private const val TOR_TEST_READ_SECONDS = 30
 
         /** Refresh period used when the router omits it / the UI has no explicit choice: once a day. */
         const val DEFAULT_PROVIDER_INTERVAL = 86400
         const val MIN_PROVIDER_INTERVAL = 60
         const val MAX_PROVIDER_INTERVAL = 604800
 
-        /** Router-side rule is `[a-z][a-z0-9-]*` — validated here so a bad name never reaches the API. */
+        /**
+         * Router-side rule is `[a-z][a-z0-9-]*` — validated here so a bad name never
+         * reaches the API. Shared by rule-providers and mihomo subscriptions: both
+         * enforce exactly this rule on the router.
+         */
         private val PROVIDER_NAME_REGEX = Regex("^[a-z][a-z0-9-]*$")
 
         fun isValidProviderName(name: String): Boolean = PROVIDER_NAME_REGEX.matches(name)
+
+        /** The router's own safe-charset check for URL params — same rule for rule-sets and subscriptions. */
+        private val SOURCE_URL_REGEX = Regex("^[A-Za-z0-9:/._~?&=%!-]+$")
+
+        /** https:// plus the router's safe charset, so a rejectable URL never leaves the phone. */
+        fun isValidSourceUrl(url: String): Boolean =
+            url.length > "https://".length &&
+                url.startsWith("https://") &&
+                SOURCE_URL_REGEX.matches(url)
     }
 }
 

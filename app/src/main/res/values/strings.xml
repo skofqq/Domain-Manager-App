@@ -444,6 +444,68 @@
     <string name="catalog_no_results">Nothing matches the search. Use âCustom URLâ for a source outside this catalog.</string>
     <string name="catalog_not_updated">Catalog not updated</string>
 
+    <!-- mihomo subscriptions (proxy providers feeding the shared node pool) -->
+    <string name="section_subscriptions">Subscriptions</string>
+    <string name="subscriptions_title">Subscriptions</string>
+    <string name="subscriptions_entry_desc">Node lists every proxy group selects from</string>
+    <string name="subscriptions_hint">All subscriptions are merged into one shared pool of nodes, so anything you add becomes selectable in every proxy group.</string>
+    <plurals name="n_subscriptions">
+        <item quantity="one">%d subscription</item>
+        <item quantity="other">%d subscriptions</item>
+    </plurals>
+    <string name="subscription_add_title">New subscription</string>
+    <string name="subscription_edit_title">Change URL</string>
+    <string name="subscription_edit">Change URL</string>
+    <string name="subscription_name">Name</string>
+    <string name="subscription_name_placeholder">work-vpn</string>
+    <string name="subscription_name_fixed">The name cannot be changed — remove and add it again to rename</string>
+    <string name="subscription_url">Subscription URL</string>
+    <string name="subscription_slow_note">The router validates the config and re-fetches the node list, so this can take a while.</string>
+    <string name="subscription_saved">“%1$s” saved</string>
+    <string name="subscription_removed">“%1$s” removed</string>
+    <string name="subscription_not_found">There was no “%1$s” on the router</string>
+    <string name="subscription_base_protected">Built into the router\'s config — cannot be changed from here</string>
+    <string name="subscription_delete_title">Remove subscription?</string>
+    <string name="subscription_delete_text">“%1$s” and its nodes will be removed from the router. The proxy groups themselves stay.</string>
+
+    <!-- Tor -->
+    <string name="tor_title">Tor</string>
+    <string name="tor_not_installed">Tor is not installed</string>
+    <string name="tor_not_installed_hint">The router has no Tor package, so there is nothing to configure here.</string>
+    <string name="tor_bootstrap">Bootstrap</string>
+    <string name="tor_bootstrap_progress">%1$d%%</string>
+    <string name="tor_bridges_label">Bridges</string>
+    <plurals name="n_tor_bridges">
+        <item quantity="one">%d bridge</item>
+        <item quantity="other">%d bridges</item>
+    </plurals>
+    <string name="tor_uptime">Uptime</string>
+    <string name="tor_socks_port">SOCKS</string>
+    <string name="tor_pac_url">PAC</string>
+    <string name="tor_new_identity">New identity</string>
+    <string name="tor_new_identity_hint">Fresh circuits for new connections. Faster than a restart and does not drop your connection.</string>
+    <string name="tor_new_identity_sent">New circuits requested</string>
+    <string name="tor_new_identity_failed">The control port is not ready yet — try again in a few seconds</string>
+    <string name="tor_test_title">Connection test</string>
+    <string name="tor_test_hint">The router makes a real request through Tor — this takes a few seconds.</string>
+    <string name="tor_test_connection">Test connection</string>
+    <string name="tor_testing">Testing…</string>
+    <string name="tor_test_ok">Connected through Tor</string>
+    <string name="tor_test_failed">Not connected</string>
+    <string name="tor_test_failed_hint">Tor has not finished bootstrapping, or the bridges are unreachable.</string>
+    <string name="tor_bridges_title">Bridges</string>
+    <string name="tor_bridges_hint">Bridges help where Tor itself is blocked. Get them from the Tor Project and paste each line as is. Saving restarts Tor.</string>
+    <string name="tor_bridges_saving">Saving and restarting Tor…</string>
+    <string name="tor_no_bridges">Direct connection, no bridges</string>
+    <string name="tor_add_bridge">Add bridge</string>
+    <string name="tor_bridge_line">Bridge line</string>
+    <string name="tor_bridge_placeholder">obfs4 1.2.3.4:443 FINGERPRINT cert=… iat-mode=0</string>
+    <string name="tor_bridge_hint">Paste the whole line exactly as you got it.</string>
+    <string name="tor_bridge_added">Bridge added, Tor restarted</string>
+    <string name="tor_bridge_removed">Bridge removed, Tor restarted</string>
+    <string name="tor_bridge_delete_title">Remove bridge?</string>
+    <string name="tor_bridge_delete_text">The bridge will be removed from the router and Tor will restart.</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Bad token — check Settings</string>
     <string name="err_token_not_configured">Token not configured on router</string>
@@ -468,6 +530,11 @@
     <string name="err_provider_exists">The router already has a rule-set with this name</string>
     <string name="err_group_exists">The router already has a group with this name — pick it as an existing group</string>
     <string name="err_mihomo_config_test_failed">The router rejected the resulting mihomo config — the rule-set was not added. Check the URL, list type and format.</string>
+    <string name="err_subscription_exists">A subscription with this name already exists</string>
+    <string name="err_subscription_not_found">There is no such subscription on the router any more</string>
+    <string name="err_subscription_base_protected">The built-in subscription cannot be removed</string>
+    <string name="err_tor_controlport_not_ready">Tor\'s control port is not ready yet — try again in a few seconds</string>
+    <string name="err_tor_controlport_failed">Tor rejected the control-port command</string>
     <string name="err_catalog_rate_limited">GitHub is rate-limiting requests (60 per hour per IP without a token). Try again later, or enter the URL by hand.</string>
     <string name="err_catalog_http">GitHub answered with HTTP %1$d</string>
     <string name="err_generic">Error %1$d: %2$s</string>
