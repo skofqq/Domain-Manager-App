@@ -68,7 +68,9 @@
 
     <!-- Shared by both zapret profile screens -->
     <string name="profile_caption">ключ %1$s · сейчас: %2$d</string>
-    <string name="check_reachability">Проверить доступность</string>
+    <!-- Коротко: на экране zapret2 кнопка занимает половину ширины рядом с
+         «Откатить», и полная фраза переносила подпись на две строки. -->
+    <string name="check_reachability">Проверить</string>
     <string name="voice_title">Голосовая связь — Discord/WhatsApp/Telegram</string>
     <string name="voice_custom">Кастомные</string>
     <string name="voice_bolvan">Скрипты bol-van</string>
@@ -558,4 +560,22 @@
     <string name="err_network">Ошибка сети</string>
     <string name="err_invalid_router_address">Неверный адрес роутера: %1$s</string>
     <string name="err_empty_response">Пустой ответ от роутера</string>
+
+    <!-- Метки для скринридера: имена для кнопок-иконок и состояния, которое иначе
+         передаётся только формой значка или цветной точкой. -->
+    <string name="strategy_previous">Предыдущая стратегия</string>
+    <string name="strategy_next">Следующая стратегия</string>
+    <string name="theme_previous">Предыдущая тема</string>
+    <string name="theme_next">Следующая тема</string>
+    <string name="a11y_target_added">%1$s: добавлен</string>
+    <string name="a11y_target_not_added">%1$s: не добавлен</string>
+    <string name="a11y_autostart_on">Автозапуск включён</string>
+    <string name="a11y_autostart_off">Автозапуск выключен</string>
+    <string name="a11y_device_online">В сети</string>
+    <string name="a11y_device_offline">Не в сети</string>
+    <string name="a11y_check_ok">Доступен</string>
+    <string name="a11y_check_failed">Недоступен</string>
+    <string name="copy_ip">Скопировать IP-адрес</string>
+    <string name="copy_mac">Скопировать MAC-адрес</string>
+    <string name="open_release_notes">Открыть список изменений</string>
 </resources>

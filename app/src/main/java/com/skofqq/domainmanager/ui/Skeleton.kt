@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 
 /**
@@ -40,11 +41,17 @@ import androidx.compose.ui.unit.dp
  * physics-based one-shots and cannot drive an infinite loop, so the sweep
  * approximates their character with an eased tween instead of a generic
  * constant-speed shimmer.
+ *
+ * With the system "remove animations" setting on, the sweep is dropped entirely
+ * and the placeholders render as flat blocks — an indefinite loop is precisely
+ * the motion that setting is meant to stop, and Compose does not suppress
+ * infinite transitions on its own.
  */
 @Composable
 fun shimmerBrush(): Brush {
     val base = MaterialTheme.colorScheme.surfaceContainerHigh
     val highlight = MaterialTheme.colorScheme.surfaceContainerHighest
+    if (reduceMotion()) return SolidColor(base)
     val transition = rememberInfiniteTransition(label = "skeleton-shimmer")
     val progress by transition.animateFloat(
         initialValue = 0f,

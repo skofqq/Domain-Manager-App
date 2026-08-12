@@ -81,7 +81,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -89,8 +88,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
@@ -107,12 +109,11 @@ import com.skofqq.domainmanager.data.DomainStatus
 import com.skofqq.domainmanager.data.MagitrickleGroup
 import com.skofqq.domainmanager.data.RouterProfile
 import com.skofqq.domainmanager.util.extractDomain
+import com.skofqq.domainmanager.ui.theme.statusOk
 import kotlinx.coroutines.launch
 
 /** Display names for API target values ("mihomo" / "magitrickle"). */
 private fun targetLabel(target: String) = if (target == "mihomo") "mihomo" else "MagiTrickle"
-
-private val EngineRunningGreen = Color(0xFF4CAF50)
 
 /** Positions the menu against the RIGHT window edge, just below the trigger. */
 private class RightEdgePositionProvider(private val density: Density) : PopupPositionProvider {
@@ -238,7 +239,7 @@ private fun EngineSwitcher(
                                                 .size(8.dp)
                                                 .clip(CircleShape)
                                                 .background(
-                                                    if (running) EngineRunningGreen
+                                                    if (running) statusOk
                                                     else MaterialTheme.colorScheme.outline
                                                 ),
                                         )
@@ -686,12 +687,18 @@ private fun MihomoUpdateSection(
             text = stringResource(R.string.whats_new_in, info.latest),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.primary,
+            // Underlined, not tinted-only: a colored line of body text is
+            // indistinguishable from the static captions around it, and the tint
+            // alone is the sole cue that this opens a browser. The padding also
+            // lifts a ~16dp line of text to a usable touch target.
+            textDecoration = TextDecoration.Underline,
             modifier = Modifier
-                .padding(start = 4.dp, bottom = 8.dp)
-                .clickable {
+                .padding(start = 4.dp)
+                .clickable(onClickLabel = stringResource(R.string.open_release_notes)) {
                     val url = "https://github.com/MetaCubeX/mihomo/releases/tag/${info.latest}"
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                },
+                }
+                .padding(vertical = 8.dp),
         )
     }
 
@@ -989,8 +996,14 @@ private fun DomainRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(CardDefaults.elevatedShape)
+            // Editing used to hang off an unlabeled long press with a no-op tap in
+            // front of it — the row rippled and did nothing, and the only way in was
+            // undiscoverable. Tap now opens the editor, matching the Strategies rows,
+            // and the long press keeps working under the same name.
             .combinedClickable(
-                onClick = {},
+                onClickLabel = stringResource(R.string.edit_domain),
+                onLongClickLabel = stringResource(R.string.edit_domain),
+                onClick = onLongPress,
                 onLongClick = onLongPress,
             ),
     ) {
@@ -1040,9 +1053,19 @@ private fun DomainRow(
 private fun TargetIndicator(name: String, active: Boolean) {
     val tint = if (active) MaterialTheme.colorScheme.primary
     else MaterialTheme.colorScheme.outline
+    // Sighted users read the state off the check/cross glyph and the tint; neither
+    // reaches a screen reader, which would otherwise hear the bare target name in
+    // both states. Merge the pair into one node that spells the state out.
+    val stateLabel = stringResource(
+        if (active) R.string.a11y_target_added else R.string.a11y_target_not_added,
+        name,
+    )
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp),
+        modifier = Modifier.semantics(mergeDescendants = true) {
+            contentDescription = stateLabel
+        },
     ) {
         Icon(
             imageVector = if (active) Icons.Filled.Check else Icons.Filled.Close,

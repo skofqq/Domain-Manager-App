@@ -321,7 +321,10 @@ private fun ProvidersListScreen(
                     confirmRemove = null
                     onRemove(name)
                 }) {
-                    Text(stringResource(R.string.delete))
+                    Text(
+                        stringResource(R.string.delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
             dismissButton = {

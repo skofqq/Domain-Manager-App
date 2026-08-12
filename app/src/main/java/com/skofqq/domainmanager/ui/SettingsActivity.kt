@@ -21,6 +21,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -35,6 +37,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -113,6 +116,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -478,7 +484,12 @@ private fun AppearanceSettingsScreen(viewModel: SettingsViewModel, onBack: () ->
                 IconButton(
                     onClick = { scrollTo(pagerState.currentPage - 1) },
                     enabled = pagerState.currentPage > 0,
-                ) { Icon(Icons.Filled.ChevronLeft, contentDescription = null) }
+                ) {
+                    Icon(
+                        Icons.Filled.ChevronLeft,
+                        contentDescription = stringResource(R.string.theme_previous),
+                    )
+                }
                 HorizontalPager(
                     state = pagerState,
                     pageSpacing = 16.dp,
@@ -494,7 +505,12 @@ private fun AppearanceSettingsScreen(viewModel: SettingsViewModel, onBack: () ->
                 IconButton(
                     onClick = { scrollTo(pagerState.currentPage + 1) },
                     enabled = pagerState.currentPage < THEME_OPTIONS.lastIndex,
-                ) { Icon(Icons.Filled.ChevronRight, contentDescription = null) }
+                ) {
+                    Icon(
+                        Icons.Filled.ChevronRight,
+                        contentDescription = stringResource(R.string.theme_next),
+                    )
+                }
             }
             Spacer(Modifier.height(14.dp))
             PagerDots(current = pagerState.currentPage, count = THEME_OPTIONS.size)
@@ -690,13 +706,22 @@ private fun ThemeCircleSelector(option: ThemeOption, selected: Boolean, onClick:
                     Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                 } else Modifier
             )
-            .clickable(onClickLabel = label, onClick = onClick),
+            // Light and Dark are bare colored circles with no glyph and no text —
+            // without a name they reach a screen reader as an unlabeled swatch, and
+            // "which one is picked" is drawn only as an accent ring. selectable
+            // carries both the name and the selected state.
+            .selectable(
+                selected = selected,
+                role = Role.RadioButton,
+                onClick = onClick,
+            )
+            .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
         if (option.mode == "system") {
             Icon(
                 Icons.Filled.BrightnessAuto,
-                contentDescription = label,
+                contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(20.dp),
             )
@@ -720,14 +745,29 @@ private fun LanguageSettingsScreen(onBack: () -> Unit) {
             LANGUAGE_OPTIONS.forEach { option ->
                 val selected = if (option.tag.isEmpty()) currentTag.isEmpty()
                 else currentTag.startsWith(option.tag)
+                // selectable, not clickable: the row announces "radio button,
+                // selected" and the whole row is one target, instead of a plain
+                // "button" next to a second, separate radio node.
+                //
+                // heightIn is not decoration. M3's RadioButton applies
+                // minimumInteractiveComponentSize() ONLY when its own onClick is
+                // non-null; handing the click to the row drops the control to its
+                // bare 24dp icon box and collapses the row with it. The row owns the
+                // interaction now, so the row carries the minimum — 56dp is M3's
+                // single-line list item, and it also sets the rhythm of the list.
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { applyLocale(activity, option.tag) }
-                        .padding(horizontal = 20.dp, vertical = 6.dp),
+                        .selectable(
+                            selected = selected,
+                            role = Role.RadioButton,
+                            onClick = { applyLocale(activity, option.tag) },
+                        )
+                        .heightIn(min = 56.dp)
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    RadioButton(selected = selected, onClick = { applyLocale(activity, option.tag) })
+                    RadioButton(selected = selected, onClick = null)
                     Text(
                         option.label ?: stringResource(R.string.language_system),
                         modifier = Modifier.padding(start = 12.dp),
@@ -1419,13 +1459,22 @@ private fun SecuritySettingsScreen(viewModel: SettingsViewModel, onBack: () -> U
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(enabled = enabled) { viewModel.setAppLock(option.mode) }
+                        .selectable(
+                            selected = viewModel.appLockMode == option.mode,
+                            enabled = enabled,
+                            role = Role.RadioButton,
+                            onClick = { viewModel.setAppLock(option.mode) },
+                        )
+                        // Two-line rows (label + description): M3's two-line list
+                        // item. See the language list for why the row, not the
+                        // RadioButton, has to carry this minimum.
+                        .heightIn(min = 72.dp)
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     RadioButton(
                         selected = viewModel.appLockMode == option.mode,
-                        onClick = { viewModel.setAppLock(option.mode) },
+                        onClick = null,
                         enabled = enabled,
                     )
                     Column(modifier = Modifier.padding(start = 12.dp)) {
@@ -1974,34 +2023,38 @@ private fun MonitoringSettingsScreen(viewModel: SettingsViewModel, onBack: () ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                selectedGroup = null
-                                viewModel.setLatencyMonitorGroup(null)
-                            }
+                            .selectable(
+                                selected = selectedGroup == null,
+                                role = Role.RadioButton,
+                                onClick = {
+                                    selectedGroup = null
+                                    viewModel.setLatencyMonitorGroup(null)
+                                },
+                            )
+                            .heightIn(min = 56.dp)
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        RadioButton(selected = selectedGroup == null, onClick = {
-                            selectedGroup = null
-                            viewModel.setLatencyMonitorGroup(null)
-                        })
+                        RadioButton(selected = selectedGroup == null, onClick = null)
                         Text(stringResource(R.string.monitoring_latency_off), modifier = Modifier.padding(start = 12.dp))
                     }
                     groupNames?.forEach { name ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    selectedGroup = name
-                                    viewModel.setLatencyMonitorGroup(name)
-                                }
+                                .selectable(
+                                    selected = selectedGroup == name,
+                                    role = Role.RadioButton,
+                                    onClick = {
+                                        selectedGroup = name
+                                        viewModel.setLatencyMonitorGroup(name)
+                                    },
+                                )
+                                .heightIn(min = 56.dp)
                                 .padding(vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            RadioButton(selected = selectedGroup == name, onClick = {
-                                selectedGroup = name
-                                viewModel.setLatencyMonitorGroup(name)
-                            })
+                            RadioButton(selected = selectedGroup == name, onClick = null)
                             Text(
                                 name,
                                 modifier = Modifier.padding(start = 12.dp),
@@ -2058,11 +2111,19 @@ private fun ShortcutsSettingsScreen(viewModel: SettingsViewModel, onBack: () -> 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(enabled = enabled) {
-                            val next = if (checked) selected - spec.id else selected + spec.id
-                            selected = next
-                            viewModel.setEnabledShortcutIds(next.toList())
-                        }
+                        .toggleable(
+                            value = checked,
+                            enabled = enabled,
+                            role = Role.Checkbox,
+                            onValueChange = {
+                                val next = if (checked) selected - spec.id else selected + spec.id
+                                selected = next
+                                viewModel.setEnabledShortcutIds(next.toList())
+                            },
+                        )
+                        // Checkbox has the same onCheckedChange-null caveat as
+                        // RadioButton, and this row already passed null before.
+                        .heightIn(min = 56.dp)
                         .padding(vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

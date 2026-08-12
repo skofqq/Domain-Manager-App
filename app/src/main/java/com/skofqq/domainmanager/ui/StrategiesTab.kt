@@ -59,7 +59,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -71,9 +70,8 @@ import androidx.compose.ui.unit.dp
 import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.StrategyEntry
 import com.skofqq.domainmanager.util.extractDomain
+import com.skofqq.domainmanager.ui.theme.statusOk
 import kotlinx.coroutines.launch
-
-private val RunningGreen = Color(0xFF4CAF50)
 
 /**
  * "Strategies" page of the Domains tab. zapret and zapret2 are mutually exclusive
@@ -405,7 +403,7 @@ private fun EngineInfoBanner(running: Boolean, modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .size(8.dp)
                     .clip(CircleShape)
-                    .background(if (running) RunningGreen else MaterialTheme.colorScheme.outline),
+                    .background(if (running) statusOk else MaterialTheme.colorScheme.outline),
             )
             Text(
                 text = stringResource(
@@ -499,7 +497,12 @@ private fun StrategyControl(
                     onClick = { onChange((value - 1).coerceAtLeast(min)) },
                     shapes = IconButtonDefaults.shapes(),
                     enabled = value > min,
-                ) { Icon(Icons.Filled.Remove, contentDescription = null) }
+                ) {
+                    Icon(
+                        Icons.Filled.Remove,
+                        contentDescription = stringResource(R.string.strategy_previous),
+                    )
+                }
                 Box {
                     Text(
                         text = value.toString(),
@@ -544,7 +547,12 @@ private fun StrategyControl(
                     onClick = { onChange((value + 1).coerceAtMost(max)) },
                     shapes = IconButtonDefaults.shapes(),
                     enabled = value < max,
-                ) { Icon(Icons.Filled.Add, contentDescription = null) }
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.strategy_next),
+                    )
+                }
             }
             if (engine == ENGINE_ZAPRET2 && value == 0) {
                 Text(

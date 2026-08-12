@@ -21,18 +21,19 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.skofqq.domainmanager.R
@@ -122,19 +123,41 @@ fun DomainStatusCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Read-only presence badge. It used to be a [FilterChip] with an empty `onClick`,
+ * which put a focusable, ripple-ing control that did nothing into the tab order —
+ * and left "added" vs "not added" to the tint and the glyph. It is a plain surface
+ * now, named for what it reports.
+ */
 @Composable
 private fun StatusChip(name: String, active: Boolean) {
-    FilterChip(
-        selected = active,
-        onClick = {},
-        label = { Text(name) },
-        leadingIcon = {
+    val container = if (active) MaterialTheme.colorScheme.secondaryContainer
+    else MaterialTheme.colorScheme.surfaceContainerHighest
+    val content = if (active) MaterialTheme.colorScheme.onSecondaryContainer
+    else MaterialTheme.colorScheme.onSurfaceVariant
+    val stateLabel = stringResource(
+        if (active) R.string.a11y_target_added else R.string.a11y_target_not_added,
+        name,
+    )
+    Surface(
+        color = container,
+        contentColor = content,
+        shape = MaterialTheme.shapes.small,
+        modifier = Modifier.semantics(mergeDescendants = true) {
+            contentDescription = stateLabel
+        },
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Icon(
                 imageVector = if (active) Icons.Default.Check else Icons.Default.Close,
                 contentDescription = null,
-                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                modifier = Modifier.size(18.dp),
             )
-        },
-    )
+            Text(name, style = MaterialTheme.typography.labelLarge)
+        }
+    }
 }

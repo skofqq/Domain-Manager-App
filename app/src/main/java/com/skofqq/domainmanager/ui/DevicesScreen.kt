@@ -73,6 +73,8 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -82,6 +84,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.LanDevice
+import com.skofqq.domainmanager.ui.theme.statusFavorite
+import com.skofqq.domainmanager.ui.theme.statusOk
 
 /**
  * Shared scaffold for the Status tab's push screens (Devices, mihomo): inline
@@ -327,7 +331,16 @@ private fun DeviceCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(CardDefaults.elevatedShape)
-            .combinedClickable(onClick = {}, onLongClick = onLongPress),
+            // Picking an icon used to hang off an unlabeled long press with a no-op
+            // tap in front of it: the card rippled on tap, did nothing, and TalkBack
+            // announced a plain "button". Tap now opens the picker as well, and the
+            // long press carries the same name.
+            .combinedClickable(
+                onClickLabel = stringResource(R.string.device_icon_title),
+                onLongClickLabel = stringResource(R.string.device_icon_title),
+                onClick = onLongPress,
+                onLongClick = onLongPress,
+            ),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
@@ -357,16 +370,22 @@ private fun DeviceCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    // "Online now" verdict from the router-side ping sweep.
+                    // "Online now" verdict from the router-side ping sweep. The dot is
+                    // the only carrier of that verdict, so it states it in words for
+                    // TalkBack instead of leaving it to the fill color.
                     if (online != null) {
+                        val onlineLabel = stringResource(
+                            if (online) R.string.a11y_device_online else R.string.a11y_device_offline
+                        )
                         Box(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (online) OnlineGreen
+                                    if (online) statusOk
                                     else MaterialTheme.colorScheme.outlineVariant
-                                ),
+                                )
+                                .semantics { contentDescription = onlineLabel },
                         )
                     }
                     Text(
@@ -382,18 +401,28 @@ private fun DeviceCard(
                 // Stacked, not side-by-side: on narrow cards a shared row would
                 // wrap the MAC mid-address (e.g. "fc:9d:05:2b:f" / "8:b1").
                 Column {
-                    // Tap a value to copy it.
+                    // Tap a value to copy it. The label says so — a bare address gives
+                    // no hint that it is tappable — and the vertical padding lifts each
+                    // line from ~20dp to the 48dp minimum touch target.
                     Text(
                         text = device.ip,
                         style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.clickable { copy(device.ip) },
+                        modifier = Modifier
+                            .clickable(onClickLabel = stringResource(R.string.copy_ip)) {
+                                copy(device.ip)
+                            }
+                            .padding(vertical = 6.dp),
                     )
                     Text(
                         text = device.mac,
                         style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.clickable { copy(device.mac) },
+                        modifier = Modifier
+                            .clickable(onClickLabel = stringResource(R.string.copy_mac)) {
+                                copy(device.mac)
+                            }
+                            .padding(vertical = 6.dp),
                     )
                 }
             }
@@ -412,16 +441,12 @@ private fun DeviceCard(
                     contentDescription = stringResource(
                         if (favorite) R.string.unfavorite_device else R.string.favorite_device
                     ),
-                    tint = if (favorite) FavoriteYellow else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (favorite) statusFavorite else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
     }
 }
-
-private val FavoriteYellow = androidx.compose.ui.graphics.Color(0xFFFFC107)
-
-private val OnlineGreen = androidx.compose.ui.graphics.Color(0xFF4CAF50)
 
 /**
  * Manual icon pick for one device, stored locally by MAC ([onPick] null = back to

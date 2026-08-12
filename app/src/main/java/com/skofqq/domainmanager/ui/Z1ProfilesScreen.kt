@@ -185,7 +185,12 @@ private fun CategoryRow(
                     onClick = { onChange((value - 1).coerceAtLeast(0)) },
                     shapes = IconButtonDefaults.shapes(),
                     enabled = enabled && value > 0,
-                ) { Icon(Icons.Filled.Remove, contentDescription = null) }
+                ) {
+                    Icon(
+                        Icons.Filled.Remove,
+                        contentDescription = stringResource(R.string.strategy_previous),
+                    )
+                }
                 Text(
                     text = value.toString(),
                     style = MaterialTheme.typography.titleMedium,
@@ -197,7 +202,12 @@ private fun CategoryRow(
                     onClick = { onChange((value + 1).coerceAtMost(profile.max)) },
                     shapes = IconButtonDefaults.shapes(),
                     enabled = enabled && value < profile.max,
-                ) { Icon(Icons.Filled.Add, contentDescription = null) }
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.strategy_next),
+                    )
+                }
             }
         }
     }

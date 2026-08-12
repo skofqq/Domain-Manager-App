@@ -49,7 +49,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -63,9 +62,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.TorStatus
 import com.skofqq.domainmanager.data.TorTestInfo
-
-/** Same green the service cards use for a running daemon. */
-private val TorOkGreen = Color(0xFF4CAF50)
+import com.skofqq.domainmanager.ui.theme.statusOk
 
 /**
  * Tor drill-down, reached from the Tor service card on the Status tab. Covers
@@ -275,7 +272,10 @@ fun TorScreen(viewModel: TorViewModel, onBack: () -> Unit) {
                     confirmRemove = null
                     viewModel.removeBridge(bridge)
                 }) {
-                    Text(stringResource(R.string.delete))
+                    Text(
+                        stringResource(R.string.delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
             dismissButton = {
@@ -447,7 +447,7 @@ private fun TorTestCard(result: TorTestInfo) {
             Icon(
                 if (result.ok) Icons.Filled.Check else Icons.Filled.Close,
                 contentDescription = null,
-                tint = if (result.ok) TorOkGreen else MaterialTheme.colorScheme.error,
+                tint = if (result.ok) statusOk else MaterialTheme.colorScheme.error,
             )
             Column {
                 Text(

@@ -47,10 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.TraceHop
+import com.skofqq.domainmanager.ui.theme.statusOk
 import java.util.Locale
-
-/** Green shared with the services' running indicator. */
-private val ReachableGreen = androidx.compose.ui.graphics.Color(0xFF4CAF50)
 
 /**
  * Network diagnostics, all run BY THE ROUTER: ping/traceroute for an arbitrary
@@ -159,7 +157,7 @@ fun DiagnosticsScreen(
                             Icon(
                                 if (ping.reachable) Icons.Filled.Check else Icons.Filled.Close,
                                 contentDescription = null,
-                                tint = if (ping.reachable) ReachableGreen else MaterialTheme.colorScheme.error,
+                                tint = if (ping.reachable) statusOk else MaterialTheme.colorScheme.error,
                             )
                             Column {
                                 Text(
@@ -352,7 +350,7 @@ fun DiagnosticsScreen(
 
 @Composable
 private fun delayColor(ms: Int) = when {
-    ms < 100 -> ReachableGreen
+    ms < 100 -> statusOk
     ms < 300 -> MaterialTheme.colorScheme.tertiary
     else -> MaterialTheme.colorScheme.error
 }

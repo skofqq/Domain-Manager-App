@@ -209,7 +209,10 @@ fun SubscriptionsScreen(viewModel: SubscriptionsViewModel, onBack: () -> Unit) {
                     confirmRemove = null
                     viewModel.remove(name)
                 }) {
-                    Text(stringResource(R.string.delete))
+                    Text(
+                        stringResource(R.string.delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
             dismissButton = {

@@ -75,6 +75,7 @@ import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.MihomoConnection
 import com.skofqq.domainmanager.data.MihomoGroup
 import com.skofqq.domainmanager.data.MihomoNodeInfo
+import com.skofqq.domainmanager.ui.theme.statusOk
 
 /**
  * mihomo drill-down: Selector groups with node switching, client-computed
@@ -733,7 +734,7 @@ private fun NodeDelayText(delayMs: Int?, tested: Boolean, modifier: Modifier = M
             text = stringResource(R.string.ms_value, delayMs),
             style = MaterialTheme.typography.labelMedium,
             color = when {
-                delayMs < 100 -> NodeDelayGood
+                delayMs < 100 -> statusOk
                 delayMs < 300 -> MaterialTheme.colorScheme.tertiary
                 else -> MaterialTheme.colorScheme.error
             },
@@ -748,8 +749,6 @@ private fun NodeDelayText(delayMs: Int?, tested: Boolean, modifier: Modifier = M
         )
     }
 }
-
-private val NodeDelayGood = androidx.compose.ui.graphics.Color(0xFF4CAF50)
 
 @Composable
 private fun TrafficCard(

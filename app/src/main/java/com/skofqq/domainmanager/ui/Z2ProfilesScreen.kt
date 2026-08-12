@@ -39,9 +39,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -49,8 +50,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.CheckEntry
 import com.skofqq.domainmanager.data.Z2Profile
-
-private val ReachableGreen = Color(0xFF4CAF50)
+import com.skofqq.domainmanager.ui.theme.statusOk
 
 /**
  * zapret2 profile switcher: 9 fixed traffic-class slots, each with its own
@@ -269,7 +269,12 @@ private fun ProfileRow(
                     onClick = { onChange((value - 1).coerceAtLeast(1)) },
                     shapes = IconButtonDefaults.shapes(),
                     enabled = enabled && value > 1,
-                ) { Icon(Icons.Filled.Remove, contentDescription = null) }
+                ) {
+                    Icon(
+                        Icons.Filled.Remove,
+                        contentDescription = stringResource(R.string.strategy_previous),
+                    )
+                }
                 Text(
                     text = value.toString(),
                     style = MaterialTheme.typography.titleMedium,
@@ -281,7 +286,12 @@ private fun ProfileRow(
                     onClick = { onChange((value + 1).coerceAtMost(profile.max)) },
                     shapes = IconButtonDefaults.shapes(),
                     enabled = enabled && value < profile.max,
-                ) { Icon(Icons.Filled.Add, contentDescription = null) }
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.strategy_next),
+                    )
+                }
             }
         }
     }
@@ -320,10 +330,17 @@ internal fun CheckResultsCard(checks: List<CheckEntry>) {
                         .padding(vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    // Pass/fail lives in this dot's color alone — the HTTP code next to
+                    // it is "200" or "—", which is not a verdict. Say it in words.
+                    val okLabel = stringResource(
+                        if (check.ok) R.string.a11y_check_ok else R.string.a11y_check_failed
+                    )
                     Surface(
-                        color = if (check.ok) ReachableGreen else MaterialTheme.colorScheme.error,
+                        color = if (check.ok) statusOk else MaterialTheme.colorScheme.error,
                         shape = CircleShape,
-                        modifier = Modifier.size(8.dp),
+                        modifier = Modifier
+                            .size(8.dp)
+                            .semantics { contentDescription = okLabel },
                     ) {}
                     Spacer(Modifier.width(10.dp))
                     Text(

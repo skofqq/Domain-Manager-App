@@ -78,6 +78,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -88,6 +90,7 @@ import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.data.DiskInfo
 import com.skofqq.domainmanager.data.ServiceStatus
 import com.skofqq.domainmanager.data.SysInfo
+import com.skofqq.domainmanager.ui.theme.statusOk
 import kotlinx.coroutines.CancellationException
 import java.util.Locale
 
@@ -762,7 +765,9 @@ private fun ServiceCard(
                     RunningIndicator(running = status.running, enabled = status.enabled)
                     AutostartIndicator(status.enabled)
                 }
-                IconButton(onClick = onOpenLog, modifier = Modifier.size(32.dp)) {
+                // 18dp glyph, but the button keeps its default 48dp target — pinning
+                // the button itself to 32dp put it under the minimum touch size.
+                IconButton(onClick = onOpenLog) {
                     Icon(
                         Icons.Outlined.Article,
                         contentDescription = stringResource(R.string.service_log_button),
@@ -803,16 +808,13 @@ private fun ServiceCard(
     }
 }
 
-/** Green when the service runs. */
-private val RunningGreen = Color(0xFF4CAF50)
-
 @Composable
 internal fun RunningIndicator(running: Boolean, enabled: Boolean) {
     // Derived on the client from the two existing flags:
     // running → green; stopped but enabled → red (should be running — failed);
     // stopped and disabled → grey (intentionally off).
     val (tint, labelRes) = when {
-        running -> RunningGreen to R.string.svc_running
+        running -> statusOk to R.string.svc_running
         enabled -> MaterialTheme.colorScheme.error to R.string.svc_failed
         else -> MaterialTheme.colorScheme.outline to R.string.svc_stopped
     }
@@ -838,9 +840,18 @@ internal fun RunningIndicator(running: Boolean, enabled: Boolean) {
 internal fun AutostartIndicator(enabled: Boolean) {
     val tint = if (enabled) MaterialTheme.colorScheme.primary
     else MaterialTheme.colorScheme.outline
+    // The label reads "Autostart" in both states — on or off is carried entirely by
+    // the check/cross glyph and the tint, so a screen reader hears the same thing
+    // either way. Merge the pair into one node that names the state.
+    val stateLabel = stringResource(
+        if (enabled) R.string.a11y_autostart_on else R.string.a11y_autostart_off
+    )
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp),
+        modifier = Modifier.semantics(mergeDescendants = true) {
+            contentDescription = stateLabel
+        },
     ) {
         Icon(
             imageVector = if (enabled) Icons.Filled.Check else Icons.Filled.Close,

@@ -66,7 +66,9 @@
 
     <!-- Shared by both zapret profile screens -->
     <string name="profile_caption">key %1$s · now: %2$d</string>
-    <string name="check_reachability">Check reachability</string>
+    <!-- Kept short: on the zapret2 screen this button is half-width, next to
+         "Roll back", and the full phrase wrapped the label onto two lines. -->
+    <string name="check_reachability">Check</string>
     <string name="voice_title">Voice calls — Discord/WhatsApp/Telegram</string>
     <string name="voice_custom">Custom</string>
     <string name="voice_bolvan">bol-van scripts</string>
@@ -545,4 +547,22 @@
     <string name="err_invalid_router_address">Invalid router address: %1$s</string>
     <string name="err_empty_response">Empty response from router</string>
     <string name="err_raw">%1$s</string>
+
+    <!-- Accessibility labels: names for icon-only controls and for state that is
+         otherwise carried by an icon shape or a colored dot only. -->
+    <string name="strategy_previous">Previous strategy</string>
+    <string name="strategy_next">Next strategy</string>
+    <string name="theme_previous">Previous theme</string>
+    <string name="theme_next">Next theme</string>
+    <string name="a11y_target_added">%1$s: added</string>
+    <string name="a11y_target_not_added">%1$s: not added</string>
+    <string name="a11y_autostart_on">Autostart on</string>
+    <string name="a11y_autostart_off">Autostart off</string>
+    <string name="a11y_device_online">Online</string>
+    <string name="a11y_device_offline">Offline</string>
+    <string name="a11y_check_ok">Reachable</string>
+    <string name="a11y_check_failed">Not reachable</string>
+    <string name="copy_ip">Copy IP address</string>
+    <string name="copy_mac">Copy MAC address</string>
+    <string name="open_release_notes">Open release notes</string>
 </resources>
