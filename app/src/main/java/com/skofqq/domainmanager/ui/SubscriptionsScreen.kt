@@ -1,5 +1,11 @@
 package com.skofqq.domainmanager.ui
 
+import com.skofqq.domainmanager.ui.theme.Helm
+import com.skofqq.domainmanager.ui.theme.Tints
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.outlined.Delete
+import com.skofqq.domainmanager.ui.components.*
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -109,61 +115,60 @@ fun SubscriptionsScreen(viewModel: SubscriptionsViewModel, onBack: () -> Unit) {
     StatusChildScaffold(
         title = stringResource(R.string.subscriptions_title),
         onBack = onBack,
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = {
-                    viewModel.clearSaveResult()
-                    addOpen = true
-                },
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.add)) },
-            )
-        },
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item {
-                Text(
-                    stringResource(R.string.subscriptions_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            item { NoticeCard(title = null, body = stringResource(R.string.subscriptions_hint)) }
             state.error?.let { message ->
                 item {
-                    Column {
-                        ErrorCard(message)
-                        TextButton(onClick = { viewModel.refresh() }) {
-                            Text(stringResource(R.string.retry))
-                        }
-                    }
+                    ErrorCard(message, onRetry = { viewModel.refresh() })
                 }
             }
             if (skeletonBrush != null) {
-                items(2) {
-                    SkeletonBox(
-                        skeletonBrush,
-                        Modifier.fillMaxWidth().height(96.dp),
-                        MaterialTheme.shapes.medium,
-                    )
+                item {
+                    SkeletonBox(skeletonBrush, Modifier.fillMaxWidth().height(180.dp), CardShape)
                 }
             }
-            items(state.subscriptions.orEmpty(), key = { it.name }) { subscription ->
-                SubscriptionCard(
-                    subscription = subscription,
-                    busy = state.removingSubscription == subscription.name,
-                    actionsEnabled = state.removingSubscription == null && !state.saving,
-                    onEdit = {
-                        viewModel.clearSaveResult()
-                        editName = subscription.name
-                    },
-                    onRemove = { confirmRemove = subscription.name },
-                )
+            state.subscriptions?.let { subscriptions ->
+                item {
+                    HelmSection(
+                        title = pluralStringResource(R.plurals.n_subscriptions, subscriptions.size, subscriptions.size),
+                        icon = Icons.Outlined.CloudSync,
+                        tint = Tints.blue,
+                        shape = MaterialShapes.Cookie12Sided,
+                        trailing = {
+                            SectionIconButton(
+                                Icons.Filled.Add,
+                                stringResource(R.string.add),
+                                enabled = !state.saving,
+                            ) {
+                                viewModel.clearSaveResult()
+                                addOpen = true
+                            }
+                        },
+                    ) {
+                        Column {
+                            subscriptions.forEachIndexed { index, subscription ->
+                                if (index > 0) SectionDivider()
+                                SubscriptionRow(
+                                    subscription = subscription,
+                                    busy = state.removingSubscription == subscription.name,
+                                    actionsEnabled = state.removingSubscription == null && !state.saving,
+                                    onEdit = {
+                                        viewModel.clearSaveResult()
+                                        editName = subscription.name
+                                    },
+                                    onRemove = { confirmRemove = subscription.name },
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -200,7 +205,7 @@ fun SubscriptionsScreen(viewModel: SubscriptionsViewModel, onBack: () -> Unit) {
     }
 
     confirmRemove?.let { name ->
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { confirmRemove = null },
             title = { Text(stringResource(R.string.subscription_delete_title)) },
             text = { Text(stringResource(R.string.subscription_delete_text, name)) },
@@ -225,61 +230,67 @@ fun SubscriptionsScreen(viewModel: SubscriptionsViewModel, onBack: () -> Unit) {
 }
 
 @Composable
-private fun SubscriptionCard(
+private fun SubscriptionRow(
     subscription: MihomoSubscription,
     busy: Boolean,
     actionsEnabled: Boolean,
     onEdit: () -> Unit,
     onRemove: () -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 12.dp, bottom = 12.dp)) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     subscription.name,
                     style = MaterialTheme.typography.titleMedium,
+                    color = Helm.colors.text,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f, fill = false),
                 )
-                if (busy) {
-                    CircularProgressIndicator(
-                        Modifier.padding(end = 12.dp).size(20.dp),
-                        strokeWidth = 2.dp,
-                    )
-                } else if (subscription.removable) {
-                    IconButton(onClick = onEdit, enabled = actionsEnabled) {
-                        Icon(
-                            Icons.Outlined.Edit,
-                            contentDescription = stringResource(R.string.subscription_edit),
-                        )
-                    }
-                    IconButton(onClick = onRemove, enabled = actionsEnabled) {
-                        Icon(
-                            Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.delete),
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                    }
+                // The base subscription is part of the router's own config: say why
+                // it has no actions instead of just showing an inert row.
+                if (!subscription.removable) {
+                    Spacer(Modifier.width(8.dp))
+                    HelmBadge(stringResource(R.string.subscription_base_badge), Tints.gray)
                 }
             }
             Text(
                 subscription.url,
                 style = MaterialTheme.typography.bodySmall,
                 fontFamily = FontFamily.Monospace,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Helm.colors.text2,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 4.dp, end = 12.dp),
+                modifier = Modifier.padding(top = 2.dp),
             )
-            // The base subscription is part of the router's own config — say why
-            // it has no actions instead of just showing an inert row.
             if (!subscription.removable) {
                 Text(
                     stringResource(R.string.subscription_base_protected),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.padding(top = 6.dp, end = 12.dp),
+                    color = Helm.colors.text2,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+        }
+        if (busy) {
+            LoadingIndicator(Modifier.size(40.dp))
+        } else if (subscription.removable) {
+            IconButton(onClick = onEdit, enabled = actionsEnabled) {
+                Icon(
+                    Icons.Outlined.Edit,
+                    contentDescription = stringResource(R.string.subscription_edit),
+                    tint = Helm.colors.text2,
+                )
+            }
+            IconButton(onClick = onRemove, enabled = actionsEnabled) {
+                Icon(
+                    Icons.Outlined.Delete,
+                    contentDescription = stringResource(R.string.delete),
+                    tint = Tints.red.fg,
                 )
             }
         }
@@ -312,7 +323,7 @@ private fun SubscriptionSheet(
     val nameTaken = !editing && name in takenNames
     val urlValid = RouterApi.isValidSourceUrl(url)
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    HelmBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -328,7 +339,7 @@ private fun SubscriptionSheet(
                 ),
                 style = MaterialTheme.typography.titleLarge,
             )
-            OutlinedTextField(
+            HelmTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text(stringResource(R.string.subscription_name)) },
@@ -351,7 +362,7 @@ private fun SubscriptionSheet(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            HelmTextField(
                 value = url,
                 onValueChange = { url = it },
                 label = { Text(stringResource(R.string.subscription_url)) },
@@ -384,17 +395,13 @@ private fun SubscriptionSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             error?.let { ErrorCard(it) }
-            FilledTonalButton(
+            HelmButton(
+                text = stringResource(if (editing) R.string.apply else R.string.add),
                 onClick = { onSubmit(name.trim(), url.trim()) },
-                enabled = !saving && nameValid && !nameTaken && name.isNotBlank() && urlValid,
+                enabled = nameValid && !nameTaken && name.isNotBlank() && urlValid,
+                loading = saving,
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                if (saving) {
-                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                    Spacer(Modifier.width(8.dp))
-                }
-                Text(stringResource(if (editing) R.string.apply else R.string.add))
-            }
+            )
         }
     }
 }
@@ -406,33 +413,13 @@ private fun SubscriptionSheet(
  */
 @Composable
 internal fun SubscriptionsEntryCard(count: Int?, onClick: () -> Unit) {
-    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.Outlined.CloudSync,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                Text(
-                    stringResource(R.string.subscriptions_title),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    if (count != null) pluralStringResource(R.plurals.n_subscriptions, count, count)
-                    else stringResource(R.string.subscriptions_entry_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+    EntryCard(
+        icon = Icons.Outlined.CloudSync,
+        title = stringResource(R.string.subscriptions_title),
+        subtitle = if (count != null) pluralStringResource(R.plurals.n_subscriptions, count, count)
+        else stringResource(R.string.subscriptions_entry_desc),
+        onClick = onClick,
+        tint = Tints.blue,
+        shape = MaterialShapes.Cookie12Sided,
+    )
 }

@@ -1,0 +1,596 @@
+<resources>
+    <string name="app_name">Helm</string>
+
+    <!-- Navigation -->
+    <string name="settings">設定</string>
+    <string name="domains">ドメイン</string>
+
+    <!-- Domain fields / status card -->
+    <string name="domain">ドメイン</string>
+    <string name="domain_placeholder">example.com</string>
+    <string name="status">ステータス</string>
+    <string name="add_to">%1$s に追加</string>
+    <string name="remove_from">%1$s から削除</string>
+
+    <!-- Domains screen -->
+    <string name="tab_routing">ルーティング</string>
+    <string name="tab_strategies">ストラテジー</string>
+    <string name="add_domain">ドメインを追加</string>
+    <string name="add">追加</string>
+    <string name="apply">適用</string>
+    <string name="remove_domain">ドメインを削除</string>
+    <string name="no_domains">管理中のドメインはまだありません。下に引いて更新してください。</string>
+    <string name="domain_partial">このドメインは %1$s にのみあります。</string>
+    <string name="edit_domain">ドメインを編集</string>
+    <string name="paste_from_clipboard">クリップボードから貼り付け</string>
+    <string name="cancel">キャンセル</string>
+    <string name="back">戻る</string>
+
+    <!-- Strategies -->
+    <string name="strategy">ストラテジー</string>
+    <string name="strategy_n">ストラテジー %1$d</string>
+    <string name="strategy_pool">個別の割り当てなし — 共有プール</string>
+    <string name="strategy_range_loading">ルーターからストラテジーの範囲を読み込んでいます…</string>
+    <string name="strat_showing_active">実行中 — 変更はすぐに反映されます</string>
+    <string name="strat_showing_inactive">停止中 — 変更は保存のみされます</string>
+    <string name="engine_running">実行中</string>
+    <string name="engine_stopped">停止中</string>
+    <string name="strat_no_engine">実行中の DPI エンジンがありません</string>
+    <string name="strat_no_engine_hint">ドメインごとのストラテジーを管理するには、「ステータス」タブで zapret または zapret2 を起動してください。</string>
+    <string name="open_status">「ステータス」を開く</string>
+    <string name="retry">再試行</string>
+    <string name="no_strat_domains">個別のストラテジーが設定されたドメインはまだありません。</string>
+    <string name="strategy_pool_short">共有プール</string>
+    <string name="search_domains">ドメインを検索</string>
+    <string name="search_or_add_domain">ドメインを検索または追加</string>
+    <string name="clear_search">検索をクリア</string>
+    <string name="search_no_results">一致するドメインはありません。</string>
+    <string name="search_empty_title">見つかりません</string>
+    <string name="empty_domains_title">ドメインはまだありません</string>
+    <string name="empty_strat_title">個別のストラテジーはまだありません</string>
+    <string name="add_domain_named">%1$s を追加</string>
+    <string name="pick_strategy">ストラテジーを選択</string>
+    <plurals name="n_domains">
+        <item quantity="other">%d 件のドメイン</item>
+    </plurals>
+
+    <!-- zapret2 profiles -->
+    <string name="z2_profiles_title">zapret2 プロファイル</string>
+    <string name="z2_proto_tls">TLS</string>
+    <string name="z2_proto_udp">QUIC / UDP</string>
+    <string name="z2_proto_http">HTTP</string>
+    <string name="z2_apply_hint">実行中のエンジンへの変更は、短い再起動で反映されます。</string>
+    <string name="z2_rollback">元に戻す</string>
+    <string name="z2_rollback_done">前のセットに戻しました</string>
+    <string name="z2_rollback_nothing">戻せる保存済みのセットがありません</string>
+
+    <!-- zapret v1 profiles -->
+    <string name="z1_profiles_title">zapret プロファイル</string>
+
+    <!-- Shared by both zapret profile screens -->
+    <string name="profile_caption">キー %1$s · 現在: %2$d</string>
+    <string name="check_reachability">確認</string>
+    <string name="z_profiles_section">プロファイル</string>
+    <string name="z_actions_section">変更</string>
+    <string name="voice_title">音声通話 — Discord/WhatsApp/Telegram</string>
+    <string name="voice_custom">カスタム</string>
+    <string name="voice_bolvan">bol-van スクリプト</string>
+
+    <!-- Status (services) screen -->
+    <string name="health_model">モデル</string>
+    <string name="health_firmware">ファームウェア</string>
+    <string name="health_uptime">稼働時間</string>
+    <string name="health_load">ロードアベレージ</string>
+    <string name="health_cpu_temp">CPU 温度</string>
+    <string name="health_memory">メモリ</string>
+    <string name="health_wan_ip">IPv4</string>
+    <string name="health_wan_ipv6">IPv6</string>
+    <string name="dur_days_hours">%1$d日 %2$d時間</string>
+    <string name="dur_hours_minutes">%1$d時間 %2$d分</string>
+    <string name="dur_minutes">%1$d分</string>
+    <string name="devices_title">デバイス</string>
+    <string name="devices_favorites">お気に入り</string>
+    <string name="devices_all">すべてのデバイス</string>
+    <string name="devices_online_of">%2$d 台中 %1$d 台がオンライン</string>
+    <string name="device_scan_label">デバイスを確認中</string>
+    <string name="device_unknown">不明なデバイス</string>
+    <string name="device_icon_title">デバイスのアイコン</string>
+    <string name="device_icon_auto">自動</string>
+    <string name="device_type_speaker">スピーカー</string>
+    <string name="device_type_bulb">電球</string>
+    <string name="device_type_phone">スマートフォン</string>
+    <string name="device_type_pc">PC</string>
+    <string name="device_type_laptop">ノートPC</string>
+    <string name="device_type_router">ルーター</string>
+    <string name="device_type_zigbee">ZigBee ゲートウェイ</string>
+    <string name="device_type_printer">プリンター</string>
+    <string name="device_type_socket">コンセント</string>
+    <string name="device_type_tv">テレビ</string>
+    <string name="device_type_storage">ストレージ</string>
+    <string name="device_type_camera">カメラ</string>
+    <string name="device_type_generic">その他</string>
+    <plurals name="n_devices_online">
+        <item quantity="other">ネットワーク上のデバイス %d 台</item>
+    </plurals>
+    <string name="device_scan_progress">%1$d/%2$d</string>
+    <string name="wake_device">起動</string>
+    <string name="wake_sent">Wake-on-LAN パケットを送信しました</string>
+    <string name="favorite_device">お気に入りに追加</string>
+    <string name="unfavorite_device">お気に入りから削除</string>
+    <string name="health_disk">ディスク (/overlay)</string>
+    <string name="svc_running">実行中</string>
+    <string name="svc_stopped">停止中</string>
+    <string name="svc_failed">エラー</string>
+    <string name="svc_autostart">自動起動</string>
+    <string name="svc_start">起動</string>
+    <string name="svc_stop">停止</string>
+    <string name="svc_restart">再起動</string>
+    <string name="service_log_button">ログ</string>
+    <string name="service_log_title">%1$s のログ</string>
+    <string name="service_log_empty">ログはありません</string>
+    <string name="refresh">更新</string>
+
+    <!-- mihomo drill-down -->
+    <string name="section_proxy_groups">プロキシグループ</string>
+    <string name="groups_view_grid">グリッド表示</string>
+    <string name="groups_view_list">リスト表示</string>
+    <string name="section_traffic">トラフィック</string>
+    <string name="section_connections">アクティブな接続</string>
+    <string name="traffic_download">ダウンロード</string>
+    <string name="traffic_upload">アップロード</string>
+    <string name="speed_value">%1$s/s</string>
+    <string name="traffic_total">合計 %1$s</string>
+    <string name="no_connections">アクティブな接続はありません</string>
+    <string name="close_connection">接続を閉じる</string>
+    <string name="err_mihomo_unreachable">mihomo が応答しません — サービスが実行中か確認してください</string>
+    <string name="err_mihomo_select_failed">mihomo がノードの切り替えを拒否しました</string>
+    <string name="traffic_chart_caption">直近約 5 分間、mihomo 経由</string>
+    <string name="mihomo_only_note">mihomo プロキシを経由したトラフィックのみで、デバイスの総トラフィックではありません。</string>
+    <string name="source_all">すべて</string>
+    <string name="source_traffic_summary">%1$s: ↓ %2$s · ↑ %3$s（mihomo 経由のみ）</string>
+
+    <!-- Network diagnostics -->
+    <string name="diag_net_title">ネットワーク診断</string>
+    <string name="diag_entry_desc">Ping、トレースルート、速度テスト、トンネル確認</string>
+    <string name="diag_host_section">Ping / トレースルート</string>
+    <string name="diag_ping">Ping</string>
+    <string name="diag_traceroute">トレースルート</string>
+    <string name="diag_preset_wan">WAN %1$s</string>
+    <string name="ping_result_ok">到達可能 · 損失 %1$d%% · 平均 %2$s ms</string>
+    <string name="ping_result_fail">応答なし（損失 100%%）</string>
+    <string name="trace_title">%1$s への経路</string>
+    <string name="diag_speedtest_title">速度テスト</string>
+    <string name="diag_speedtest_note">このスマートフォンの Wi-Fi ではなく、ルーターの WAN のダウンロード速度を測定します。最大約 25 秒かかります。</string>
+    <string name="diag_speedtest_run">速度テストを実行</string>
+    <string name="diag_speedtest_running">測定中…</string>
+    <string name="diag_speedtest_result_label">ルーター WAN ダウンロード</string>
+    <string name="speed_mbps">%1$s Mbit/s</string>
+    <string name="diag_tunnel_title">トンネル確認</string>
+    <string name="diag_tunnel_note">mihomo 内蔵の遅延テストで、グループ内の全ノードを一度にテストします。5 秒以内に応答のないノードは「応答なし」になります。</string>
+    <string name="diag_tunnel_run">ノードをテスト</string>
+    <string name="diag_tunnel_running">テスト中…</string>
+    <string name="ms_value">%1$d ms</string>
+    <string name="ms_value_frac">%1$s ms</string>
+    <string name="node_no_response">応答なし</string>
+    <string name="delay_test">テスト</string>
+    <string name="delay_timeout">タイムアウト</string>
+    <string name="delay_test_all">全グループをテスト</string>
+
+    <!-- MagiTrickle groups overview -->
+    <string name="magitrickle_groups_title">MagiTrickle グループ</string>
+    <string name="magitrickle_groups_empty">ルーターにグループが設定されていません。</string>
+    <string name="magitrickle_group_no_rules">このグループにはルールがありません。</string>
+    <plurals name="n_rules">
+        <item quantity="other">%d 件のルール</item>
+    </plurals>
+    <string name="domain_in_group">すでにグループ「%1$s」にあります</string>
+
+    <!-- Share screen -->
+    <string name="share_title">ルーターに追加</string>
+    <string name="close">閉じる</string>
+    <string name="reload_status">ステータスを再読み込み</string>
+    <string name="done">完了</string>
+
+    <!-- Settings screen -->
+    <string name="settings_appearance_desc">アプリのテーマを変更</string>
+    <string name="settings_auth_title">認証</string>
+    <string name="settings_auth_desc">ルーターのプロファイルとトークン</string>
+
+    <!-- Router profiles -->
+    <string name="default_profile_name">マイルーター</string>
+    <string name="settings_profiles_hint">選択中のプロファイルが有効になり、すべてのタブがこれを使用します。行をタップすると編集できます。</string>
+    <string name="profile_add">ルーターを追加</string>
+    <string name="profile_new_title">新しいルーター</string>
+    <string name="profile_name">名前</string>
+    <string name="profile_name_placeholder">自宅</string>
+    <string name="profile_delete_title">プロファイルを削除しますか？</string>
+    <string name="profile_delete_text">「%1$s」はこのスマートフォンから削除されます。ルーター自体には影響しません。</string>
+    <string name="profile_delete_last_warning">これは設定済みの唯一のルーターです。削除するとプロファイルが一つもなくなります。</string>
+    <string name="delete">削除</string>
+    <string name="update">更新</string>
+    <string name="qr_profile_added">プロファイル「%1$s」を追加しました</string>
+    <string name="qr_update_title">プロファイルを更新しますか？</string>
+    <string name="qr_update_text">この QR コードには既存のプロファイル「%1$s」のアドレスが含まれています。重複を作らずにそのデータを更新しますか？</string>
+    <string name="auth_to_show_qr">QR コードを表示するには確認してください</string>
+    <string name="settings_about_title">このアプリについて</string>
+    <string name="settings_about_desc">バージョンとアプリ情報</string>
+
+    <!-- Security -->
+    <string name="section_security">セキュリティ</string>
+    <string name="settings_security_desc">生体認証と PIN</string>
+    <string name="lock_explain">指紋または顔認証を使用し、生体認証が使えない場合はデバイスの PIN、パターン、パスワードを使用します。</string>
+    <string name="lock_unavailable">このデバイスには生体認証も画面ロックも設定されていないため、保護を有効にできません。</string>
+    <string name="lock_mode_off">オフ</string>
+    <string name="lock_mode_off_desc">追加の保護なし</string>
+    <string name="lock_mode_token">トークン表示時のみ</string>
+    <string name="lock_mode_token_desc">「認証」でトークンを表示する前に確認</string>
+    <string name="lock_mode_app">アプリ全体</string>
+    <string name="lock_mode_app_desc">起動のたびに生体認証または PIN</string>
+    <string name="unlock_title">Helm のロックを解除</string>
+    <string name="unlock">ロック解除</string>
+    <string name="auth_to_show_token">トークンを表示するには確認してください</string>
+
+    <!-- Backup -->
+    <string name="section_backup">バックアップ</string>
+    <string name="settings_backup_desc">リストのエクスポートとインポート</string>
+    <string name="backup_export_title">エクスポート</string>
+    <string name="backup_export_note">ルーターの現在のリストのスナップショットで、参照や手動での復元に使えます。実際の状態は常にルーター上にあり、このアプリは API 経由で読み書きするだけです。</string>
+    <string name="backup_build">スナップショットを作成</string>
+    <string name="backup_building">作成中…</string>
+    <string name="backup_export_summary">ルーティング: %1$d · zapret2: %2$d · zapret: %3$d</string>
+    <string name="copy">コピー</string>
+    <string name="copied">コピーしました</string>
+    <string name="share">共有</string>
+    <string name="backup_import_title">インポート</string>
+    <string name="backup_import_note">スナップショットの JSON、またはドメインの一覧（1 行に 1 つ。デフォルトの宛先でルーティングに追加されます）を貼り付けてください。</string>
+    <string name="backup_import_hint_restart">zapret エンジンが実行中の場合、インポートするストラテジーごとにデーモンが再起動するため、大量のインポートには時間がかかることがあります。</string>
+    <string name="backup_run_import">インポート</string>
+    <string name="backup_progress">%1$d / %2$d…</string>
+    <string name="backup_result">追加: %1$d · 既存: %2$d · 失敗: %3$d</string>
+    <string name="backup_parse_error">入力を解析できませんでした。スナップショットの JSON またはドメインの一覧が必要です</string>
+    <string name="backup_empty">インポートするものがありません</string>
+
+    <!-- QR setup -->
+    <string name="section_qr">QR コード</string>
+    <string name="qr_hint">この設定を別のスマートフォンに移すには、ここで QR コードを表示し、相手側でスキャンします。</string>
+    <string name="qr_show">QR を表示</string>
+    <string name="qr_scan">QR をスキャン</string>
+    <string name="qr_show_title">接続設定</string>
+    <string name="qr_show_warning">このコードにはアドレス、ポート、アクセストークンが平文で含まれています。信頼できるデバイスにのみ表示してください。</string>
+    <string name="qr_scanned">スキャンしました — 内容を確認して「保存」を押してください</string>
+    <string name="qr_plain_hint">コードを長押しすると、通常の QR（読み取りにくいスキャナー向け）と切り替えられます。</string>
+    <string name="qr_invalid">この QR は Helm の設定コードではありません</string>
+
+    <!-- History -->
+    <string name="section_history">履歴</string>
+    <string name="settings_history_desc">追加したドメインのローカル記録</string>
+    <string name="history_note">このスマートフォンにのみ保存されます。追加に成功するたびに日付とともに記録されます。ルーターはタイムスタンプを保持しないため、この一覧はルーターと同期されません。</string>
+    <string name="history_empty">まだありません。追加したドメインがここに表示されます。</string>
+
+    <!-- Deep link / automation -->
+    <string name="deeplink_added">%1$s をルーターに追加しました</string>
+
+    <!-- Widget -->
+    <string name="widget_label">サービスの状態</string>
+    <string name="widget_description">ルーターのサービスの状態表示</string>
+    <string name="widget_label_mihomo">mihomo</string>
+    <string name="widget_label_magitrickle">MT</string>
+    <string name="widget_label_zapret">zapret</string>
+    <string name="widget_label_zapret2">zapret2</string>
+
+    <!-- Diagnostics -->
+    <string name="section_diagnostics">診断</string>
+    <string name="settings_diagnostics_desc">タイムアウトとリクエストのデバッグ</string>
+    <string name="diag_timeout_title">HTTP リクエストのタイムアウト</string>
+    <string name="diag_timeout_value">%1$d 秒</string>
+    <string name="diag_log_title">最近の API リクエスト</string>
+    <string name="diag_log_note">URL 内のトークンは伏せられているため、バグ報告用にコピーして共有しても安全です。</string>
+    <string name="diag_log_empty">まだリクエストはありません。</string>
+    <string name="diag_failed">失敗</string>
+
+    <!-- Background monitoring -->
+    <string name="section_monitoring">監視</string>
+    <string name="settings_monitoring_desc">WAN IP、ディスク、遅延のバックグラウンド確認</string>
+    <string name="monitoring_explain">バックグラウンドで定期的にルーターを確認し、WAN IP の変更、ディスク容量不足、プロキシ遅延の悪化を通知します。WorkManager を使用し、ネットワークに接続しているときのみ実行されます。</string>
+    <string name="monitoring_enable">バックグラウンド監視を有効にする</string>
+    <string name="monitoring_interval_title">確認間隔</string>
+    <string name="monitoring_interval_value">%1$d 分</string>
+    <string name="monitoring_wan_title">WAN IP の変更</string>
+    <string name="monitoring_wan_desc">ルーターの WAN IPv4/IPv6 が変わったときに通知</string>
+    <string name="monitoring_disk_title">ディスク容量</string>
+    <string name="monitoring_disk_desc">/overlay の使用率が 90% に達したときに通知</string>
+    <string name="monitoring_latency_title">遅延の悪化</string>
+    <string name="monitoring_latency_desc">監視するプロキシグループを選択します。現在のノードの遅延がおよそ 2 倍になるか、応答しなくなると通知します。</string>
+    <string name="monitoring_latency_off">オフ</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_name">ルーターの監視</string>
+    <string name="notif_channel_desc">WAN IP の変更、ディスク容量不足、遅延悪化のアラート</string>
+    <string name="notif_wan_changed_title">ルーターの IP が変わりました</string>
+    <string name="notif_wan_changed_text">%1$s → %2$s</string>
+    <string name="notif_disk_title">ディスク容量不足</string>
+    <string name="notif_disk_text">/overlay の使用率 %1$d%%</string>
+    <string name="notif_latency_title">接続が悪化しました</string>
+    <string name="notif_latency_down_text">%1$s が応答しません</string>
+    <string name="notif_latency_degraded_text">%1$s: 以前 %2$d ms、現在 %3$d ms</string>
+
+    <!-- App Shortcuts -->
+    <string name="section_shortcuts">アプリのショートカット</string>
+    <string name="settings_shortcuts_desc">ランチャーのショートカットメニューに 2～4 個の操作を選択</string>
+    <string name="shortcuts_explain">アプリのアイコンを長押しすると、これらに直接移動できます。確認が必要な操作（再起動、mihomo の更新）は、アプリ内で明示的にタップする必要があります。ショートカットが勝手に実行することはありません。</string>
+    <string name="shortcuts_min_max_hint">ショートカットを 2～4 個選択してください。</string>
+    <string name="shortcut_status">ステータス</string>
+    <string name="shortcut_devices">デバイス一覧</string>
+    <string name="shortcut_reboot">再起動</string>
+    <string name="shortcut_mihomo_update">mihomo を更新</string>
+    <string name="shortcut_speedtest">速度テスト</string>
+    <string name="shortcut_zapret_restart">zapret/zapret2 を再起動</string>
+    <string name="shortcut_zapret_restart_named">%1$s を再起動</string>
+
+    <!-- Router info sheet -->
+    <string name="router_sheet_routers">ルーター</string>
+    <string name="router_sheet_versions">サービスのバージョン</string>
+    <string name="loading">読み込み中…</string>
+    <string name="svc_name_mihomo">mihomo</string>
+    <string name="svc_name_magitrickle">MagiTrickle</string>
+    <string name="svc_name_zapret">zapret</string>
+    <string name="svc_name_zapret2">zapret2</string>
+    <string name="version_unknown">バージョン不明</string>
+    <string name="check_for_updates">アップデートを確認</string>
+    <string name="update_to_version">%1$s に更新</string>
+    <string name="whats_new_in">%1$s の新機能</string>
+    <string name="mihomo_up_to_date">%1$s — 最新</string>
+    <string name="mihomo_updating">mihomo を更新中…</string>
+    <string name="mihomo_update_confirm_title">mihomo を更新しますか？</string>
+    <string name="mihomo_update_confirm_text">mihomo を停止し、新しいバージョンに置き換えて再起動します。時間がかかることがあり、ルーティングされるトラフィックが一時的に中断されます。</string>
+
+    <!-- Router reboot -->
+    <string name="reboot_router">再起動</string>
+    <string name="reboot_confirm_title">ルーターを再起動しますか？</string>
+    <string name="reboot_confirm_text">ルーターとその上のすべてのサービスが 1～2 分間利用できなくなります。アクティブな接続は切断されます。</string>
+    <string name="reboot_confirm_button">再起動</string>
+    <string name="rebooting_title">ルーターを再起動しています…</string>
+    <string name="rebooting_hint">通常 1～2 分かかります。</string>
+    <string name="reboot_countdown">約 %1$d 秒</string>
+    <string name="reboot_check_ready">ルーターは復帰しているはずです。接続を確認してください。</string>
+    <string name="hide_overlay">非表示</string>
+    <string name="about_version">バージョン %1$s</string>
+    <string name="about_source_code">GitHub のソースコード</string>
+    <string name="developer">開発者</string>
+    <string name="about_summary">OpenWrt ルーター上のドメインルーティングリストとサービス（mihomo、MagiTrickle、zapret）を管理します。</string>
+    <string name="dynamic_color_hint">Android 12 以降で利用できます</string>
+    <string name="liquid_glass">リキッドグラス</string>
+    <string name="liquid_glass_desc">下部バー、ヘッダーのボタン、メニュー、シート、ダイアログのぼかしと屈折</string>
+    <string name="liquid_glass_unsupported">Android 12 以降が必要です</string>
+    <string name="true_black">完全な黒</string>
+    <string name="true_black_desc">ダークテーマで真っ黒な背景を使用</string>
+    <string name="haptic_feedback">触覚フィードバック</string>
+    <string name="haptic_feedback_desc">タップ時に短く振動</string>
+    <string name="section_router">ルーター</string>
+    <string name="host">ホスト</string>
+    <string name="port">ポート</string>
+    <string name="section_auth">認証</string>
+    <string name="token">トークン</string>
+    <string name="show">表示</string>
+    <string name="hide">非表示</string>
+    <string name="section_fallback">予備のアドレス</string>
+    <string name="fallback_hint">任意。メインのアドレスが応答しないときに自動で試行されます（例: Tailscale のアドレス）。無効にするにはホストを空欄にします。</string>
+    <string name="section_default_target">デフォルトの宛先</string>
+    <string name="section_appearance">外観</string>
+    <string name="theme_system">システム</string>
+    <string name="theme_light">ライト</string>
+    <string name="theme_dark">ダーク</string>
+    <string name="dynamic_color">ダイナミックカラー</string>
+    <string name="dynamic_color_desc">壁紙に基づく配色（Material You）</string>
+    <string name="section_language">言語</string>
+    <string name="language_system">システム</string>
+    <string name="save">保存</string>
+    <string name="saved">保存しました</string>
+    <string name="test_connection">接続をテスト</string>
+    <string name="testing">テスト中…</string>
+    <string name="test_connected">接続済み</string>
+    <string name="test_connected_bad_token">接続済み（トークンが無効）</string>
+    <string name="test_connected_no_token">接続済み（ルーターにトークンが未設定）</string>
+    <string name="test_http_error">エラー: HTTP %1$d</string>
+
+    <!-- Rule providers -->
+    <string name="section_rule_providers">ルールセット</string>
+    <string name="rule_providers_title">ルールセット</string>
+    <string name="rule_providers_entry_desc">プロキシグループに紐付けた外部リスト</string>
+    <string name="rule_providers_hint">ルールセットはルーター自身がダウンロードして更新します。一致したトラフィックは、各リストに紐付けたプロキシグループに送られます。</string>
+    <string name="rule_providers_empty">ルールセットはまだありません。「追加」をタップしてリストをプロキシグループに紐付けてください。</string>
+    <plurals name="n_rule_providers">
+        <item quantity="other">ルールセット %d 件を追加済み</item>
+    </plurals>
+    <plurals name="n_hours">
+        <item quantity="other">%d 時間ごと</item>
+    </plurals>
+    <string name="provider_routed_to">→ %1$s</string>
+    <string name="provider_delete_title">ルールセットを削除しますか？</string>
+    <string name="provider_delete_text">「%1$s」とそのルーティングルールがルーターから削除されます。プロキシグループ「%2$s」は残ります。グループはルーター上で管理されます。</string>
+    <string name="provider_removed">「%1$s」を削除しました</string>
+    <string name="provider_not_found">ルーターに「%1$s」はありませんでした</string>
+    <string name="provider_added">「%1$s」を追加し、%2$s に紐付けました</string>
+
+    <string name="provider_add_title">新しいルールセット</string>
+    <string name="provider_step">ステップ %1$d / %2$d</string>
+    <string name="next">次へ</string>
+    <string name="provider_custom_url">カスタム URL</string>
+    <string name="provider_custom_url_desc">下記以外の任意の https ソース</string>
+    <string name="provider_url">ルールセットの URL</string>
+    <string name="provider_url_hint">https:// で始まる必要があります</string>
+    <string name="provider_url_invalid">完全な https:// リンクを入力してください</string>
+    <string name="provider_behavior">リストの種類</string>
+    <string name="provider_behavior_hint">リストの内容: ドメイン、IP 範囲、またはクラシックな混合ルール。</string>
+    <string name="behavior_domain">ドメイン</string>
+    <string name="behavior_ipcidr">IP アドレス</string>
+    <string name="behavior_classical">クラシック</string>
+    <string name="provider_format">形式</string>
+    <string name="provider_format_hint">MRS はコンパクトなバイナリ形式で、YAML やプレーンテキストより小さく高速です。</string>
+    <string name="provider_name">名前</string>
+    <string name="provider_name_hint">小文字のラテン文字、数字、「-」。先頭は文字</string>
+    <string name="provider_name_invalid">小文字のラテン文字、数字、「-」のみ使用でき、先頭は文字にしてください</string>
+    <string name="provider_name_taken">この名前のルールセットはすでに存在します</string>
+    <string name="provider_interval">更新間隔</string>
+    <string name="interval_hour">1 時間ごと</string>
+    <string name="interval_6h">6 時間ごと</string>
+    <string name="interval_day">毎日</string>
+    <string name="interval_week">毎週</string>
+    <string name="provider_fetch_proxy">プロキシ経由でダウンロード</string>
+    <string name="provider_fetch_proxy_hint">ルーターがこのリストをダウンロードする際に使うプロキシグループです。ソース（GitHub など）に直接アクセスできない場合に便利です。一致したトラフィックの送信先とは関係ありません。</string>
+    <string name="provider_fetch_proxy_none">直接</string>
+    <string name="provider_group_title">一致したトラフィックの送信先</string>
+    <string name="provider_group_hint">このリストに一致したトラフィックの送信先です。</string>
+    <string name="provider_group_existing">既存のグループ</string>
+    <string name="provider_group_new">新しいグループ</string>
+    <string name="provider_new_group_name">新しいグループ名</string>
+    <string name="provider_new_group_hint">ルーターがこのプロキシグループを作成します</string>
+    <string name="provider_new_group_taken">ルーターにはすでにこの名前のグループがあります。既存のグループとして選択してください</string>
+    <string name="provider_new_group_note">新しいグループはルーター上に作成されます。後でルールセットを削除してもグループは削除されません。グループの削除はルーター上で行います。</string>
+    <string name="provider_no_groups">ルーターからプロキシグループが返されませんでした</string>
+    <string name="provider_add_slow_note">ルーターがリストをダウンロードして設定を検証するため、時間がかかることがあります。</string>
+
+
+    <!-- Live source catalog -->
+    <string name="catalog_search">カタログを検索</string>
+    <string name="catalog_refresh">カタログを更新</string>
+    <string name="catalog_loading">カタログを読み込んでいます…</string>
+    <string name="catalog_count">%2$d 件中 %1$d 件のファイル</string>
+    <string name="catalog_no_results">一致するものはありません。カタログ以外のソースには「カスタム URL」を使ってください。</string>
+    <string name="catalog_not_updated">カタログは更新されていません</string>
+
+    <!-- mihomo subscriptions -->
+    <string name="section_subscriptions">サブスクリプション</string>
+    <string name="subscriptions_title">サブスクリプション</string>
+    <string name="subscriptions_entry_desc">すべてのプロキシグループが選択するノード一覧</string>
+    <string name="subscriptions_hint">すべてのサブスクリプションは一つの共有ノードプールにまとめられるため、追加したものはどのプロキシグループでも選択できます。</string>
+    <plurals name="n_pending_changes">
+        <item quantity="other">未適用の変更 %d 件</item>
+    </plurals>
+    <plurals name="n_proxy_groups">
+        <item quantity="other">%d グループ</item>
+    </plurals>
+    <plurals name="n_routers">
+        <item quantity="other">%d 台のルーター</item>
+    </plurals>
+    <plurals name="n_subscriptions">
+        <item quantity="other">%d 件のサブスクリプション</item>
+    </plurals>
+    <string name="subscription_add_title">新しいサブスクリプション</string>
+    <string name="subscription_edit_title">URL を変更</string>
+    <string name="subscription_edit">URL を変更</string>
+    <string name="subscription_name">名前</string>
+    <string name="subscription_name_placeholder">work-vpn</string>
+    <string name="subscription_name_fixed">名前は変更できません。名前を変えるには、削除してから再度追加してください</string>
+    <string name="subscription_url">サブスクリプションの URL</string>
+    <string name="subscription_slow_note">ルーターが設定を検証してノード一覧を再取得するため、時間がかかることがあります。</string>
+    <string name="subscription_saved">「%1$s」を保存しました</string>
+    <string name="subscription_removed">「%1$s」を削除しました</string>
+    <string name="subscription_not_found">ルーターに「%1$s」はありませんでした</string>
+    <string name="subscription_base_badge">基本</string>
+    <string name="subscription_base_protected">ルーターの設定に組み込まれているため、ここでは変更できません</string>
+    <string name="subscription_delete_title">サブスクリプションを削除しますか？</string>
+    <string name="subscription_delete_text">「%1$s」とそのノードがルーターから削除されます。プロキシグループ自体は残ります。</string>
+
+    <!-- Tor -->
+    <string name="tor_title">Tor</string>
+    <string name="tor_not_installed">Tor はインストールされていません</string>
+    <string name="tor_not_installed_hint">ルーターに Tor パッケージがないため、ここで設定できるものはありません。</string>
+    <string name="tor_bootstrap">ブートストラップ</string>
+    <string name="tor_bootstrap_progress">%1$d%%</string>
+    <string name="tor_bridges_label">ブリッジ</string>
+    <plurals name="n_tor_bridges">
+        <item quantity="other">%d 個のブリッジ</item>
+    </plurals>
+    <string name="tor_uptime">稼働時間</string>
+    <string name="tor_socks_port">SOCKS</string>
+    <string name="tor_pac_url">PAC</string>
+    <string name="tor_new_identity">新しい ID</string>
+    <string name="tor_new_identity_hint">新しい接続用に新しい回線を作ります。再起動より速く、接続も切れません。</string>
+    <string name="tor_new_identity_sent">新しい回線をリクエストしました</string>
+    <string name="tor_new_identity_failed">コントロールポートの準備ができていません。数秒後にもう一度お試しください</string>
+    <string name="tor_test_title">接続テスト</string>
+    <string name="tor_test_hint">ルーターが Tor 経由で実際にリクエストを送信します。数秒かかります。</string>
+    <string name="tor_test_connection">接続をテスト</string>
+    <string name="tor_testing">テスト中…</string>
+    <string name="tor_test_ok">Tor 経由で接続済み</string>
+    <string name="tor_test_failed">未接続</string>
+    <string name="tor_test_failed_hint">Tor のブートストラップが完了していないか、ブリッジに到達できません。</string>
+    <string name="tor_bridges_title">ブリッジ</string>
+    <string name="tor_bridges_hint">Tor 自体がブロックされている場所ではブリッジが役立ちます。Tor Project から入手し、各行をそのまま貼り付けてください。保存すると Tor が再起動します。</string>
+    <string name="tor_bridges_saving">保存して Tor を再起動しています…</string>
+    <string name="tor_no_bridges">直接接続、ブリッジなし</string>
+    <string name="tor_add_bridge">ブリッジを追加</string>
+    <string name="tor_bridge_line">ブリッジ行</string>
+    <string name="tor_bridge_placeholder">obfs4 1.2.3.4:443 FINGERPRINT cert=… iat-mode=0</string>
+    <string name="tor_bridge_hint">受け取った行をそのまま丸ごと貼り付けてください。</string>
+    <string name="tor_bridge_added">ブリッジを追加し、Tor を再起動しました</string>
+    <string name="tor_bridge_removed">ブリッジを削除し、Tor を再起動しました</string>
+    <string name="tor_bridge_delete_title">ブリッジを削除しますか？</string>
+    <string name="tor_bridge_delete_text">ブリッジがルーターから削除され、Tor が再起動します。</string>
+
+    <!-- API / network errors -->
+    <string name="err_bad_token">トークンが無効です — 設定を確認してください</string>
+    <string name="err_token_not_configured">ルーターにトークンが設定されていません</string>
+    <string name="err_bad_domain">ドメインの形式が正しくありません</string>
+    <string name="err_empty_domain">ドメインが空です</string>
+    <string name="err_bad_service">不明なサービス</string>
+    <string name="err_bad_host">無効なホスト</string>
+    <string name="err_bad_mac">無効な MAC アドレス</string>
+    <string name="err_etherwake_missing">ルーターに etherwake がインストールされていません</string>
+    <string name="err_bad_engine">不明なエンジン</string>
+    <string name="err_bad_strategy">ストラテジー番号が範囲外です</string>
+    <string name="err_strategy_unconfirmed">ルーターがストラテジーの変更を確認しませんでした</string>
+    <string name="err_bad_provider_name">ルールセット名が無効です</string>
+    <string name="err_bad_url">ルーターがこの URL を拒否しました</string>
+    <string name="err_bad_behavior">リストの種類が無効です</string>
+    <string name="err_bad_format">形式が無効です</string>
+    <string name="err_bad_interval">更新間隔が範囲外です（60 秒～7 日）</string>
+    <string name="err_missing_group">プロキシグループが選択されていません</string>
+    <string name="err_group_both_set">既存のグループか新しいグループのどちらか一方を選んでください</string>
+    <string name="err_group_not_found">そのプロキシグループはもうルーターにありません。戻って別のグループを選んでください</string>
+    <string name="err_bad_new_group">新しいグループ名が無効です</string>
+    <string name="err_provider_exists">ルーターにはすでにこの名前のルールセットがあります</string>
+    <string name="err_group_exists">ルーターにはすでにこの名前のグループがあります。既存のグループとして選択してください</string>
+    <string name="err_mihomo_config_test_failed">ルーターが生成された mihomo の設定を拒否したため、ルールセットは追加されませんでした。URL、リストの種類、形式を確認してください。</string>
+    <string name="err_subscription_exists">この名前のサブスクリプションはすでに存在します</string>
+    <string name="err_subscription_not_found">そのサブスクリプションはもうルーターにありません</string>
+    <string name="err_subscription_base_protected">組み込みのサブスクリプションは削除できません</string>
+    <string name="err_tor_controlport_not_ready">Tor のコントロールポートの準備ができていません。数秒後にもう一度お試しください</string>
+    <string name="err_tor_controlport_failed">Tor がコントロールポートのコマンドを拒否しました</string>
+    <string name="err_catalog_rate_limited">GitHub がリクエストを制限しています（トークンなしでは IP ごとに 1 時間 60 回）。後でもう一度試すか、URL を手入力してください。</string>
+    <string name="err_catalog_http">GitHub が HTTP %1$d を返しました</string>
+    <string name="err_generic">エラー %1$d: %2$s</string>
+    <string name="err_timeout">ルーターが応答しません。スマートフォンがルーターの Wi-Fi に接続されていて、ポートが正しいか確認してください。</string>
+    <string name="err_unreachable">ルーターに接続できません。アドレスとポートを確認してください。</string>
+    <string name="err_unknown_host">不明なホストです。ルーターのアドレスを確認してください。</string>
+    <string name="err_network">ネットワークエラー</string>
+    <string name="err_invalid_router_address">無効なルーターのアドレス: %1$s</string>
+    <string name="err_empty_response">ルーターからの応答が空です</string>
+    <string name="err_tls">ルーターが Helm API ではなく HTTPS で応答しました。通常、そのポートはルーターのウェブ管理画面（LuCI）です。ポートを確認してください。API は専用の HTTP ポートで動作します。</string>
+    <string name="err_not_api">アドレスは応答していますが、Helm API ではなくウェブページが返されました。ポートと、ルーターに API がインストールされているかを確認してください。</string>
+    <string name="err_title_connection">ルーターに接続できません</string>
+    <string name="err_title_config">ルーターのアドレスを確認してください</string>
+    <string name="err_title_access">アクセスが拒否されました</string>
+    <string name="err_title_other">問題が発生しました</string>
+    <string name="err_details">詳細</string>
+    <string name="err_open_settings">ルーターの設定</string>
+    <string name="err_raw">%1$s</string>
+
+    <!-- Accessibility labels -->
+    <string name="strategy_previous">前のストラテジー</string>
+    <string name="strategy_next">次のストラテジー</string>
+    <string name="theme_previous">前のテーマ</string>
+    <string name="theme_next">次のテーマ</string>
+    <string name="a11y_target_added">%1$s: 追加済み</string>
+    <string name="a11y_target_not_added">%1$s: 未追加</string>
+    <string name="a11y_autostart_on">自動起動オン</string>
+    <string name="a11y_autostart_off">自動起動オフ</string>
+    <string name="a11y_device_online">オンライン</string>
+    <string name="a11y_device_offline">オフライン</string>
+    <string name="a11y_check_ok">到達可能</string>
+    <string name="a11y_check_failed">到達不可</string>
+    <string name="copy_ip">IP アドレスをコピー</string>
+    <string name="copy_mac">MAC アドレスをコピー</string>
+    <string name="open_release_notes">リリースノートを開く</string>
+</resources>

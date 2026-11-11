@@ -1,5 +1,11 @@
 package com.skofqq.domainmanager.ui
 
+import com.skofqq.domainmanager.ui.theme.Helm
+import com.skofqq.domainmanager.ui.theme.Tints
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.outlined.Devices
+import com.skofqq.domainmanager.ui.components.*
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -100,26 +106,12 @@ internal fun StatusChildScaffold(
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(title) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
+    HelmScaffold(
+        title = title,
+        onBack = onBack,
         floatingActionButton = floatingActionButton,
-        contentWindowInsets = WindowInsets(0),
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    ) { padding -> content(padding) }
+        content = content,
+    )
 }
 
 // --- Device type icons ------------------------------------------------------------
@@ -229,7 +221,7 @@ fun DevicesScreen(viewModel: ServicesViewModel, onBack: () -> Unit) {
         val firstLoad = state.devices == null
         val skeletonBrush = if (firstLoad) shimmerBrush() else null
 
-        PullToRefreshBox(
+        HelmPullToRefreshBox(
             isRefreshing = state.isRefreshing && !firstLoad,
             onRefresh = { viewModel.refresh() },
             modifier = Modifier
@@ -239,7 +231,7 @@ fun DevicesScreen(viewModel: ServicesViewModel, onBack: () -> Unit) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 if (skeletonBrush != null) {
                     items(6) { SkeletonDeviceRow(skeletonBrush) }
@@ -250,23 +242,48 @@ fun DevicesScreen(viewModel: ServicesViewModel, onBack: () -> Unit) {
                 val devices = state.devices
                 if (devices != null) {
                     // Favorites first, original router order preserved within each group.
-                    val ordered = devices.sortedByDescending { it.mac in favorites }
-                    items(ordered, key = { it.mac }) { device ->
-                        val iconKey = iconOverrides[device.mac] ?: guessDeviceIcon(device.type)
-                        DeviceCard(
-                            device = device,
-                            // Manual pick wins over the type-keyword guess.
-                            iconKey = iconKey,
-                            online = scan.online[device.mac],
-                            favorite = device.mac in favorites,
-                            onToggleFavorite = { viewModel.toggleFavoriteDevice(device.mac) },
-                            // WoL only makes sense for PCs/laptops; the resolved icon
-                            // (guess or manual pick) is the closest signal we have.
-                            onWake = if (iconKey == "computer") {
-                                { viewModel.wake(device.mac) }
-                            } else null,
-                            onLongPress = { pickerDevice = device },
-                        )
+                    val (starred, others) = devices.partition { it.mac in favorites }
+                    val groups = listOfNotNull(
+                        starred.takeIf { it.isNotEmpty() }?.let { true to it },
+                        others.takeIf { it.isNotEmpty() }?.let { false to it },
+                    )
+                    groups.forEach { (isFavorites, list) ->
+                        item(key = if (isFavorites) "favorites" else "all") {
+                            val onlineCount = list.count { scan.online[it.mac] == true }
+                            HelmSection(
+                                title = stringResource(if (isFavorites) R.string.devices_favorites else R.string.devices_all),
+                                subtitle = if (scan.online.isNotEmpty()) {
+                                    stringResource(R.string.devices_online_of, onlineCount, list.size)
+                                } else {
+                                    pluralStringResource(R.plurals.n_devices_online, list.size, list.size)
+                                },
+                                icon = if (isFavorites) Icons.Filled.Star else Icons.Outlined.Devices,
+                                tint = if (isFavorites) Tints.amber else Tints.teal,
+                                shape = if (isFavorites) MaterialShapes.Sunny else MaterialShapes.Cookie9Sided,
+                                trailing = { ValuePill(list.size.toString(), if (isFavorites) Tints.amber else Tints.teal) },
+                            ) {
+                                Column {
+                                    list.forEachIndexed { index, device ->
+                                        if (index > 0) SectionDivider()
+                                        val iconKey = iconOverrides[device.mac] ?: guessDeviceIcon(device.type)
+                                        DeviceCard(
+                                            device = device,
+                                            // Manual pick wins over the type-keyword guess.
+                                            iconKey = iconKey,
+                                            online = scan.online[device.mac],
+                                            favorite = device.mac in favorites,
+                                            onToggleFavorite = { viewModel.toggleFavoriteDevice(device.mac) },
+                                            // WoL only makes sense for PCs/laptops; the resolved icon
+                                            // (guess or manual pick) is the closest signal we have.
+                                            onWake = if (iconKey == "computer") {
+                                                { viewModel.wake(device.mac) }
+                                            } else null,
+                                            onLongPress = { pickerDevice = device },
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -289,19 +306,13 @@ fun DevicesScreen(viewModel: ServicesViewModel, onBack: () -> Unit) {
 /** Small "checking devices…" strip shown while the router-side ping sweep runs. */
 @Composable
 private fun ScanProgressRow(done: Int, total: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        Modifier.fillMaxWidth().clip(CardShape).background(Helm.colors.card).padding(horizontal = 18.dp, vertical = 14.dp),
     ) {
-        LinearProgressIndicator(
-            progress = { if (total > 0) done.toFloat() / total else 0f },
-            modifier = Modifier.weight(1f),
-        )
-        Text(
-            text = stringResource(R.string.device_scan_progress, done, total),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 12.dp),
+        LabeledProgress(
+            label = stringResource(R.string.device_scan_label),
+            valueText = stringResource(R.string.device_scan_progress, done, total),
+            progress = if (total > 0) done.toFloat() / total else 0f,
         )
     }
 }
@@ -311,7 +322,7 @@ private fun ScanProgressRow(done: Int, total: Int) {
 private fun DeviceCard(
     device: LanDevice,
     iconKey: String,
-    /** null = not checked (yet) — no indicator at all. */
+    /** null = not checked (yet): no indicator at all. */
     online: Boolean?,
     favorite: Boolean,
     onToggleFavorite: () -> Unit,
@@ -327,123 +338,98 @@ private fun DeviceCard(
         Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
     }
 
-    ElevatedCard(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(CardDefaults.elevatedShape)
-            // Picking an icon used to hang off an unlabeled long press with a no-op
-            // tap in front of it: the card rippled on tap, did nothing, and TalkBack
-            // announced a plain "button". Tap now opens the picker as well, and the
-            // long press carries the same name.
+            .clip(RoundedCornerShape(16.dp))
+            // Tap and long press both open the icon picker, under the same name.
             .combinedClickable(
                 onClickLabel = stringResource(R.string.device_icon_title),
                 onLongClickLabel = stringResource(R.string.device_icon_title),
                 onClick = onLongPress,
                 onLongClick = onLongPress,
-            ),
+            )
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        // The shape carries the device, the colour carries the ping verdict.
+        val tint = when (online) {
+            true -> Tints.green
+            false -> Tints.gray
+            null -> Tints.accent
+        }
+        Box {
+            ShapeIcon(deviceIcon(iconKey), tint, shape = MaterialShapes.Cookie9Sided, size = 44.dp)
+            // "Online now" verdict from the router-side ping sweep, stated in words for
+            // TalkBack instead of leaving it to the colour.
+            if (online != null) {
+                val onlineLabel = stringResource(
+                    if (online) R.string.a11y_device_online else R.string.a11y_device_offline
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(14.dp)
+                        .clip(CircleShape)
+                        .background(Helm.colors.card)
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .background(if (online) statusOk else Helm.colors.text2.copy(alpha = 0.5f))
+                        .semantics { contentDescription = onlineLabel },
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 14.dp),
         ) {
-            Box(
+            Text(
+                // DHCP hostnames cannot contain spaces, so users type dashes:
+                // display-only swap, the source string stays untouched.
+                text = device.name.replace('-', ' ')
+                    .ifEmpty { stringResource(R.string.device_unknown) },
+                style = MaterialTheme.typography.titleMedium,
+                color = if (device.name.isEmpty()) Helm.colors.text2 else Helm.colors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            // Stacked, not side-by-side: on narrow rows a shared line would wrap the
+            // MAC mid-address. Tap a value to copy it; the padding lifts each line to
+            // a comfortable touch target.
+            Text(
+                text = device.ip,
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                color = Helm.colors.text2,
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = deviceIcon(iconKey),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
-            Column(
+                    .clickable(onClickLabel = stringResource(R.string.copy_ip)) { copy(device.ip) }
+                    .padding(vertical = 4.dp),
+            )
+            Text(
+                text = device.mac,
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                color = Helm.colors.text2,
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    // "Online now" verdict from the router-side ping sweep. The dot is
-                    // the only carrier of that verdict, so it states it in words for
-                    // TalkBack instead of leaving it to the fill color.
-                    if (online != null) {
-                        val onlineLabel = stringResource(
-                            if (online) R.string.a11y_device_online else R.string.a11y_device_offline
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (online) statusOk
-                                    else MaterialTheme.colorScheme.outlineVariant
-                                )
-                                .semantics { contentDescription = onlineLabel },
-                        )
-                    }
-                    Text(
-                        // DHCP hostnames can't contain spaces, so users type dashes —
-                        // display-only swap, the source string stays untouched.
-                        text = device.name.replace('-', ' ')
-                            .ifEmpty { stringResource(R.string.device_unknown) },
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (device.name.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant
-                        else MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-                // Stacked, not side-by-side: on narrow cards a shared row would
-                // wrap the MAC mid-address (e.g. "fc:9d:05:2b:f" / "8:b1").
-                Column {
-                    // Tap a value to copy it. The label says so — a bare address gives
-                    // no hint that it is tappable — and the vertical padding lifts each
-                    // line from ~20dp to the 48dp minimum touch target.
-                    Text(
-                        text = device.ip,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .clickable(onClickLabel = stringResource(R.string.copy_ip)) {
-                                copy(device.ip)
-                            }
-                            .padding(vertical = 6.dp),
-                    )
-                    Text(
-                        text = device.mac,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .clickable(onClickLabel = stringResource(R.string.copy_mac)) {
-                                copy(device.mac)
-                            }
-                            .padding(vertical = 6.dp),
-                    )
-                }
-            }
-            if (onWake != null) {
-                IconButton(onClick = onWake) {
-                    Icon(
-                        Icons.Outlined.PowerSettingsNew,
-                        contentDescription = stringResource(R.string.wake_device),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-            IconButton(onClick = onToggleFavorite) {
-                Icon(
-                    if (favorite) Icons.Filled.Star else Icons.Outlined.StarOutline,
-                    contentDescription = stringResource(
-                        if (favorite) R.string.unfavorite_device else R.string.favorite_device
-                    ),
-                    tint = if (favorite) statusFavorite else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+                    .clickable(onClickLabel = stringResource(R.string.copy_mac)) { copy(device.mac) }
+                    .padding(vertical = 4.dp),
+            )
+        }
+        if (onWake != null) {
+            SectionIconButton(
+                Icons.Outlined.PowerSettingsNew,
+                stringResource(R.string.wake_device),
+                tint = Tints.accent,
+                onClick = onWake,
+            )
+        }
+        IconButton(onClick = onToggleFavorite) {
+            Icon(
+                if (favorite) Icons.Filled.Star else Icons.Outlined.StarOutline,
+                contentDescription = stringResource(
+                    if (favorite) R.string.unfavorite_device else R.string.favorite_device
+                ),
+                tint = if (favorite) statusFavorite else Helm.colors.text2,
+            )
         }
     }
 }
@@ -469,7 +455,8 @@ private fun DeviceIconPickerDialog(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 12.dp, vertical = 20.dp),
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(30.dp),
+            color = com.skofqq.domainmanager.ui.theme.Helm.colors.page,
         ) {
             Column(
                 modifier = Modifier
@@ -504,24 +491,14 @@ private fun DeviceIconPickerDialog(
                                 .padding(vertical = 8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (selected) MaterialTheme.colorScheme.primaryContainer
-                                        else MaterialTheme.colorScheme.surfaceContainerHigh
-                                    ),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    imageVector = deviceIcon(key),
-                                    contentDescription = null,
-                                    tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
-                                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(24.dp),
-                                )
-                            }
+                            // Selected one: accent fill on a fuller cookie; others: calm, neutral.
+                            ShapeIcon(
+                                deviceIcon(key),
+                                if (selected) com.skofqq.domainmanager.ui.theme.Tint(Helm.colors.onBrand, Helm.colors.brand)
+                                else com.skofqq.domainmanager.ui.theme.Tint(Helm.colors.text2, Helm.colors.card),
+                                shape = if (selected) MaterialShapes.Cookie12Sided else MaterialShapes.Cookie9Sided,
+                                size = 52.dp,
+                            )
                             Text(
                                 text = stringResource(deviceIconLabelRes(key)),
                                 style = MaterialTheme.typography.labelSmall,
@@ -554,7 +531,7 @@ private fun DeviceIconPickerDialog(
 
 @Composable
 private fun SkeletonDeviceRow(brush: androidx.compose.ui.graphics.Brush) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    HelmCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,

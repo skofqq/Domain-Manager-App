@@ -1,5 +1,16 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.material.icons.filled.ContentPaste
+import com.skofqq.domainmanager.ui.theme.Tints
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.toShape
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Shuffle
+import androidx.compose.material.icons.outlined.Dns
+import com.skofqq.domainmanager.ui.theme.Helm
+import com.skofqq.domainmanager.ui.components.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -127,10 +138,13 @@ fun StrategiesTab(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ErrorCard(active.message)
-            FilledTonalButton(
+            HelmButton(
+                text = stringResource(R.string.retry),
                 onClick = { viewModel.refreshActiveEngine() },
+                icon = Icons.Filled.Refresh,
+                style = ButtonStyle.Tonal,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text(stringResource(R.string.retry)) }
+            )
         }
 
         ActiveEngineUiState.NoneRunning -> NoEngineRunningState(
@@ -163,39 +177,29 @@ fun StrategiesTab(
 /** Both engines stopped: nothing to configure strategies against. */
 @Composable
 private fun NoEngineRunningState(onOpenStatus: () -> Unit, onRetry: () -> Unit) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            Icons.Outlined.PowerSettingsNew,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(48.dp),
+        EmptyState(
+            icon = Icons.Outlined.PowerSettingsNew,
+            title = stringResource(R.string.strat_no_engine),
+            body = stringResource(R.string.strat_no_engine_hint),
+            tint = Tints.orange,
+            shape = MaterialShapes.Cookie9Sided,
+            action = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    HelmButton(
+                        text = stringResource(R.string.open_status),
+                        onClick = onOpenStatus,
+                        icon = Icons.Outlined.Dns,
+                    )
+                    TextButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+                }
+            },
         )
-        Spacer(Modifier.height(16.dp))
-        Text(
-            text = stringResource(R.string.strat_no_engine),
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.strat_no_engine_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(20.dp))
-        FilledTonalButton(onClick = onOpenStatus) {
-            Text(stringResource(R.string.open_status))
-        }
-        TextButton(onClick = onRetry) {
-            Text(stringResource(R.string.retry))
-        }
     }
 }
 
@@ -232,44 +236,23 @@ private fun EngineStrategiesPage(
     val firstLoad = state.domains == null && state.error == null
     val skeletonBrush = if (firstLoad) shimmerBrush() else null
 
-    Column(modifier = modifier) {
-        RoutingSearchAddBar(
-            query = searchQuery,
-            onQueryChange = { searchQuery = it },
-            addEnabled = searchQuery.isNotBlank() && state.busyDomain == null && state.max != null,
-            onPaste = {
-                // URL-looking clip → registrable domain (same heuristic as the
-                // share flow); plain text → paste as-is for manual editing.
-                val clip = clipboard.getText()?.text?.trim().orEmpty()
-                if (clip.isNotBlank()) {
-                    searchQuery = extractDomain(clip) ?: clip
-                }
-            },
-            onAdd = ::submit,
-            // Same search-to-list gap as the Routing page (8dp here + the
-            // list's 8dp top padding).
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 8.dp),
-        )
-        PullToRefreshBox(
+    Box(modifier = modifier) {
+        HelmPullToRefreshBox(
             isRefreshing = state.isRefreshing && !firstLoad,
             onRefresh = {
                 viewModel.refresh(engine)
                 viewModel.refreshActiveEngine()
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
+            modifier = Modifier.fillMaxSize(),
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                // The list runs under the floating search: room for it and the bottom bar.
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp + FloatingSearchHeight + (LocalBottomBarPadding.current ?: 0.dp)),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 state.error?.let { message ->
-                    item { ErrorCard(message) }
+                    item { ErrorCard(message, onRetry = { viewModel.refresh(engine) }) }
                 }
 
                 if (skeletonBrush != null) {
@@ -284,9 +267,13 @@ private fun EngineStrategiesPage(
                         else domains.filter { it.domain.contains(query, ignoreCase = true) }
                     if (filtered.isEmpty() && !state.isRefreshing) {
                         item {
-                            ListHint(
-                                if (domains.isEmpty()) R.string.no_strat_domains
-                                else R.string.search_no_results
+                            DomainsEmptyState(
+                                query = searchQuery,
+                                emptyTitleRes = R.string.empty_strat_title,
+                                emptyBodyRes = R.string.no_strat_domains,
+                                listEmpty = domains.isEmpty(),
+                                addEnabled = state.busyDomain == null && state.max != null,
+                                onAdd = ::submit,
                             )
                         }
                     }
@@ -313,6 +300,33 @@ private fun EngineStrategiesPage(
                         }
                     }
                 }
+            }
+        }
+        // Same floating search-and-add as the Routing page.
+        FloatingSearch(
+            query = searchQuery,
+            onQuery = { searchQuery = it },
+            hint = stringResource(R.string.search_or_add_domain),
+            onDone = ::submit,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
+            if (searchQuery.isEmpty()) {
+                GlassAction(
+                    icon = Icons.Filled.ContentPaste,
+                    description = stringResource(R.string.paste_from_clipboard),
+                    onClick = {
+                        val clip = clipboard.getText()?.text?.trim().orEmpty()
+                        if (clip.isNotBlank()) searchQuery = extractDomain(clip) ?: clip
+                    },
+                )
+            } else {
+                GlassAction(
+                    icon = Icons.Filled.Add,
+                    description = stringResource(R.string.add_domain),
+                    onClick = ::submit,
+                    enabled = state.busyDomain == null && state.max != null,
+                    accent = true,
+                )
             }
         }
     }
@@ -345,7 +359,7 @@ private fun EditStrategySheet(
     val effectiveMax = max ?: entry.strategy.coerceAtLeast(min)
     var value by remember(entry) { mutableIntStateOf(entry.strategy.coerceIn(min, effectiveMax)) }
 
-    ModalBottomSheet(
+    HelmBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
     ) {
@@ -369,15 +383,17 @@ private fun EditStrategySheet(
                 engine = engine,
                 onChange = { value = it },
             )
-            FilledTonalButton(
+            HelmButton(
+                text = stringResource(R.string.apply),
                 enabled = value != entry.strategy,
+                icon = Icons.Filled.Check,
                 onClick = {
                     // Single strat_set on explicit confirmation.
                     viewModel.setStrategy(engine, entry.domain, value)
                     scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }
                 },
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text(stringResource(R.string.apply)) }
+            )
         }
     }
 }
@@ -388,62 +404,55 @@ private fun EditStrategySheet(
  */
 @Composable
 private fun EngineInfoBanner(running: Boolean, modifier: Modifier = Modifier) {
-    Surface(
-        color = if (running) MaterialTheme.colorScheme.primaryContainer
-        else MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = RoundedCornerShape(16.dp),
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(if (running) statusOk else MaterialTheme.colorScheme.outline),
-            )
-            Text(
-                text = stringResource(
-                    if (running) R.string.strat_showing_active else R.string.strat_showing_inactive
-                ),
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = if (running) MaterialTheme.colorScheme.onPrimaryContainer
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+    Row(modifier.fillMaxWidth()) {
+        StatusPill(
+            text = stringResource(
+                if (running) R.string.strat_showing_active else R.string.strat_showing_inactive
+            ),
+            color = if (running) statusOk else Helm.colors.text2,
+        )
     }
 }
 
-/** Sticky section header: "Strategy 5 · 12 domains" (or "Shared pool" for zapret2's 0). */
+/** Sticky section header: "Strategy 5 · 12 domains" (or "Shared pool" for the 0 of zapret2). */
 @Composable
 private fun StrategyGroupHeader(engine: String, strategy: Int, count: Int) {
     val sharedPool = engine == ENGINE_ZAPRET2 && strategy == 0
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.fillMaxWidth(),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Helm.colors.page)
+            .padding(top = 10.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Row(
-            modifier = Modifier.padding(vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        // The strategy number on its own expressive cookie, cycling colours per group.
+        Box(
+            Modifier.size(32.dp).clip(cycleShape(strategy).toShape()).background(cycleTint(strategy).bg),
+            contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = if (sharedPool) stringResource(R.string.strategy_pool_short)
-                else stringResource(R.string.strategy_n, strategy),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = "· " + pluralStringResource(R.plurals.n_domains, count, count),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (sharedPool) {
+                Icon(Icons.Outlined.Shuffle, null, Modifier.size(16.dp), tint = cycleTint(strategy).fg)
+            } else {
+                Text(
+                    strategy.toString(),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = cycleTint(strategy).fg,
+                )
+            }
         }
+        Text(
+            text = if (sharedPool) stringResource(R.string.strategy_pool_short)
+            else stringResource(R.string.strategy_n, strategy),
+            style = MaterialTheme.typography.titleMedium,
+            color = Helm.colors.text,
+        )
+        Text(
+            text = pluralStringResource(R.plurals.n_domains, count, count),
+            style = MaterialTheme.typography.labelMedium,
+            color = Helm.colors.text2,
+        )
     }
 }
 
@@ -522,6 +531,9 @@ private fun StrategyControl(
                         onDismissRequest = { pickerOpen = false },
                         scrollState = menuScroll,
                         modifier = Modifier.heightIn(max = 320.dp),
+                        shape = RoundedCornerShape(22.dp),
+                        containerColor = Helm.colors.card,
+                        shadowElevation = 12.dp,
                     ) {
                         (min..max).forEach { n ->
                             DropdownMenuItem(
@@ -575,10 +587,10 @@ private fun StrategyRow(
     onClick: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    ElevatedCard(
+    HelmCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(CardDefaults.elevatedShape)
+            .clip(CardShape)
             .clickable(onClick = onClick),
     ) {
         Row(
@@ -593,31 +605,16 @@ private fun StrategyRow(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            Surface(
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                shape = CircleShape,
-            ) {
-                Text(
-                    text = entry.strategy.toString(),
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                )
-            }
+            ValuePill(entry.strategy.toString(), cycleTint(entry.strategy))
             if (busy) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .size(24.dp),
-                    strokeWidth = 2.5.dp,
-                )
+                LoadingIndicator(Modifier.padding(4.dp).size(40.dp))
             } else {
                 IconButton(onClick = onDelete, enabled = actionsEnabled) {
                     Icon(
                         Icons.Outlined.Delete,
                         contentDescription = stringResource(R.string.remove_domain),
-                        tint = if (actionsEnabled) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                        tint = if (actionsEnabled) Tints.red.fg
+                        else Helm.colors.text2.copy(alpha = 0.38f),
                     )
                 }
             }
@@ -625,15 +622,3 @@ private fun StrategyRow(
     }
 }
 
-@Composable
-private fun ListHint(textRes: Int) {
-    Text(
-        text = stringResource(textRes),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 32.dp),
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        style = MaterialTheme.typography.bodyMedium,
-    )
-}

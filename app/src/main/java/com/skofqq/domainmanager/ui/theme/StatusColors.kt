@@ -19,11 +19,11 @@ import androidx.compose.ui.graphics.luminance
  * 3:1 for the 8dp state dots. The pairs below clear both thresholds in the
  * appearance they're used in.
  */
-private val StatusOkLight = Color(0xFF2E7D32) // 5.1:1 on white, 4.8:1 on the seeded light surface
-private val StatusOkDark = Color(0xFF81C784) // 9.0:1 on the dark surface
+private val StatusOkLight = Color(0xFF1F883D) // Boxy green (light)
+private val StatusOkDark = Color(0xFF3FB950) // Boxy green (dark)
 
-private val StatusFavoriteLight = Color(0xFFB8860B) // 3.3:1 on white — non-text icon tint
-private val StatusFavoriteDark = Color(0xFFFFC107)
+private val StatusFavoriteLight = Color(0xFFBF8700) // Boxy amber (light) — non-text icon tint
+private val StatusFavoriteDark = Color(0xFFD29922)
 
 /**
  * Picks the variant by the *rendered* surface rather than the theme flag, so a

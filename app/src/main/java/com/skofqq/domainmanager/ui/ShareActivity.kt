@@ -1,5 +1,6 @@
 package com.skofqq.domainmanager.ui
 
+import com.skofqq.domainmanager.ui.components.*
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -125,21 +126,7 @@ fun ShareScreen(viewModel: DomainViewModel, onDone: () -> Unit) {
             }
             .clip(RoundedCornerShape(cornerRadius)),
     ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.share_title)) },
-                    navigationIcon = {
-                        IconButton(onClick = onDone) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.close),
-                            )
-                        }
-                    },
-                )
-            },
-        ) { padding ->
+        HelmScaffold(title = stringResource(R.string.share_title), onBack = onDone) { padding ->
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -148,7 +135,7 @@ fun ShareScreen(viewModel: DomainViewModel, onDone: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    OutlinedTextField(
+                    HelmTextField(
                         value = domain,
                         onValueChange = {
                             viewModel.setDomain(it)
@@ -178,14 +165,14 @@ fun ShareScreen(viewModel: DomainViewModel, onDone: () -> Unit) {
                     )
                 }
                 item {
-                    OutlinedButton(
+                    HelmButton(
+                        text = stringResource(R.string.done),
                         onClick = onDone,
+                        style = ButtonStyle.Neutral,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp),
-                    ) {
-                        Text(stringResource(R.string.done))
-                    }
+                    )
                 }
             }
         }

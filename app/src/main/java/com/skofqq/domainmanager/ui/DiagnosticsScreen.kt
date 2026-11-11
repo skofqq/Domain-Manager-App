@@ -1,5 +1,13 @@
 package com.skofqq.domainmanager.ui
 
+import com.skofqq.domainmanager.ui.theme.Helm
+import com.skofqq.domainmanager.ui.theme.Tints
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.NetworkPing
+import com.skofqq.domainmanager.ui.components.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -93,252 +101,182 @@ fun DiagnosticsScreen(
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             // --- Ping / traceroute -------------------------------------------------
-            item { SectionLabel(stringResource(R.string.diag_host_section)) }
             item {
-                OutlinedTextField(
-                    value = host,
-                    onValueChange = { host = it },
-                    label = { Text(stringResource(R.string.host)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            item {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SuggestionChip(onClick = { host = "8.8.8.8" }, label = { Text("8.8.8.8") })
-                    // WAN IP as the closest available stand-in for "my provider".
-                    if (!wanIp.isNullOrEmpty()) {
-                        SuggestionChip(
-                            onClick = { host = wanIp },
-                            label = { Text(stringResource(R.string.diag_preset_wan, wanIp)) },
+                HelmSection(
+                    title = stringResource(R.string.diag_host_section),
+                    icon = Icons.Outlined.NetworkPing,
+                    tint = Tints.blue,
+                    shape = MaterialShapes.Cookie9Sided,
+                ) {
+                    HelmTextField(
+                        value = host,
+                        onValueChange = { host = it },
+                        label = { Text(stringResource(R.string.host)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    ChipFlow {
+                        HelmChip("8.8.8.8", selected = host == "8.8.8.8", onClick = { host = "8.8.8.8" })
+                        // WAN IP as the closest available stand-in for "my provider".
+                        if (!wanIp.isNullOrEmpty()) {
+                            HelmChip(
+                                stringResource(R.string.diag_preset_wan, wanIp),
+                                selected = host == wanIp,
+                                onClick = { host = wanIp },
+                            )
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HelmButton(
+                            text = stringResource(R.string.diag_ping),
+                            onClick = { viewModel.runPing(host) },
+                            enabled = host.isNotBlank(),
+                            loading = state.pingRunning,
+                            style = ButtonStyle.Primary,
+                            modifier = Modifier.weight(1f),
+                        )
+                        HelmButton(
+                            text = stringResource(R.string.diag_traceroute),
+                            onClick = { viewModel.runTraceroute(host) },
+                            enabled = host.isNotBlank(),
+                            loading = state.tracerouteRunning,
+                            style = ButtonStyle.Tonal,
+                            modifier = Modifier.weight(1f),
                         )
                     }
-                }
-            }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilledTonalButton(
-                        onClick = { viewModel.runPing(host) },
-                        enabled = !state.pingRunning && host.isNotBlank(),
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        if (state.pingRunning) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.width(8.dp))
-                        }
-                        Text(stringResource(R.string.diag_ping))
-                    }
-                    FilledTonalButton(
-                        onClick = { viewModel.runTraceroute(host) },
-                        enabled = !state.tracerouteRunning && host.isNotBlank(),
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        if (state.tracerouteRunning) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.width(8.dp))
-                        }
-                        Text(stringResource(R.string.diag_traceroute))
-                    }
-                }
-            }
-            state.pingError?.let { item { ErrorCard(it) } }
-            state.ping?.let { ping ->
-                item {
-                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Icon(
-                                if (ping.reachable) Icons.Filled.Check else Icons.Filled.Close,
-                                contentDescription = null,
-                                tint = if (ping.reachable) statusOk else MaterialTheme.colorScheme.error,
-                            )
-                            Column {
-                                Text(
-                                    text = ping.host,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                    state.pingError?.let { ErrorCard(it) }
+                    state.ping?.let { ping ->
+                        val tint = if (ping.reachable) Tints.green else Tints.red
+                        SectionRow(
+                            title = ping.host,
+                            subtitle = if (ping.reachable) {
+                                stringResource(
+                                    R.string.ping_result_ok,
+                                    ping.lossPercent,
+                                    String.format(Locale.US, "%.1f", ping.avgMs ?: 0.0),
                                 )
-                                Text(
-                                    text = if (ping.reachable) {
-                                        stringResource(
-                                            R.string.ping_result_ok,
-                                            ping.lossPercent,
-                                            String.format(Locale.US, "%.1f", ping.avgMs ?: 0.0),
-                                        )
-                                    } else {
-                                        stringResource(R.string.ping_result_fail)
-                                    },
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            } else {
+                                stringResource(R.string.ping_result_fail)
+                            },
+                            leading = {
+                                ShapeIcon(
+                                    if (ping.reachable) Icons.Filled.Check else Icons.Filled.Close,
+                                    tint,
+                                    shape = MaterialShapes.Circle,
+                                    size = 40.dp,
                                 )
-                            }
-                        }
+                            },
+                            trailing = ping.avgMs?.takeIf { ping.reachable }?.let { avg ->
+                                { ValuePill(stringResource(R.string.ms_value, avg.toInt()), delayTint(avg.toInt())) }
+                            },
+                        )
                     }
-                }
-            }
-            state.tracerouteError?.let { item { ErrorCard(it) } }
-            val hops = state.traceroute
-            if (hops != null) {
-                item {
-                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
-                            Text(
-                                text = stringResource(
-                                    R.string.trace_title,
-                                    state.tracerouteHost.orEmpty(),
-                                ),
-                                style = MaterialTheme.typography.titleSmall,
-                            )
-                            Spacer(Modifier.height(6.dp))
-                            hops.forEach { hop -> TraceHopRow(hop) }
-                        }
+                    state.tracerouteError?.let { ErrorCard(it) }
+                    state.traceroute?.let { hops ->
+                        Text(
+                            text = stringResource(R.string.trace_title, state.tracerouteHost.orEmpty()),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Helm.colors.text,
+                        )
+                        MonoBlock { hops.forEach { hop -> TraceHopRow(hop) } }
                     }
                 }
             }
 
             // --- WAN speed test ----------------------------------------------------
-            item { HorizontalDivider() }
-            item { SectionLabel(stringResource(R.string.diag_speedtest_title)) }
             item {
-                Text(
-                    stringResource(R.string.diag_speedtest_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            item {
-                OutlinedButton(
-                    onClick = { viewModel.runSpeedtest() },
-                    enabled = !state.speedtestRunning,
-                    modifier = Modifier.fillMaxWidth(),
+                HelmSection(
+                    title = stringResource(R.string.diag_speedtest_title),
+                    subtitle = stringResource(R.string.diag_speedtest_note),
+                    icon = Icons.Outlined.Speed,
+                    tint = Tints.teal,
+                    shape = MaterialShapes.Sunny,
                 ) {
-                    Text(
-                        stringResource(
+                    state.speedtest?.let { speed ->
+                        BigStat(
+                            value = stringResource(
+                                R.string.speed_mbps,
+                                String.format(Locale.US, "%.1f", speed.downloadMbps),
+                            ),
+                            label = stringResource(R.string.diag_speedtest_result_label),
+                            tint = Tints.teal,
+                        )
+                    }
+                    // A long synchronous call on the router (up to ~25 s): an honest
+                    // indeterminate indicator, no pretend progress numbers.
+                    WorkingStrip(state.speedtestRunning)
+                    state.speedtestError?.let { ErrorCard(it) }
+                    HelmButton(
+                        text = stringResource(
                             if (state.speedtestRunning) R.string.diag_speedtest_running
                             else R.string.diag_speedtest_run
-                        )
+                        ),
+                        onClick = { viewModel.runSpeedtest() },
+                        loading = state.speedtestRunning,
+                        icon = Icons.Filled.PlayArrow,
+                        style = ButtonStyle.Tonal,
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                }
-            }
-            if (state.speedtestRunning) {
-                // A long synchronous call on the router (up to ~25 s) — an honest
-                // indeterminate indicator, no pretend progress numbers.
-                item { LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) }
-            }
-            state.speedtestError?.let { item { ErrorCard(it) } }
-            state.speedtest?.let { speed ->
-                item {
-                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Text(
-                                text = stringResource(
-                                    R.string.speed_mbps,
-                                    String.format(Locale.US, "%.1f", speed.downloadMbps),
-                                ),
-                                style = MaterialTheme.typography.displaySmall,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                            Text(
-                                text = stringResource(R.string.diag_speedtest_result_label),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
                 }
             }
 
             // --- Tunnel (mihomo group delay) ---------------------------------------
-            item { HorizontalDivider() }
-            item { SectionLabel(stringResource(R.string.diag_tunnel_title)) }
             item {
-                Text(
-                    stringResource(R.string.diag_tunnel_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            state.groups?.let { groups ->
-                item {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        groups.forEach { group ->
-                            FilterChip(
-                                selected = state.selectedGroup == group.name,
-                                onClick = { viewModel.selectGroup(group.name) },
-                                label = { Text(group.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            )
+                HelmSection(
+                    title = stringResource(R.string.diag_tunnel_title),
+                    subtitle = stringResource(R.string.diag_tunnel_note),
+                    icon = Icons.Outlined.Hub,
+                    tint = Tints.purple,
+                    shape = MaterialShapes.Flower,
+                ) {
+                    state.groups?.let { groups ->
+                        ChipFlow {
+                            groups.forEach { group ->
+                                HelmChip(
+                                    text = group.name,
+                                    selected = state.selectedGroup == group.name,
+                                    onClick = { viewModel.selectGroup(group.name) },
+                                )
+                            }
                         }
                     }
-                }
-            }
-            item {
-                OutlinedButton(
-                    onClick = { viewModel.runGroupDelay() },
-                    enabled = !state.delayRunning && state.selectedGroup != null,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        stringResource(
+                    HelmButton(
+                        text = stringResource(
                             if (state.delayRunning) R.string.diag_tunnel_running
                             else R.string.diag_tunnel_run
-                        )
+                        ),
+                        onClick = { viewModel.runGroupDelay() },
+                        enabled = state.selectedGroup != null,
+                        loading = state.delayRunning,
+                        icon = Icons.Filled.PlayArrow,
+                        style = ButtonStyle.Tonal,
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                }
-            }
-            if (state.delayRunning) {
-                item { LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) }
-            }
-            state.delayError?.let { item { ErrorCard(it) } }
-            val delays = state.delays
-            val delayNodes = state.delayNodes
-            if (delays != null && delayNodes != null) {
-                item {
-                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                            delayNodes.forEach { node ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 5.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        text = node,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.weight(1f),
-                                    )
-                                    val ms = delays[node]
-                                    if (ms != null) {
-                                        Text(
-                                            text = stringResource(R.string.ms_value, ms),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = delayColor(ms),
-                                        )
-                                    } else {
-                                        // Absent from the answer = didn't respond
-                                        // within mihomo's 5 s test window.
-                                        Text(
-                                            text = stringResource(R.string.node_no_response),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.error,
-                                        )
-                                    }
-                                }
+                    WorkingStrip(state.delayRunning)
+                    state.delayError?.let { ErrorCard(it) }
+                    val delays = state.delays
+                    val delayNodes = state.delayNodes
+                    if (delays != null && delayNodes != null) {
+                        Column {
+                            delayNodes.forEachIndexed { index, node ->
+                                if (index > 0) SectionDivider()
+                                val ms = delays[node]
+                                SectionRow(
+                                    title = node,
+                                    trailing = {
+                                        if (ms != null) {
+                                            ValuePill(stringResource(R.string.ms_value, ms), delayTint(ms))
+                                        } else {
+                                            // Absent from the answer = no reply within
+                                            // the 5 s test window of mihomo.
+                                            ValuePill(stringResource(R.string.node_no_response), Tints.red)
+                                        }
+                                    },
+                                )
                             }
                         }
                     }
@@ -385,4 +323,11 @@ private fun TraceHopRow(hop: TraceHop) {
             )
         }
     }
+}
+
+@Composable
+private fun delayTint(ms: Int) = when {
+    ms < 100 -> Tints.green
+    ms < 300 -> Tints.amber
+    else -> Tints.red
 }

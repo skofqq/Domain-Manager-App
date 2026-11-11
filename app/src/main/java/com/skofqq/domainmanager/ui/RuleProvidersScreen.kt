@@ -1,5 +1,21 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.outlined.AltRoute
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.automirrored.outlined.Label
+import androidx.compose.material.icons.outlined.DataObject
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Link
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import com.skofqq.domainmanager.ui.theme.Tints
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.outlined.Delete
+import com.skofqq.domainmanager.ui.theme.Helm
+import com.skofqq.domainmanager.ui.components.*
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.activity.BackEventCompat
@@ -242,69 +258,70 @@ private fun ProvidersListScreen(
     StatusChildScaffold(
         title = stringResource(R.string.rule_providers_title),
         onBack = onBack,
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onAdd,
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.add)) },
-            )
-        },
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item {
-                Text(
-                    stringResource(R.string.rule_providers_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            item { NoticeCard(title = null, body = stringResource(R.string.rule_providers_hint)) }
             state.error?.let { message ->
                 item {
-                    Column {
-                        ErrorCard(message)
-                        TextButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
-                    }
+                    ErrorCard(message, onRetry = onRetry)
                 }
             }
             if (skeletonBrush != null) {
-                items(3) {
-                    SkeletonBox(
-                        skeletonBrush,
-                        Modifier.fillMaxWidth().height(96.dp),
-                        MaterialTheme.shapes.medium,
-                    )
-                }
+                item { SkeletonBox(skeletonBrush, Modifier.fillMaxWidth().height(240.dp), CardShape) }
             }
             val providers = state.providers
             if (providers != null && providers.isEmpty()) {
                 item {
-                    Text(
-                        stringResource(R.string.rule_providers_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 24.dp),
+                    EmptyState(
+                        icon = Icons.Outlined.Dataset,
+                        title = stringResource(R.string.rule_providers_empty),
+                        tint = Tints.teal,
+                        action = {
+                            HelmButton(
+                                text = stringResource(R.string.add),
+                                onClick = onAdd,
+                                icon = Icons.Filled.Add,
+                            )
+                        },
                     )
                 }
             }
-            items(providers.orEmpty(), key = { it.provider }) { provider ->
-                ProviderCard(
-                    provider = provider,
-                    busy = state.removingProvider == provider.provider,
-                    onRemove = { confirmRemove = provider.provider },
-                )
+            if (!providers.isNullOrEmpty()) {
+                item {
+                    HelmSection(
+                        title = pluralStringResource(R.plurals.n_rule_providers, providers.size, providers.size),
+                        icon = Icons.Outlined.Dataset,
+                        tint = Tints.teal,
+                        shape = MaterialShapes.Cookie6Sided,
+                        trailing = {
+                            SectionIconButton(Icons.Filled.Add, stringResource(R.string.add), tint = Tints.teal, onClick = onAdd)
+                        },
+                    ) {
+                        Column {
+                            providers.forEachIndexed { index, provider ->
+                                if (index > 0) SectionDivider()
+                                ProviderCard(
+                                    provider = provider,
+                                    busy = state.removingProvider == provider.provider,
+                                    onRemove = { confirmRemove = provider.provider },
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
     confirmRemove?.let { name ->
         val provider = state.providers?.firstOrNull { it.provider == name }
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { confirmRemove = null },
             title = { Text(stringResource(R.string.provider_delete_title)) },
             text = {
@@ -339,70 +356,60 @@ private fun ProvidersListScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProviderCard(provider: RuleProvider, busy: Boolean, onRemove: () -> Unit) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        provider.provider,
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        stringResource(R.string.provider_routed_to, provider.group),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    provider.provider,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Helm.colors.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    stringResource(R.string.provider_routed_to, provider.group),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Helm.colors.accent,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (busy) {
+                LoadingIndicator(Modifier.size(40.dp))
+            } else {
+                IconButton(onClick = onRemove) {
+                    Icon(
+                        Icons.Outlined.Delete,
+                        contentDescription = stringResource(R.string.delete),
+                        tint = Tints.red.fg,
                     )
                 }
-                if (busy) {
-                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                } else {
-                    IconButton(onClick = onRemove) {
-                        Icon(
-                            Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.delete),
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                }
             }
-            Text(
-                provider.url,
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.padding(top = 8.dp),
-            ) {
-                ProviderBadge(behaviorLabel(provider.behavior))
-                ProviderBadge(provider.format.uppercase())
-                ProviderBadge(intervalLabel(provider.interval))
-            }
+        }
+        Text(
+            provider.url,
+            style = MaterialTheme.typography.bodySmall,
+            fontFamily = FontFamily.Monospace,
+            color = Helm.colors.text2,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(top = 8.dp),
+        ) {
+            ValuePill(behaviorLabel(provider.behavior), Tints.purple)
+            ValuePill(provider.format.uppercase(), Tints.blue)
+            ValuePill(intervalLabel(provider.interval), Tints.gray)
         }
     }
 }
 
 @Composable
 private fun ProviderBadge(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSecondaryContainer,
-        modifier = Modifier
-            .background(
-                MaterialTheme.colorScheme.secondaryContainer,
-                MaterialTheme.shapes.small,
-            )
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-    )
+    ValuePill(text, Tints.gray)
 }
 
 // --- Add flow ---------------------------------------------------------------------
@@ -487,89 +494,67 @@ private fun AddProviderFlow(
     }
 
     Scaffold(
+        containerColor = Helm.colors.page,
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(stringResource(R.string.provider_add_title))
-                        Text(
-                            stringResource(R.string.provider_step, step, STEP_COUNT),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+            SubPageHeader(
+                title = stringResource(R.string.provider_add_title),
+                subtitle = stringResource(R.string.provider_step, step, STEP_COUNT),
+                onBack = {
+                    when {
+                        step > STEP_SOURCE -> step--
+                        customMode -> customMode = false
+                        else -> onClose()
                     }
                 },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        when {
-                            step > STEP_SOURCE -> step--
-                            customMode -> customMode = false
-                            else -> onClose()
-                        }
-                    }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
-                        )
-                    }
-                },
-                actions = {
-                    TextButton(onClick = onClose) { Text(stringResource(R.string.cancel)) }
-                },
-            )
+            ) {
+                TextButton(onClick = onClose) { Text(stringResource(R.string.cancel)) }
+            }
         },
         bottomBar = {
-            // Step 1's catalog advances by tapping a source, so it has no Next
-            // button unless the manual form is open.
-            if (step > STEP_SOURCE || customMode) {
-                Column(Modifier.navigationBarsPadding()) {
-                    HorizontalDivider()
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        if (step == STEP_CONFIRM) {
-                            Button(
-                                onClick = {
-                                    onSubmit(
-                                        name.trim(),
-                                        url.trim(),
-                                        behavior,
-                                        format,
-                                        interval,
-                                        if (useNewGroup) null else group,
-                                        if (useNewGroup) newGroupName.trim() else null,
-                                        fetchProxy,
-                                    )
-                                },
-                                enabled = !adding,
-                            ) {
-                                if (adding) {
-                                    CircularProgressIndicator(
-                                        Modifier.size(16.dp),
-                                        strokeWidth = 2.dp,
-                                        color = MaterialTheme.colorScheme.onPrimary,
-                                    )
-                                    Spacer(Modifier.size(8.dp))
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(Helm.colors.page)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                StepIndicator(current = step, count = STEP_COUNT)
+                // Step 1's catalog advances by tapping a source, so it has no Next
+                // button unless the manual form is open.
+                if (step > STEP_SOURCE || customMode) {
+                    if (step == STEP_CONFIRM) {
+                        HelmButton(
+                            text = stringResource(R.string.add),
+                            onClick = {
+                                onSubmit(
+                                    name.trim(),
+                                    url.trim(),
+                                    behavior,
+                                    format,
+                                    interval,
+                                    if (useNewGroup) null else group,
+                                    if (useNewGroup) newGroupName.trim() else null,
+                                    fetchProxy,
+                                )
+                            },
+                            loading = adding,
+                            icon = Icons.Filled.Check,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        HelmButton(
+                            text = stringResource(R.string.next),
+                            onClick = {
+                                if (step == STEP_SOURCE && name.isBlank()) {
+                                    name = suggestProviderName(url)
                                 }
-                                Text(stringResource(R.string.add))
-                            }
-                        } else {
-                            Button(
-                                onClick = {
-                                    if (step == STEP_SOURCE && name.isBlank()) {
-                                        name = suggestProviderName(url)
-                                    }
-                                    step++
-                                },
-                                enabled = canAdvance,
-                            ) {
-                                Text(stringResource(R.string.next))
-                            }
-                        }
+                                step++
+                            },
+                            enabled = canAdvance,
+                            icon = Icons.AutoMirrored.Filled.ArrowForward,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
             }
@@ -588,12 +573,6 @@ private fun AddProviderFlow(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item {
-                LinearProgressIndicator(
-                    progress = { step.toFloat() / STEP_COUNT },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
             when (step) {
                 STEP_SOURCE -> if (customMode) {
                     customSourceStep(
@@ -706,103 +685,58 @@ private fun androidx.compose.foundation.lazy.LazyListScope.catalogStep(
     // Always the first row, filter or no filter: the catalog only covers this one
     // repo, and every other source in the world goes through here.
     item(key = "custom-url") {
-        ElevatedCard(onClick = onCustom, modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    Icons.Outlined.Edit,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                    Text(
-                        stringResource(R.string.provider_custom_url),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        stringResource(R.string.provider_custom_url_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-
-    item(key = "catalog-search") {
-        OutlinedTextField(
-            value = query,
-            onValueChange = onQuery,
-            label = { Text(stringResource(R.string.catalog_search)) },
-            singleLine = true,
-            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            trailingIcon = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (query.isNotEmpty()) {
-                        IconButton(onClick = { onQuery("") }) {
-                            Icon(
-                                Icons.Filled.Close,
-                                contentDescription = stringResource(R.string.clear_search),
-                            )
-                        }
-                    }
-                    IconButton(onClick = onRefresh, enabled = !loading) {
-                        Icon(
-                            Icons.Filled.Refresh,
-                            contentDescription = stringResource(R.string.catalog_refresh),
-                        )
-                    }
-                }
-            },
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
-            modifier = Modifier.fillMaxWidth(),
+        EntryCard(
+            icon = Icons.Outlined.Edit,
+            title = stringResource(R.string.provider_custom_url),
+            subtitle = stringResource(R.string.provider_custom_url_desc),
+            onClick = onCustom,
+            tint = Tints.accent,
+            shape = MaterialShapes.Clover4Leaf,
         )
     }
 
-    // A cache we couldn't refresh is still perfectly usable — say so and move on,
+    item(key = "catalog-search") {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            PageSearchField(
+                value = query,
+                onChange = onQuery,
+                hint = stringResource(R.string.catalog_search),
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(8.dp))
+            SectionIconButton(
+                Icons.Filled.Refresh,
+                stringResource(R.string.catalog_refresh),
+                enabled = !loading,
+                onClick = onRefresh,
+            )
+        }
+    }
+
+    // A cache we could not refresh is still perfectly usable: say so and move on,
     // never block the flow on it.
     stale?.let { message ->
         item(key = "catalog-stale") {
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                ),
-            ) {
-                Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    Text(
-                        stringResource(R.string.catalog_not_updated),
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(
-                        message.resolve(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            NoticeCard(
+                title = stringResource(R.string.catalog_not_updated),
+                body = message.resolve(),
+                tint = Tints.amber,
+            )
         }
     }
 
     if (loading && catalog == null) {
         item(key = "catalog-loading") {
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                LoadingIndicator(Modifier.size(64.dp))
                 Text(
                     stringResource(R.string.catalog_loading),
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 12.dp),
+                    color = Helm.colors.text2,
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
         }
@@ -811,10 +745,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.catalogStep(
     // Nothing cached and the fetch failed: the custom-URL row above is the way out.
     error?.let { message ->
         item(key = "catalog-error") {
-            Column {
-                ErrorCard(message)
-                TextButton(onClick = onRefresh) { Text(stringResource(R.string.retry)) }
-            }
+            ErrorCard(message, onRetry = onRefresh)
         }
     }
 
@@ -825,20 +756,18 @@ private fun androidx.compose.foundation.lazy.LazyListScope.catalogStep(
         else entries.filter { it.name.lowercase().contains(needle) }
 
         item(key = "catalog-count") {
-            Text(
+            SectionNote(
                 stringResource(R.string.catalog_count, shown.size, entries.size) +
                     if (fetchedAt > 0L) " · " + relativeTime(fetchedAt) else "",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp),
             )
         }
         if (shown.isEmpty()) {
             item(key = "catalog-empty") {
-                Text(
-                    stringResource(R.string.catalog_no_results),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 16.dp),
+                EmptyState(
+                    icon = Icons.Filled.Search,
+                    title = stringResource(R.string.catalog_no_results),
+                    tint = Tints.gray,
                 )
             }
         }
@@ -850,39 +779,22 @@ private fun androidx.compose.foundation.lazy.LazyListScope.catalogStep(
 
 @Composable
 private fun CatalogRow(entry: CatalogEntry, onClick: () -> Unit) {
-    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.Outlined.Dataset,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                Text(
-                    entry.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontFamily = FontFamily.Monospace,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    "${entry.source} · ${behaviorLabel(entry.behavior)} · ${entry.format.uppercase()}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+    EntryCard(
+        icon = Icons.Outlined.Dataset,
+        title = entry.name,
+        subtitle = "${entry.source} · ${behaviorLabel(entry.behavior)} · ${entry.format.uppercase()}",
+        onClick = onClick,
+        tint = when (entry.behavior) {
+            "domain" -> Tints.blue
+            "ipcidr" -> Tints.purple
+            else -> Tints.teal
+        },
+        shape = when (entry.behavior) {
+            "domain" -> MaterialShapes.Cookie9Sided
+            "ipcidr" -> MaterialShapes.Cookie6Sided
+            else -> MaterialShapes.Clover4Leaf
+        },
+    )
 }
 
 /** "2 hours ago" style, localized by the platform. */
@@ -904,59 +816,64 @@ private fun androidx.compose.foundation.lazy.LazyListScope.customSourceStep(
     onFormat: (String) -> Unit,
 ) {
     item {
-        OutlinedTextField(
-            value = url,
-            onValueChange = onUrl,
-            label = { Text(stringResource(R.string.provider_url)) },
-            placeholder = { Text("https://example.com/rules.mrs") },
-            singleLine = true,
-            isError = url.isNotBlank() && !urlValid,
-            supportingText = {
-                Text(
-                    if (url.isNotBlank() && !urlValid) stringResource(R.string.provider_url_invalid)
-                    else stringResource(R.string.provider_url_hint)
-                )
-            },
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-    item { SectionLabel(stringResource(R.string.provider_behavior)) }
-    item {
-        OptionSegmentedRow(
-            options = PROVIDER_BEHAVIORS,
-            selected = behavior,
-            label = { behaviorLabel(it) },
-            onSelect = onBehavior,
-        )
+        HelmSection(
+            title = stringResource(R.string.provider_url),
+            icon = Icons.Outlined.Link,
+            tint = Tints.blue,
+            shape = MaterialShapes.Cookie9Sided,
+        ) {
+            HelmTextField(
+                value = url,
+                onValueChange = onUrl,
+                placeholder = { Text("https://example.com/rules.mrs") },
+                singleLine = true,
+                isError = url.isNotBlank() && !urlValid,
+                supportingText = {
+                    Text(
+                        if (url.isNotBlank() && !urlValid) stringResource(R.string.provider_url_invalid)
+                        else stringResource(R.string.provider_url_hint)
+                    )
+                },
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
     item {
-        Text(
-            stringResource(R.string.provider_behavior_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        HelmSection(
+            title = stringResource(R.string.provider_behavior),
+            subtitle = stringResource(R.string.provider_behavior_hint),
+            icon = Icons.Outlined.Category,
+            tint = Tints.purple,
+            shape = MaterialShapes.Clover4Leaf,
+        ) {
+            OptionSegmentedRow(
+                options = PROVIDER_BEHAVIORS,
+                selected = behavior,
+                label = { behaviorLabel(it) },
+                onSelect = onBehavior,
+            )
+        }
     }
-    item { SectionLabel(stringResource(R.string.provider_format)) }
     item {
-        OptionSegmentedRow(
-            options = PROVIDER_FORMATS,
-            selected = format,
-            label = { it.uppercase() },
-            onSelect = onFormat,
-        )
-    }
-    item {
-        Text(
-            stringResource(R.string.provider_format_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        HelmSection(
+            title = stringResource(R.string.provider_format),
+            subtitle = stringResource(R.string.provider_format_hint),
+            icon = Icons.Outlined.DataObject,
+            tint = Tints.teal,
+            shape = MaterialShapes.Cookie6Sided,
+        ) {
+            OptionSegmentedRow(
+                options = PROVIDER_FORMATS,
+                selected = format,
+                label = { it.uppercase() },
+                onSelect = onFormat,
+            )
+        }
     }
 }
 
 /** Step 2: provider name, refresh period and the optional download proxy-group. */
-@OptIn(ExperimentalLayoutApi::class)
 private fun androidx.compose.foundation.lazy.LazyListScope.paramsStep(
     name: String,
     onName: (String) -> Unit,
@@ -969,67 +886,76 @@ private fun androidx.compose.foundation.lazy.LazyListScope.paramsStep(
     onFetchProxy: (String?) -> Unit,
 ) {
     item {
-        OutlinedTextField(
-            value = name,
-            onValueChange = onName,
-            label = { Text(stringResource(R.string.provider_name)) },
-            singleLine = true,
-            isError = name.isNotEmpty() && (!nameValid || nameTaken),
-            supportingText = {
-                Text(
-                    when {
-                        name.isNotEmpty() && !nameValid -> stringResource(R.string.provider_name_invalid)
-                        nameTaken -> stringResource(R.string.provider_name_taken)
-                        else -> stringResource(R.string.provider_name_hint)
-                    }
-                )
-            },
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
-            modifier = Modifier.fillMaxWidth(),
-        )
+        HelmSection(
+            title = stringResource(R.string.provider_name),
+            icon = Icons.AutoMirrored.Outlined.Label,
+            tint = Tints.blue,
+            shape = MaterialShapes.Cookie9Sided,
+        ) {
+            HelmTextField(
+                value = name,
+                onValueChange = onName,
+                singleLine = true,
+                isError = name.isNotEmpty() && (!nameValid || nameTaken),
+                supportingText = {
+                    Text(
+                        when {
+                            name.isNotEmpty() && !nameValid -> stringResource(R.string.provider_name_invalid)
+                            nameTaken -> stringResource(R.string.provider_name_taken)
+                            else -> stringResource(R.string.provider_name_hint)
+                        }
+                    )
+                },
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
-    item { SectionLabel(stringResource(R.string.provider_interval)) }
     item {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            INTERVAL_OPTIONS.forEach { seconds ->
-                FilterChip(
-                    selected = interval == seconds,
-                    onClick = { onInterval(seconds) },
-                    label = { Text(intervalLabel(seconds)) },
-                    leadingIcon = if (interval == seconds) {
-                        { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                    } else null,
-                )
+        HelmSection(
+            title = stringResource(R.string.provider_interval),
+            icon = Icons.Outlined.Schedule,
+            tint = Tints.amber,
+            shape = MaterialShapes.Sunny,
+        ) {
+            ChipFlow {
+                INTERVAL_OPTIONS.forEach { seconds ->
+                    HelmChip(
+                        text = intervalLabel(seconds),
+                        selected = interval == seconds,
+                        onClick = { onInterval(seconds) },
+                    )
+                }
             }
         }
     }
-    item { SectionLabel(stringResource(R.string.provider_fetch_proxy)) }
     item {
-        Text(
-            stringResource(R.string.provider_fetch_proxy_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-    item {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = fetchProxy == null,
-                onClick = { onFetchProxy(null) },
-                label = { Text(stringResource(R.string.provider_fetch_proxy_none)) },
-            )
-            proxyGroups.orEmpty().forEach { groupName ->
-                FilterChip(
-                    selected = fetchProxy == groupName,
-                    onClick = { onFetchProxy(groupName) },
-                    label = { Text(groupName, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        HelmSection(
+            title = stringResource(R.string.provider_fetch_proxy),
+            subtitle = stringResource(R.string.provider_fetch_proxy_hint),
+            icon = Icons.Outlined.CloudDownload,
+            tint = Tints.teal,
+            shape = MaterialShapes.Cookie12Sided,
+        ) {
+            ChipFlow {
+                HelmChip(
+                    text = stringResource(R.string.provider_fetch_proxy_none),
+                    selected = fetchProxy == null,
+                    onClick = { onFetchProxy(null) },
                 )
+                proxyGroups.orEmpty().forEach { groupName ->
+                    HelmChip(
+                        text = groupName,
+                        selected = fetchProxy == groupName,
+                        onClick = { onFetchProxy(groupName) },
+                    )
+                }
             }
         }
     }
 }
 
-/** Step 3: where matched traffic goes — an existing proxy-group or a brand-new one. */
+/** Step 3: where matched traffic goes, an existing proxy-group or a brand-new one. */
 private fun androidx.compose.foundation.lazy.LazyListScope.groupStep(
     proxyGroups: List<String>?,
     proxyGroupsError: UiMessage?,
@@ -1042,75 +968,62 @@ private fun androidx.compose.foundation.lazy.LazyListScope.groupStep(
     newGroupTaken: Boolean,
 ) {
     item {
-        Text(
-            stringResource(R.string.provider_group_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-    item {
-        // Exactly one of group / new_group may be sent — a two-way switch, never
-        // both at once, mirroring the API's own either/or contract.
-        OptionSegmentedRow(
-            options = listOf("existing", "new"),
-            selected = if (useNewGroup) "new" else "existing",
-            label = {
-                if (it == "new") stringResource(R.string.provider_group_new)
-                else stringResource(R.string.provider_group_existing)
-            },
-            onSelect = { onUseNewGroup(it == "new") },
-        )
-    }
-    if (useNewGroup) {
-        item {
-            OutlinedTextField(
-                value = newGroupName,
-                onValueChange = onNewGroupName,
-                label = { Text(stringResource(R.string.provider_new_group_name)) },
-                singleLine = true,
-                isError = newGroupTaken,
-                supportingText = {
-                    Text(
-                        if (newGroupTaken) stringResource(R.string.provider_new_group_taken)
-                        else stringResource(R.string.provider_new_group_hint)
-                    )
+        HelmSection(
+            title = stringResource(R.string.provider_group_title),
+            subtitle = stringResource(R.string.provider_group_hint),
+            icon = Icons.Outlined.AltRoute,
+            tint = Tints.purple,
+            shape = MaterialShapes.Flower,
+        ) {
+            // Exactly one of group / new_group may be sent: a two-way switch, never
+            // both at once, mirroring the either/or contract of the API.
+            OptionSegmentedRow(
+                options = listOf("existing", "new"),
+                selected = if (useNewGroup) "new" else "existing",
+                label = {
+                    if (it == "new") stringResource(R.string.provider_group_new)
+                    else stringResource(R.string.provider_group_existing)
                 },
-                modifier = Modifier.fillMaxWidth(),
+                onSelect = { onUseNewGroup(it == "new") },
             )
-        }
-    } else {
-        proxyGroupsError?.let { item { ErrorCard(it) } }
-        val groups = proxyGroups
-        if (groups != null && groups.isEmpty()) {
-            item {
-                Text(
-                    stringResource(R.string.provider_no_groups),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+            if (useNewGroup) {
+                HelmTextField(
+                    value = newGroupName,
+                    onValueChange = onNewGroupName,
+                    label = { Text(stringResource(R.string.provider_new_group_name)) },
+                    singleLine = true,
+                    isError = newGroupTaken,
+                    supportingText = {
+                        Text(
+                            if (newGroupTaken) stringResource(R.string.provider_new_group_taken)
+                            else stringResource(R.string.provider_new_group_hint)
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
                 )
-            }
-        }
-        items(groups.orEmpty(), key = { "grp-$it" }) { candidate ->
-            ElevatedCard(onClick = { onGroup(candidate) }, modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RadioButton(selected = group == candidate, onClick = { onGroup(candidate) })
-                    Text(
-                        candidate,
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(start = 4.dp),
-                    )
+            } else {
+                proxyGroupsError?.let { ErrorCard(it) }
+                val groups = proxyGroups
+                if (groups != null && groups.isEmpty()) {
+                    SectionNote(stringResource(R.string.provider_no_groups))
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    groups.orEmpty().forEach { candidate ->
+                        OptionRow(
+                            title = candidate,
+                            subtitle = null,
+                            selected = group == candidate,
+                            container = Helm.colors.surface2,
+                            onClick = { onGroup(candidate) },
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-/** Step 4: full read-back of what will be sent, plus the router's verbatim refusal if it refuses. */
+/** Step 4: full read-back of what will be sent, plus the verbatim refusal of the router if it refuses. */
 private fun androidx.compose.foundation.lazy.LazyListScope.confirmStep(
     name: String,
     url: String,
@@ -1124,13 +1037,35 @@ private fun androidx.compose.foundation.lazy.LazyListScope.confirmStep(
     addError: UiMessage?,
 ) {
     item {
-        ElevatedCard(Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+        HelmSection(
+            title = name,
+            subtitle = url,
+            icon = Icons.Outlined.Dataset,
+            tint = Tints.teal,
+            shape = MaterialShapes.Cookie12Sided,
+        ) {
+            // Where matched traffic goes: the one answer worth seeing first.
+            Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Tints.accent.bg).padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                SummaryRow(stringResource(R.string.provider_name), name)
-                SummaryRow(stringResource(R.string.provider_url), url, mono = true)
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Helm.colors.accent)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (useNewGroup) stringResource(R.string.provider_group_new)
+                        else stringResource(R.string.provider_group_existing),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Helm.colors.text2,
+                    )
+                    Text(
+                        if (useNewGroup) newGroupName else group.orEmpty(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Helm.colors.accent,
+                    )
+                }
+            }
+            Column {
                 SummaryRow(stringResource(R.string.provider_behavior), behaviorLabel(behavior))
                 SummaryRow(stringResource(R.string.provider_format), format.uppercase())
                 SummaryRow(stringResource(R.string.provider_interval), intervalLabel(interval))
@@ -1138,57 +1073,25 @@ private fun androidx.compose.foundation.lazy.LazyListScope.confirmStep(
                     stringResource(R.string.provider_fetch_proxy),
                     fetchProxy ?: stringResource(R.string.provider_fetch_proxy_none),
                 )
-                HorizontalDivider()
-                SummaryRow(
-                    if (useNewGroup) stringResource(R.string.provider_group_new)
-                    else stringResource(R.string.provider_group_existing),
-                    if (useNewGroup) newGroupName else group.orEmpty(),
-                    highlight = true,
-                )
             }
+            if (useNewGroup) SectionNote(stringResource(R.string.provider_new_group_note))
+            SectionNote(stringResource(R.string.provider_add_slow_note))
+            addError?.let { ErrorCard(it) }
         }
     }
-    if (useNewGroup) {
-        item {
-            Text(
-                stringResource(R.string.provider_new_group_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-    item {
-        Text(
-            stringResource(R.string.provider_add_slow_note),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-    addError?.let { item { ErrorCard(it) } }
 }
 
 @Composable
 private fun SummaryRow(label: String, value: String, mono: Boolean = false, highlight: Boolean = false) {
-    Row(verticalAlignment = Alignment.Top) {
-        Text(
-            label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.size(12.dp))
-        Text(
-            value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontFamily = if (mono) FontFamily.Monospace else null,
-            fontWeight = if (highlight) FontWeight.SemiBold else null,
-            color = if (highlight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f),
-        )
-    }
+    KeyValueRow(
+        label = label,
+        value = value,
+        monospace = mono,
+        valueColor = if (highlight) Helm.colors.accent else Helm.colors.text,
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Small closed set of options (behavior, format, existing/new): the sliding pill segments. */
 @Composable
 private fun OptionSegmentedRow(
     options: List<String>,
@@ -1196,17 +1099,12 @@ private fun OptionSegmentedRow(
     label: @Composable (String) -> String,
     onSelect: (String) -> Unit,
 ) {
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        options.forEachIndexed { index, option ->
-            SegmentedButton(
-                selected = selected == option,
-                onClick = { onSelect(option) },
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-            ) {
-                Text(label(option), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-        }
-    }
+    PillTabs(
+        labels = options.map { label(it) },
+        selected = options.indexOf(selected).coerceAtLeast(0).toFloat(),
+        onSelect = { onSelect(options[it]) },
+        container = Helm.colors.surface2,
+    )
 }
 
 // --- Shared labels ----------------------------------------------------------------
@@ -1240,33 +1138,13 @@ internal fun intervalLabel(seconds: Int): String = when (seconds) {
  */
 @Composable
 internal fun RuleProvidersEntryCard(count: Int?, onClick: () -> Unit) {
-    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.Outlined.Dataset,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                Text(
-                    stringResource(R.string.rule_providers_title),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    if (count != null) pluralStringResource(R.plurals.n_rule_providers, count, count)
-                    else stringResource(R.string.rule_providers_entry_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+    EntryCard(
+        icon = Icons.Outlined.Dataset,
+        title = stringResource(R.string.rule_providers_title),
+        subtitle = if (count != null) pluralStringResource(R.plurals.n_rule_providers, count, count)
+        else stringResource(R.string.rule_providers_entry_desc),
+        onClick = onClick,
+        tint = Tints.teal,
+        shape = MaterialShapes.Cookie6Sided,
+    )
 }

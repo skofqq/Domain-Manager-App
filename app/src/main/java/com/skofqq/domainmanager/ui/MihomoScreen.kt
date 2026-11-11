@@ -1,5 +1,27 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material3.toShape
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
+import coil.decode.SvgDecoder
+import coil.ImageLoader
+import android.content.Context
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.material3.LinearWavyProgressIndicator
+import com.skofqq.domainmanager.ui.theme.Helm
+import com.skofqq.domainmanager.ui.theme.Tint
+import com.skofqq.domainmanager.ui.theme.Tints
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material.icons.outlined.Hub
+import com.skofqq.domainmanager.ui.components.*
 import androidx.activity.BackEventCompat
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.Crossfade
@@ -206,11 +228,9 @@ private fun MihomoRootScreen(
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // --- Traffic (client-side delta between two polls) — kept on top so the
+            // --- Traffic (client-side delta between two polls): kept on top so the
             // live speed is visible without scrolling past the group list. ---
-            item { SectionLabel(stringResource(R.string.section_traffic)) }
             item {
                 TrafficCard(
                     downSpeed = state.downSpeedBps,
@@ -220,152 +240,175 @@ private fun MihomoRootScreen(
                     samples = state.trafficSamples,
                 )
             }
+            item { Spacer(Modifier.height(14.dp)) }
 
             // --- Proxy groups ---
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    SectionLabel(stringResource(R.string.section_proxy_groups))
-                    Spacer(Modifier.weight(1f))
-                    ListGridToggle(
-                        grid = viewModel.groupsGrid,
-                        onChange = { viewModel.setGroupsGridMode(it) },
-                    )
-                }
-            }
-            state.groupsError?.let { message ->
-                item {
-                    Column {
-                        ErrorCard(message)
-                        TextButton(onClick = { viewModel.refreshGroups() }) {
-                            Text(stringResource(R.string.retry))
-                        }
-                    }
-                }
-            }
-            if (groupsBrush != null) {
-                items(3) { SkeletonGroupRow(groupsBrush) }
-            }
-            state.groups?.let { groups ->
-                if (viewModel.groupsGrid) {
-                    // Same cards and tap behavior, just packed two per row.
-                    items(groups.chunked(2), key = { it.first().name }) { pair ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            pair.forEach { group ->
-                                GroupGridCard(
-                                    group = group,
-                                    busy = state.selectingGroup == group.name,
-                                    onClick = { sheetGroupName = group.name },
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                            if (pair.size == 1) Spacer(Modifier.weight(1f))
-                        }
-                    }
-                } else {
-                    items(groups, key = { it.name }) { group ->
-                        GroupCard(
-                            group = group,
-                            busy = state.selectingGroup == group.name,
-                            onClick = { sheetGroupName = group.name },
+                HelmSection(
+                    title = stringResource(R.string.section_proxy_groups),
+                    subtitle = state.groups?.let { pluralStringResource(R.plurals.n_proxy_groups, it.size, it.size) },
+                    icon = Icons.Outlined.Hub,
+                    tint = Tints.accent,
+                    shape = MaterialShapes.Cookie9Sided,
+                    trailing = {
+                        SectionIconButton(
+                            Icons.Outlined.Speed,
+                            stringResource(R.string.delay_test_all),
+                            enabled = state.groups != null && state.testingGroups.isEmpty(),
+                            tint = Tints.green,
+                        ) { viewModel.testAllGroups() }
+                        IconToggle(
+                            first = Icons.AutoMirrored.Filled.ViewList,
+                            second = Icons.Filled.GridView,
+                            secondSelected = viewModel.groupsGrid,
+                            onChange = { viewModel.setGroupsGridMode(it) },
+                            firstLabel = stringResource(R.string.groups_view_list),
+                            secondLabel = stringResource(R.string.groups_view_grid),
                         )
+                    },
+                ) {
+                    state.groupsError?.let { message ->
+                        ErrorCard(message, onRetry = { viewModel.refreshGroups() })
+                    }
+                    if (groupsBrush != null) {
+                        repeat(3) { SkeletonBox(groupsBrush, Modifier.fillMaxWidth().height(52.dp), RoundedCornerShape(16.dp)) }
+                    }
+                    state.groups?.let { groups ->
+                        if (viewModel.groupsGrid) {
+                            // Same content and tap behavior, just packed two per row.
+                            TileGrid(
+                                groups.mapIndexed { index, group ->
+                                    @Composable { m: Modifier ->
+                                        GroupGridCard(
+                                            group = group,
+                                            index = index,
+                                            busy = state.selectingGroup == group.name,
+                                            delayMs = state.currentDelay(group),
+                                            testing = group.name in state.testingGroups,
+                                            onTest = { viewModel.testGroup(group.name) },
+                                            onClick = { sheetGroupName = group.name },
+                                            modifier = m,
+                                        )
+                                    }
+                                },
+                            )
+                        } else {
+                            Column {
+                                groups.forEachIndexed { index, group ->
+                                    if (index > 0) SectionDivider()
+                                    GroupCard(
+                                        group = group,
+                                        index = index,
+                                        busy = state.selectingGroup == group.name,
+                                        delayMs = state.currentDelay(group),
+                                        testing = group.name in state.testingGroups,
+                                        onTest = { viewModel.testGroup(group.name) },
+                                        onClick = { sheetGroupName = group.name },
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
+            item { Spacer(Modifier.height(14.dp)) }
 
-            // --- Subscriptions (the shared node pool every group selects from) ---
-            item { SectionLabel(stringResource(R.string.section_subscriptions)) }
+            // --- Subscriptions (the shared node pool every group selects from) and
+            // rule providers (external rule-sets bound to a proxy group) ---
             item {
                 SubscriptionsEntryCard(
                     count = subscriptionsState.subscriptions?.size,
                     onClick = onOpenSubscriptions,
                 )
             }
-
-            // --- Rule providers (external rule-sets bound to a proxy group) ---
-            item { SectionLabel(stringResource(R.string.section_rule_providers)) }
+            item { Spacer(Modifier.height(10.dp)) }
             item {
                 RuleProvidersEntryCard(
                     count = providersState.providers?.size,
                     onClick = onOpenRuleProviders,
                 )
             }
+            item { Spacer(Modifier.height(14.dp)) }
 
-            // --- Active connections ---
-            item { SectionLabel(stringResource(R.string.section_connections)) }
-            state.connectionsError?.let { message ->
-                item { ErrorCard(message) }
-            }
+            // --- Active connections: a sliced section, one lazy item per row ---
             val connections = state.connections
             // Per-source-device grouping. IMPORTANT: these numbers cover ONLY the
-            // traffic that flows through the mihomo proxy — not the device's whole
-            // traffic; the caption below the chips says so explicitly.
+            // traffic that flows through the mihomo proxy, not the whole traffic of
+            // the device; the caption below the chips says so explicitly.
             val bySource = connections.orEmpty()
                 .filter { it.sourceIP.isNotEmpty() }
                 .groupBy { it.sourceIP }
-            if (bySource.isNotEmpty()) {
-                item {
-                    SourceDeviceChips(
-                        bySource = bySource,
-                        deviceNames = state.deviceNames,
-                        selected = sourceFilter,
-                        onSelect = { sourceFilter = it },
-                    )
-                }
-                item {
-                    Text(
-                        stringResource(R.string.mihomo_only_note),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
             // A filtered-out device (all its connections closed) resets to "all".
             val activeFilter = sourceFilter?.takeIf { it in bySource }
             val shownConnections = if (activeFilter != null) {
                 connections.orEmpty().filter { it.sourceIP == activeFilter }
             } else connections
-            if (activeFilter != null) {
-                val filtered = bySource[activeFilter].orEmpty()
-                item {
-                    Text(
-                        stringResource(
-                            R.string.source_traffic_summary,
-                            state.deviceNames[activeFilter] ?: activeFilter,
-                            formatBytes(filtered.sumOf { it.download }),
-                            formatBytes(filtered.sumOf { it.upload }),
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
+            val hasRows = !shownConnections.isNullOrEmpty()
+            item(key = "conn-header") {
+                Column(
+                    Modifier
+                        .sectionSlice(first = true, last = !hasRows, color = Helm.colors.card)
+                        .padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = if (hasRows) 6.dp else 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    HelmSectionHeader(
+                        title = stringResource(R.string.section_connections),
+                        subtitle = stringResource(R.string.mihomo_only_note).takeIf { bySource.isNotEmpty() },
+                        icon = Icons.Outlined.Lan,
+                        tint = Tints.purple,
+                        shape = MaterialShapes.Clover4Leaf,
+                        trailing = connections?.let { { ValuePill(it.size.toString(), Tints.purple) } },
                     )
-                }
-            }
-            when {
-                shownConnections == null && state.connectionsError == null -> item {
-                    val brush = shimmerBrush()
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        repeat(4) { SkeletonGroupRow(brush) }
+                    state.connectionsError?.let { message -> ErrorCard(message) }
+                    if (bySource.isNotEmpty()) {
+                        SourceDeviceChips(
+                            bySource = bySource,
+                            deviceNames = state.deviceNames,
+                            selected = sourceFilter,
+                            onSelect = { sourceFilter = it },
+                        )
+                    }
+                    if (activeFilter != null) {
+                        val filtered = bySource[activeFilter].orEmpty()
+                        Text(
+                            stringResource(
+                                R.string.source_traffic_summary,
+                                state.deviceNames[activeFilter] ?: activeFilter,
+                                formatBytes(filtered.sumOf { it.download }),
+                                formatBytes(filtered.sumOf { it.upload }),
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Helm.colors.accent,
+                        )
+                    }
+                    when {
+                        shownConnections == null && state.connectionsError == null -> {
+                            val brush = shimmerBrush()
+                            repeat(4) { SkeletonBox(brush, Modifier.fillMaxWidth().height(52.dp), RoundedCornerShape(16.dp)) }
+                        }
+                        shownConnections != null && shownConnections.isEmpty() ->
+                            SectionNote(stringResource(R.string.no_connections))
                     }
                 }
-                shownConnections != null && shownConnections.isEmpty() -> item {
-                    Text(
-                        stringResource(R.string.no_connections),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 8.dp),
-                    )
-                }
-                shownConnections != null -> items(shownConnections, key = { it.id }) { conn ->
-                    ConnectionCard(
-                        connection = conn,
-                        sourceName = conn.sourceIP.takeIf { it.isNotEmpty() }
-                            ?.let { state.deviceNames[it] ?: it },
-                        closing = state.closingId == conn.id,
-                        closeEnabled = state.closingId == null,
-                        onClose = { viewModel.closeConnection(conn.id) },
-                    )
+            }
+            if (shownConnections != null) {
+                itemsIndexed(shownConnections, key = { _, conn -> conn.id }) { index, conn ->
+                    val last = index == shownConnections.lastIndex
+                    Column(
+                        Modifier
+                            .sectionSlice(first = false, last = last, color = Helm.colors.card)
+                            .padding(start = 18.dp, end = 6.dp, bottom = if (last) 10.dp else 0.dp),
+                    ) {
+                        if (index > 0) SectionDivider()
+                        ConnectionCard(
+                            connection = conn,
+                            sourceName = conn.sourceIP.takeIf { it.isNotEmpty() }
+                                ?.let { state.deviceNames[it] ?: it },
+                            closing = state.closingId == conn.id,
+                            closeEnabled = state.closingId == null,
+                            onClose = { viewModel.closeConnection(conn.id) },
+                        )
+                    }
                 }
             }
         }
@@ -375,7 +418,7 @@ private fun MihomoRootScreen(
     // switch immediately re-marks the active node.
     val sheetGroup = state.groups?.firstOrNull { it.name == sheetGroupName }
     if (sheetGroupName != null && sheetGroup != null) {
-        ModalBottomSheet(
+        HelmBottomSheet(
             onDismissRequest = {
                 sheetGroupName = null
                 viewModel.clearSelectError()
@@ -383,6 +426,7 @@ private fun MihomoRootScreen(
         ) {
             GroupSheetContent(
                 group = sheetGroup,
+                index = state.groups.orEmpty().indexOf(sheetGroup).coerceAtLeast(0),
                 nodes = state.nodes,
                 selecting = state.selectingGroup == sheetGroup.name,
                 selectError = state.selectError,
@@ -408,80 +452,53 @@ private fun MihomoRootScreen(
  */
 @Composable
 private fun ListGridToggle(grid: Boolean, onChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .padding(2.dp),
-    ) {
-        ToggleIcon(
-            selected = !grid,
-            icon = Icons.AutoMirrored.Filled.ViewList,
-            contentDescription = stringResource(R.string.groups_view_list),
-            onClick = { onChange(false) },
-        )
-        ToggleIcon(
-            selected = grid,
-            icon = Icons.Filled.GridView,
-            contentDescription = stringResource(R.string.groups_view_grid),
-            onClick = { onChange(true) },
-        )
-    }
+    IconToggle(
+        first = Icons.AutoMirrored.Filled.ViewList,
+        second = Icons.Filled.GridView,
+        secondSelected = grid,
+        onChange = onChange,
+        firstLabel = stringResource(R.string.groups_view_list),
+        secondLabel = stringResource(R.string.groups_view_grid),
+    )
 }
 
-@Composable
-private fun ToggleIcon(
-    selected: Boolean,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(34.dp)
-            .clip(CircleShape)
-            .then(
-                if (selected) Modifier.background(MaterialTheme.colorScheme.primary) else Modifier
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            icon,
-            contentDescription = contentDescription,
-            tint = if (selected) MaterialTheme.colorScheme.onPrimary
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp),
-        )
-    }
-}
-
-/** Compact 2-column variant of [GroupCard]; same content, same tap → node sheet. */
+/** Compact 2-column variant of [GroupCard]; same content, same tap: node sheet. */
 @Composable
 private fun GroupGridCard(
     group: MihomoGroup,
+    index: Int,
     busy: Boolean,
+    delayMs: Int?,
+    testing: Boolean,
+    onTest: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(onClick = onClick, modifier = modifier) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = group.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                if (busy) {
-                    CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
-                }
-            }
+    Column(
+        modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Helm.colors.surface2)
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            GroupIcon(group, index, 36.dp)
+            Spacer(Modifier.weight(1f))
+            if (busy) LoadingIndicator(Modifier.size(28.dp)) else DelayPill(delayMs, testing, onTest)
+        }
+        Column {
+            Text(
+                text = group.name,
+                style = MaterialTheme.typography.titleSmall,
+                color = Helm.colors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             Text(
                 text = group.now,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
+                color = Helm.colors.accent,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -490,43 +507,42 @@ private fun GroupGridCard(
 }
 
 @Composable
-private fun GroupCard(group: MihomoGroup, busy: Boolean, onClick: () -> Unit) {
-    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = group.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = group.now,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            if (busy) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-            } else {
+private fun GroupCard(
+    group: MihomoGroup,
+    index: Int,
+    busy: Boolean,
+    delayMs: Int?,
+    testing: Boolean,
+    onTest: () -> Unit,
+    onClick: () -> Unit,
+) {
+    SectionRow(
+        title = group.name,
+        subtitle = group.now,
+        onClick = onClick,
+        leading = { GroupIcon(group, index, 40.dp) },
+        trailing = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (busy) {
+                    LoadingIndicator(Modifier.size(32.dp))
+                } else {
+                    DelayPill(delayMs, testing, onTest)
+                }
                 Icon(
                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = Helm.colors.text2,
                 )
             }
-        }
-    }
+        },
+    )
 }
 
 @Composable
 private fun GroupSheetContent(
     group: MihomoGroup,
+    /** Position in the group list, so the sheet icon matches the colour of its row. */
+    index: Int,
     nodes: Map<String, MihomoNodeInfo>,
     selecting: Boolean,
     selectError: UiMessage?,
@@ -554,19 +570,18 @@ private fun GroupSheetContent(
                     .padding(horizontal = 20.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                GroupIcon(group, index, 40.dp)
+                Spacer(Modifier.width(12.dp))
                 Text(
                     text = group.name,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (selecting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.padding(end = 10.dp).size(18.dp),
-                        strokeWidth = 2.dp,
-                    )
+                    LoadingIndicator(Modifier.padding(end = 6.dp).size(36.dp))
                 }
                 ListGridToggle(grid = nodesGrid, onChange = onNodesGridChange)
             }
@@ -578,10 +593,12 @@ private fun GroupSheetContent(
         }
         if (delaysLoading && delayGroup == group.name) {
             item {
-                LinearProgressIndicator(
+                LinearWavyProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 6.dp),
+                    color = Helm.colors.accent,
+                    trackColor = Helm.colors.surface2,
                 )
             }
         }
@@ -625,8 +642,11 @@ private fun GroupSheetContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = 10.dp, vertical = 2.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(if (active) Tints.accent.bg else androidx.compose.ui.graphics.Color.Transparent)
                         .clickable(enabled = !selecting && !active) { onPick(proxy) }
-                        .padding(horizontal = 20.dp, vertical = 11.dp),
+                        .padding(horizontal = 12.dp, vertical = 11.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
@@ -684,10 +704,12 @@ private fun NodeGridCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(
+    HelmCard(
         onClick = onClick,
         enabled = enabled && !active,
         modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        colors = helmCardColors(if (active) Tints.accent.bg.compositeOver(Helm.colors.card) else Helm.colors.card),
     ) {
         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -730,23 +752,17 @@ private fun NodeGridCard(
 private fun NodeDelayText(delayMs: Int?, tested: Boolean, modifier: Modifier = Modifier) {
     if (!tested) return
     if (delayMs != null) {
-        Text(
-            text = stringResource(R.string.ms_value, delayMs),
-            style = MaterialTheme.typography.labelMedium,
-            color = when {
-                delayMs < 100 -> statusOk
-                delayMs < 300 -> MaterialTheme.colorScheme.tertiary
-                else -> MaterialTheme.colorScheme.error
+        ValuePill(
+            stringResource(R.string.ms_value, delayMs),
+            when {
+                delayMs < 100 -> Tints.green
+                delayMs < 300 -> Tints.amber
+                else -> Tints.red
             },
-            modifier = modifier,
+            modifier,
         )
     } else {
-        Text(
-            text = stringResource(R.string.node_no_response),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.error,
-            modifier = modifier,
-        )
+        ValuePill(stringResource(R.string.node_no_response), Tints.red, modifier)
     }
 }
 
@@ -758,39 +774,47 @@ private fun TrafficCard(
     upTotal: Long?,
     samples: List<TrafficSample>,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
-            Row {
-                TrafficColumn(
-                    icon = Icons.Filled.ArrowDownward,
-                    labelRes = R.string.traffic_download,
-                    speed = downSpeed,
-                    total = downTotal,
-                    modifier = Modifier.weight(1f),
-                )
-                TrafficColumn(
-                    icon = Icons.Filled.ArrowUpward,
-                    labelRes = R.string.traffic_upload,
-                    speed = upSpeed,
-                    total = upTotal,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            // Live rolling chart over the client-side poll buffer — needs at
-            // least two deltas to draw a line.
-            if (samples.size >= 2) {
-                Spacer(Modifier.height(12.dp))
+    HelmSection(
+        title = stringResource(R.string.section_traffic),
+        icon = Icons.Outlined.SwapVert,
+        tint = Tints.teal,
+        shape = MaterialShapes.Sunny,
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            TrafficColumn(
+                icon = Icons.Filled.ArrowDownward,
+                labelRes = R.string.traffic_download,
+                speed = downSpeed,
+                total = downTotal,
+                tint = Tints.blue,
+                modifier = Modifier.weight(1f),
+            )
+            TrafficColumn(
+                icon = Icons.Filled.ArrowUpward,
+                labelRes = R.string.traffic_upload,
+                speed = upSpeed,
+                total = upTotal,
+                tint = Tints.purple,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        // Live rolling chart over the client-side poll buffer: needs at least two
+        // deltas to draw a line.
+        if (samples.size >= 2) {
+            Column(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Helm.colors.surface2).padding(12.dp),
+            ) {
                 TrafficChart(
                     samples = samples,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(72.dp),
+                        .height(80.dp),
                 )
                 Text(
                     stringResource(R.string.traffic_chart_caption),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
+                    color = Helm.colors.text2,
+                    modifier = Modifier.padding(top = 6.dp),
                 )
             }
         }
@@ -799,13 +823,13 @@ private fun TrafficCard(
 
 /**
  * Rolling speed chart over the last ~5 minutes of polls: download as a filled
- * primary line, upload as a tertiary line on the same auto-scaled axis. The
- * buffer fills left-to-right until [samples] hits its cap, then scrolls.
+ * blue line, upload as a purple line on the same auto-scaled axis. The buffer
+ * fills left-to-right until [samples] hits its cap, then scrolls.
  */
 @Composable
 private fun TrafficChart(samples: List<TrafficSample>, modifier: Modifier = Modifier) {
-    val downColor = MaterialTheme.colorScheme.primary
-    val upColor = MaterialTheme.colorScheme.tertiary
+    val downColor = Tints.blue.fg
+    val upColor = Tints.purple.fg
     Canvas(modifier = modifier) {
         val max = samples.maxOf { maxOf(it.downBps, it.upBps) }.coerceAtLeast(1L).toFloat()
         // Fixed horizontal scale (the buffer cap), so the chart fills up in real
@@ -829,8 +853,11 @@ private fun TrafficChart(samples: List<TrafficSample>, modifier: Modifier = Modi
             lineTo(0f, size.height)
             close()
         }
-        drawPath(downFill, downColor.copy(alpha = 0.15f))
-        drawPath(downLine, downColor, style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round))
+        drawPath(
+            downFill,
+            androidx.compose.ui.graphics.Brush.verticalGradient(listOf(downColor.copy(alpha = 0.35f), downColor.copy(alpha = 0f))),
+        )
+        drawPath(downLine, downColor, style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round))
         drawPath(
             lineFor { it.upBps },
             upColor,
@@ -843,7 +870,6 @@ private fun TrafficChart(samples: List<TrafficSample>, modifier: Modifier = Modi
  * Filter chips for the connection list, one per source device (matched to
  * action=devices by IP) plus "all". Labels show the mihomo-only connection count.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SourceDeviceChips(
     bySource: Map<String, List<MihomoConnection>>,
@@ -851,29 +877,20 @@ private fun SourceDeviceChips(
     selected: String?,
     onSelect: (String?) -> Unit,
 ) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        FilterChip(
+    ChipScroller {
+        HelmChip(
+            text = stringResource(R.string.source_all),
             selected = selected == null,
             onClick = { onSelect(null) },
-            label = { Text(stringResource(R.string.source_all)) },
         )
-        // Busiest devices first — stable, meaningful order between polls.
+        // Busiest devices first: stable, meaningful order between polls.
         bySource.entries
             .sortedByDescending { entry -> entry.value.sumOf { it.download + it.upload } }
             .forEach { (ip, conns) ->
-                FilterChip(
+                HelmChip(
+                    text = "${deviceNames[ip] ?: ip} · ${conns.size}",
                     selected = selected == ip,
                     onClick = { onSelect(if (selected == ip) null else ip) },
-                    label = {
-                        Text(
-                            "${deviceNames[ip] ?: ip} · ${conns.size}",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
                 )
             }
     }
@@ -906,21 +923,10 @@ private fun ProtocolBadge(info: MihomoNodeInfo, ipv6: Boolean?) {
     }
 }
 
-/** Tiny outlined capability label (protocol name, UDP, TFO) in the node sheet. */
+/** Tiny capability label (protocol name, UDP, TFO) in the node sheet. */
 @Composable
 private fun NodeBadge(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .border(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant,
-                RoundedCornerShape(6.dp),
-            )
-            .padding(horizontal = 5.dp, vertical = 1.dp),
-    )
+    ValuePill(text, Tints.gray)
 }
 
 @Composable
@@ -929,36 +935,41 @@ private fun TrafficColumn(
     labelRes: Int,
     speed: Long?,
     total: Long?,
+    tint: Tint,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.clip(RoundedCornerShape(20.dp)).background(tint.bg).padding(14.dp),
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Icon(
                 icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = tint.fg,
                 modifier = Modifier.size(16.dp),
             )
             Text(
                 stringResource(labelRes),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = tint.fg,
             )
         }
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(6.dp))
         Text(
             // Two polls are needed before the first delta exists.
             text = if (speed != null) stringResource(R.string.speed_value, formatBytes(speed)) else "…",
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = Helm.colors.text,
         )
         total?.let {
             Text(
                 stringResource(R.string.traffic_total, formatBytes(it)),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Helm.colors.text2,
             )
         }
     }
@@ -973,53 +984,47 @@ private fun ConnectionCard(
     closeEnabled: Boolean,
     onClose: () -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = connection.host,
+                style = MaterialTheme.typography.titleSmall,
+                color = Helm.colors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (connection.chains.isNotEmpty()) {
                 Text(
-                    text = connection.host,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (connection.chains.isNotEmpty()) {
-                    Text(
-                        text = connection.chains.joinToString(" › "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Text(
-                    text = buildString {
-                        append("↓ ${formatBytes(connection.download)} · ↑ ${formatBytes(connection.upload)}")
-                        if (sourceName != null) append(" · $sourceName")
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = connection.chains.joinToString(" › "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Helm.colors.accent,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            if (closing) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .size(20.dp),
-                    strokeWidth = 2.dp,
+            Text(
+                text = buildString {
+                    append("↓ ${formatBytes(connection.download)} · ↑ ${formatBytes(connection.upload)}")
+                    if (sourceName != null) append(" · $sourceName")
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = Helm.colors.text2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (closing) {
+            LoadingIndicator(Modifier.padding(4.dp).size(40.dp))
+        } else {
+            IconButton(onClick = onClose, enabled = closeEnabled) {
+                Icon(
+                    Icons.Filled.Close,
+                    contentDescription = stringResource(R.string.close_connection),
+                    tint = Helm.colors.text2,
                 )
-            } else {
-                IconButton(onClick = onClose, enabled = closeEnabled) {
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.close_connection),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
         }
     }
@@ -1027,7 +1032,7 @@ private fun ConnectionCard(
 
 @Composable
 private fun SkeletonGroupRow(brush: androidx.compose.ui.graphics.Brush) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    HelmCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -1035,5 +1040,48 @@ private fun SkeletonGroupRow(brush: androidx.compose.ui.graphics.Brush) {
             SkeletonBox(brush, Modifier.fillMaxWidth(0.5f).height(16.dp))
             SkeletonBox(brush, Modifier.fillMaxWidth(0.35f).height(12.dp))
         }
+    }
+}
+
+/** One image loader for config icons: PNG/JPEG/WebP out of the box plus SVG; Coil caches on disk. */
+private object GroupIconLoader {
+    @Volatile private var loader: ImageLoader? = null
+
+    fun get(context: Context): ImageLoader = loader ?: synchronized(this) {
+        loader ?: ImageLoader.Builder(context.applicationContext)
+            .components { add(SvgDecoder.Factory()) }
+            .crossfade(true)
+            .build()
+            .also { loader = it }
+    }
+}
+
+/**
+ * Icon of a proxy group: the picture from the `icon:` URL of the group in the router's mihomo
+ * config, on the same soft shaped tile as everywhere else. Falls back to the generic hub glyph
+ * while loading, when the group has no icon or the URL does not load.
+ */
+@Composable
+private fun GroupIcon(group: MihomoGroup, index: Int, size: androidx.compose.ui.unit.Dp) {
+    val tint = cycleTint(index)
+    val url = group.icon
+    if (url == null) {
+        ShapeIcon(Icons.Outlined.Hub, tint, shape = cycleShape(index), size = size)
+        return
+    }
+    val context = LocalContext.current
+    Box(
+        Modifier.size(size).clip(cycleShape(index).toShape()).background(tint.bg),
+        contentAlignment = Alignment.Center,
+    ) {
+        SubcomposeAsyncImage(
+            model = ImageRequest.Builder(context).data(url).build(),
+            imageLoader = GroupIconLoader.get(context),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            loading = { Icon(Icons.Outlined.Hub, null, Modifier.size(size * 0.5f), tint = tint.fg) },
+            error = { Icon(Icons.Outlined.Hub, null, Modifier.size(size * 0.5f), tint = tint.fg) },
+            modifier = Modifier.size(size * 0.62f),
+        )
     }
 }

@@ -1,5 +1,6 @@
 package com.skofqq.domainmanager.ui
 
+import com.skofqq.domainmanager.ui.components.*
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -84,7 +85,7 @@ fun SkeletonBox(
 /** Routing row placeholder: domain bar + two indicator dots + action circle. */
 @Composable
 fun SkeletonDomainRow(brush: Brush) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    HelmCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(start = 16.dp, end = 12.dp, top = 16.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -101,7 +102,7 @@ fun SkeletonDomainRow(brush: Brush) {
 /** Strategies row placeholder: domain bar + strategy badge pill + delete circle. */
 @Composable
 fun SkeletonStrategyRow(brush: Brush) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    HelmCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .padding(start = 16.dp, end = 8.dp)
@@ -119,7 +120,7 @@ fun SkeletonStrategyRow(brush: Brush) {
 /** zapret2 profile row placeholder: name + badge caption bar, stepper on the right. */
 @Composable
 fun SkeletonProfileRow(brush: Brush) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    HelmCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .padding(start = 16.dp, end = 8.dp)
@@ -141,7 +142,7 @@ fun SkeletonProfileRow(brush: Brush) {
 /** Status service card placeholder: title, two indicator bars, two action buttons. */
 @Composable
 fun SkeletonServiceCard(brush: Brush) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    HelmCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),

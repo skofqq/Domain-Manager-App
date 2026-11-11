@@ -1,5 +1,22 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import com.skofqq.domainmanager.ui.theme.Helm
+import com.skofqq.domainmanager.ui.theme.Tint
+import com.skofqq.domainmanager.ui.theme.Tints
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material.icons.outlined.TravelExplore
+import androidx.compose.material.icons.outlined.Shuffle
+import androidx.compose.material.icons.outlined.VpnLock
+import com.skofqq.domainmanager.ui.components.*
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -98,56 +115,46 @@ fun TorScreen(viewModel: TorViewModel, onBack: () -> Unit) {
     StatusChildScaffold(
         title = stringResource(R.string.tor_title),
         onBack = onBack,
-        floatingActionButton = {
-            // Bridges are the only thing on this screen you add — no FAB before
-            // the first list arrives, and none at all without Tor installed.
-            if (installed && state.bridges != null) {
-                ExtendedFloatingActionButton(
-                    onClick = { addOpen = true },
-                    icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    text = { Text(stringResource(R.string.tor_add_bridge)) },
-                )
-            }
-        },
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             state.error?.let { message ->
                 item {
-                    Column {
-                        ErrorCard(message)
-                        TextButton(onClick = { viewModel.refresh() }) {
-                            Text(stringResource(R.string.retry))
-                        }
-                    }
+                    ErrorCard(message, onRetry = { viewModel.refresh() })
                 }
             }
             if (skeletonBrush != null) {
                 item {
                     SkeletonBox(
                         skeletonBrush,
-                        Modifier.fillMaxWidth().height(160.dp),
-                        MaterialTheme.shapes.medium,
+                        Modifier.fillMaxWidth().height(220.dp),
+                        CardShape,
                     )
                 }
             }
-            // installed=false is the whole answer from a router without Tor —
+            // installed=false is the whole answer from a router without Tor:
             // nothing below it would have any data to show.
             if (!installed) {
-                item { TorNotInstalledCard() }
+                item {
+                    EmptyState(
+                        icon = Icons.Outlined.VpnLock,
+                        title = stringResource(R.string.tor_not_installed),
+                        body = stringResource(R.string.tor_not_installed_hint),
+                        tint = Tints.purple,
+                    )
+                }
                 return@LazyColumn
             }
             state.status?.let { status ->
-                item { TorStatusCard(status) }
                 item {
-                    TorServiceButtons(
-                        running = status.running,
-                        enabled = !state.busyService && !state.savingBridges,
+                    TorStatusSection(
+                        status = status,
+                        actionsEnabled = !state.busyService && !state.savingBridges,
                         busy = state.busyService,
                         onStart = { viewModel.start() },
                         onStop = { viewModel.stop() },
@@ -156,100 +163,88 @@ fun TorScreen(viewModel: TorViewModel, onBack: () -> Unit) {
                 }
 
                 // --- New identity ---------------------------------------------
-                item { SectionLabel(stringResource(R.string.tor_new_identity)) }
                 item {
-                    Text(
-                        stringResource(R.string.tor_new_identity_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                item {
-                    OutlinedButton(
-                        onClick = { viewModel.newIdentity() },
-                        enabled = !state.newnymRunning && !state.busyService,
-                        modifier = Modifier.fillMaxWidth(),
+                    HelmSection(
+                        title = stringResource(R.string.tor_new_identity),
+                        subtitle = stringResource(R.string.tor_new_identity_hint),
+                        icon = Icons.Outlined.Shuffle,
+                        tint = Tints.teal,
+                        shape = MaterialShapes.Clover4Leaf,
                     ) {
-                        if (state.newnymRunning) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.width(8.dp))
-                        }
-                        Text(stringResource(R.string.tor_new_identity))
+                        HelmButton(
+                            text = stringResource(R.string.tor_new_identity),
+                            onClick = { viewModel.newIdentity() },
+                            enabled = !state.busyService,
+                            loading = state.newnymRunning,
+                            icon = Icons.Outlined.Shuffle,
+                            style = ButtonStyle.Tonal,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
 
                 // --- Connectivity test ----------------------------------------
-                item { SectionLabel(stringResource(R.string.tor_test_title)) }
                 item {
-                    Text(
-                        stringResource(R.string.tor_test_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                item {
-                    FilledTonalButton(
-                        onClick = { viewModel.testConnection() },
-                        enabled = !state.testRunning,
-                        modifier = Modifier.fillMaxWidth(),
+                    HelmSection(
+                        title = stringResource(R.string.tor_test_title),
+                        subtitle = stringResource(R.string.tor_test_hint),
+                        icon = Icons.Outlined.TravelExplore,
+                        tint = Tints.blue,
+                        shape = MaterialShapes.Sunny,
                     ) {
-                        if (state.testRunning) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.width(8.dp))
-                        }
-                        Text(
-                            stringResource(
+                        state.testResult?.let { result -> TorTestResult(result) }
+                        state.testError?.let { ErrorCard(it) }
+                        HelmButton(
+                            text = stringResource(
                                 if (state.testRunning) R.string.tor_testing
                                 else R.string.tor_test_connection
-                            )
+                            ),
+                            onClick = { viewModel.testConnection() },
+                            loading = state.testRunning,
+                            icon = Icons.Filled.PlayArrow,
+                            style = ButtonStyle.Primary,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
-                state.testError?.let { item { ErrorCard(it) } }
-                state.testResult?.let { result -> item { TorTestCard(result) } }
 
                 // --- Bridges ---------------------------------------------------
-                item { SectionLabel(stringResource(R.string.tor_bridges_title)) }
                 item {
-                    Text(
-                        stringResource(R.string.tor_bridges_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                state.bridgesError?.let { item { ErrorCard(it) } }
-                // One combined busy state: tor_bridges_set only rewrites torrc,
-                // the restart right after it is what makes the change real.
-                if (state.savingBridges) {
-                    item {
-                        Column {
-                            Text(
-                                stringResource(R.string.tor_bridges_saving),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    val bridges = state.bridges
+                    HelmSection(
+                        title = stringResource(R.string.tor_bridges_title),
+                        subtitle = stringResource(R.string.tor_bridges_hint),
+                        icon = Icons.Outlined.Route,
+                        tint = Tints.orange,
+                        shape = MaterialShapes.Cookie6Sided,
+                        trailing = if (bridges != null) {
+                            {
+                                SectionIconButton(
+                                    Icons.Filled.Add,
+                                    stringResource(R.string.tor_add_bridge),
+                                    enabled = !state.savingBridges,
+                                ) { addOpen = true }
+                            }
+                        } else null,
+                    ) {
+                        state.bridgesError?.let { ErrorCard(it) }
+                        // One combined busy state: tor_bridges_set only rewrites torrc,
+                        // the restart right after it is what makes the change real.
+                        if (state.savingBridges) {
+                            SectionNote(stringResource(R.string.tor_bridges_saving))
+                        }
+                        WorkingStrip(state.savingBridges)
+                        if (bridges != null && bridges.isEmpty()) {
+                            SectionNote(stringResource(R.string.tor_no_bridges))
+                        }
+                        bridges?.forEach { bridge ->
+                            BridgeRow(
+                                bridge = bridge,
+                                actionsEnabled = !state.savingBridges,
+                                onRemove = { confirmRemove = bridge },
                             )
-                            Spacer(Modifier.height(6.dp))
-                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                         }
                     }
-                }
-                val bridges = state.bridges
-                if (bridges != null && bridges.isEmpty()) {
-                    item {
-                        Text(
-                            stringResource(R.string.tor_no_bridges),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 16.dp),
-                        )
-                    }
-                }
-                items(bridges.orEmpty(), key = { it }) { bridge ->
-                    BridgeRow(
-                        bridge = bridge,
-                        actionsEnabled = !state.savingBridges,
-                        onRemove = { confirmRemove = bridge },
-                    )
                 }
             }
         }
@@ -263,7 +258,7 @@ fun TorScreen(viewModel: TorViewModel, onBack: () -> Unit) {
     }
 
     confirmRemove?.let { bridge ->
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { confirmRemove = null },
             title = { Text(stringResource(R.string.tor_bridge_delete_title)) },
             text = { Text(stringResource(R.string.tor_bridge_delete_text)) },
@@ -287,196 +282,129 @@ fun TorScreen(viewModel: TorViewModel, onBack: () -> Unit) {
     }
 }
 
+/** Header section: state pills, bootstrap progress, connection facts and the svc_* controls. */
 @Composable
-private fun TorNotInstalledCard() {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text(
-                stringResource(R.string.tor_not_installed),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Text(
-                stringResource(R.string.tor_not_installed_hint),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun TorStatusCard(status: TorStatus) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            // running (live procd state) and enabled (autostart on next boot) are
-            // independent flags — same treatment as the service cards.
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                RunningIndicator(running = status.running, enabled = status.enabled)
-                AutostartIndicator(status.enabled)
-            }
-            // Only meaningful while tor is up and still climbing to 100 — a
-            // finished bootstrap needs no bar.
-            if (status.running && status.bootstrap < 100) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TorRow(
-                        label = stringResource(R.string.tor_bootstrap),
-                        value = stringResource(R.string.tor_bootstrap_progress, status.bootstrap),
-                    )
-                    LinearProgressIndicator(
-                        progress = { status.bootstrap / 100f },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-            TorRow(
-                label = stringResource(R.string.tor_bridges_label),
-                value = pluralStringResource(R.plurals.n_tor_bridges, status.bridges, status.bridges),
-            )
-            // The tor PROCESS's uptime — it resets on every restart, it is not a
-            // "time since the last new identity" counter.
-            if (status.running) {
-                TorRow(
-                    label = stringResource(R.string.tor_uptime),
-                    value = formatUptime(status.uptimeSeconds),
-                )
-            }
-            if (status.socksPort > 0) {
-                TorRow(
-                    label = stringResource(R.string.tor_socks_port),
-                    value = if (status.lanIp.isEmpty()) status.socksPort.toString()
-                    else "${status.lanIp}:${status.socksPort}",
-                    monospace = true,
-                )
-            }
-            if (status.pacUrl.isNotEmpty()) {
-                TorRow(
-                    label = stringResource(R.string.tor_pac_url),
-                    value = status.pacUrl,
-                    monospace = true,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TorRow(label: String, value: String, monospace: Boolean = false) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = value,
-            style = if (monospace) {
-                MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
-            } else MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.End,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 16.dp),
-        )
-    }
-}
-
-/** Same start/stop/restart row the service cards use, driving the generic svc_* actions. */
-@Composable
-private fun TorServiceButtons(
-    running: Boolean,
-    enabled: Boolean,
+private fun TorStatusSection(
+    status: TorStatus,
+    actionsEnabled: Boolean,
     busy: Boolean,
     onStart: () -> Unit,
     onStop: () -> Unit,
     onRestart: () -> Unit,
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    HelmSection(
+        title = "Tor",
+        icon = Icons.Outlined.VpnLock,
+        tint = if (status.running) Tints.green else Tints.gray,
+        shape = MaterialShapes.Cookie12Sided,
+        trailing = if (busy) {
+            { androidx.compose.material3.LoadingIndicator(Modifier.size(40.dp)) }
+        } else null,
     ) {
-        if (!running) {
-            FilledTonalButton(
-                onClick = onStart,
-                enabled = enabled,
-                modifier = Modifier.weight(1f),
-            ) { Text(stringResource(R.string.svc_start)) }
-        } else {
-            OutlinedButton(
-                onClick = onStop,
-                enabled = enabled,
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error,
-                ),
-                modifier = Modifier.weight(1f),
-            ) { Text(stringResource(R.string.svc_stop)) }
-            FilledTonalButton(
-                onClick = onRestart,
-                enabled = enabled,
-                modifier = Modifier.weight(1f),
-            ) { Text(stringResource(R.string.svc_restart)) }
+        // running (live procd state) and enabled (autostart on next boot) are
+        // independent flags: same treatment as the service cards.
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            RunningIndicator(running = status.running, enabled = status.enabled)
+            AutostartIndicator(status.enabled)
         }
-        // svc_* can block up to ~5 s on the router while procd settles.
-        if (busy) {
-            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+        // Only meaningful while tor is up and still climbing to 100.
+        if (status.running && status.bootstrap < 100) {
+            LabeledProgress(
+                label = stringResource(R.string.tor_bootstrap),
+                valueText = stringResource(R.string.tor_bootstrap_progress, status.bootstrap),
+                progress = status.bootstrap / 100f,
+            )
+        }
+        Column {
+            KeyValueRow(
+                stringResource(R.string.tor_bridges_label),
+                pluralStringResource(R.plurals.n_tor_bridges, status.bridges, status.bridges),
+            )
+            // The tor PROCESS uptime: it resets on every restart, it is not a
+            // "time since the last new identity" counter.
+            if (status.running) {
+                KeyValueRow(stringResource(R.string.tor_uptime), formatUptime(status.uptimeSeconds))
+            }
+            if (status.socksPort > 0) {
+                KeyValueRow(
+                    stringResource(R.string.tor_socks_port),
+                    if (status.lanIp.isEmpty()) status.socksPort.toString() else "${status.lanIp}:${status.socksPort}",
+                    monospace = true,
+                )
+            }
+            if (status.pacUrl.isNotEmpty()) {
+                KeyValueRow(stringResource(R.string.tor_pac_url), status.pacUrl, monospace = true)
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (!status.running) {
+                TintButton(
+                    text = stringResource(R.string.svc_start),
+                    tint = Tints.green,
+                    enabled = actionsEnabled,
+                    icon = Icons.Filled.PlayArrow,
+                    modifier = Modifier.weight(1f),
+                    onClick = onStart,
+                )
+            } else {
+                TintButton(
+                    text = stringResource(R.string.svc_stop),
+                    tint = Tints.red,
+                    enabled = actionsEnabled,
+                    icon = Icons.Filled.Stop,
+                    modifier = Modifier.weight(1f),
+                    onClick = onStop,
+                )
+                TintButton(
+                    text = stringResource(R.string.svc_restart),
+                    tint = Tints.accent,
+                    enabled = actionsEnabled,
+                    icon = Icons.Filled.Refresh,
+                    modifier = Modifier.weight(1f),
+                    onClick = onRestart,
+                )
+            }
         }
     }
 }
 
 /**
  * Result of one tor_test. ok=false is a legitimate "not connected" verdict
- * (not bootstrapped, bridges unreachable) — a failure state on the card, not an
- * error toast.
+ * (not bootstrapped, bridges unreachable): a failure state, not an error toast.
  */
 @Composable
-private fun TorTestCard(result: TorTestInfo) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Icon(
-                if (result.ok) Icons.Filled.Check else Icons.Filled.Close,
-                contentDescription = null,
-                tint = if (result.ok) statusOk else MaterialTheme.colorScheme.error,
+private fun TorTestResult(result: TorTestInfo) {
+    val tint = if (result.ok) Tints.green else Tints.red
+    val subtitle = when {
+        result.ok && result.ip.isNotEmpty() -> listOfNotNull(result.ip, countryLabel(result.country)).joinToString("  ·  ")
+        !result.ok -> stringResource(R.string.tor_test_failed_hint)
+        else -> null
+    }
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(tint.bg).padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ShapeIcon(
+            if (result.ok) Icons.Filled.Check else Icons.Filled.Close,
+            Tint(tint.fg, tint.fg.copy(alpha = 0.18f)),
+            shape = if (result.ok) MaterialShapes.Cookie9Sided else MaterialShapes.Cookie4Sided,
+            size = 40.dp,
+        )
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                stringResource(if (result.ok) R.string.tor_test_ok else R.string.tor_test_failed),
+                style = MaterialTheme.typography.titleMedium,
+                color = tint.fg,
             )
-            Column {
+            if (subtitle != null) {
                 Text(
-                    text = if (result.ok) stringResource(R.string.tor_test_ok)
-                    else stringResource(R.string.tor_test_failed),
-                    style = MaterialTheme.typography.titleSmall,
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = if (result.ok) FontFamily.Monospace else null,
+                    ),
+                    color = Helm.colors.text,
                 )
-                if (result.ok && result.ip.isNotEmpty()) {
-                    Text(
-                        text = result.ip,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    // "?" = the exit node was reached but the geo lookup failed.
-                    val country = countryLabel(result.country)
-                    if (country != null) {
-                        Text(
-                            text = country,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                } else if (!result.ok) {
-                    Text(
-                        text = stringResource(R.string.tor_test_failed_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
         }
     }
@@ -501,26 +429,29 @@ private fun countryLabel(code: String): String? {
 @Composable
 private fun BridgeRow(bridge: String, actionsEnabled: Boolean, onRemove: () -> Unit) {
     var expanded by rememberSaveable(bridge) { mutableStateOf(false) }
-    ElevatedCard(onClick = { expanded = !expanded }, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = bridge,
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                maxLines = if (expanded) Int.MAX_VALUE else 2,
-                overflow = if (expanded) TextOverflow.Clip else TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Helm.colors.surface2)
+            .clickable { expanded = !expanded }
+            .padding(start = 14.dp, end = 2.dp, top = 6.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = bridge,
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+            color = Helm.colors.text,
+            maxLines = if (expanded) Int.MAX_VALUE else 2,
+            overflow = if (expanded) TextOverflow.Clip else TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        IconButton(onClick = onRemove, enabled = actionsEnabled) {
+            Icon(
+                Icons.Outlined.Delete,
+                contentDescription = stringResource(R.string.delete),
+                tint = if (actionsEnabled) Tints.red.fg else Helm.colors.text2.copy(alpha = 0.38f),
             )
-            IconButton(onClick = onRemove, enabled = actionsEnabled) {
-                Icon(
-                    Icons.Filled.Delete,
-                    contentDescription = stringResource(R.string.delete),
-                    tint = if (actionsEnabled) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                )
-            }
         }
     }
 }
@@ -537,7 +468,7 @@ private fun AddBridgeSheet(onAdd: (String) -> Unit, onDismiss: () -> Unit) {
     val clipboard = LocalClipboardManager.current
     var input by rememberSaveable { mutableStateOf("") }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    HelmBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -551,7 +482,7 @@ private fun AddBridgeSheet(onAdd: (String) -> Unit, onDismiss: () -> Unit) {
                 text = stringResource(R.string.tor_add_bridge),
                 style = MaterialTheme.typography.titleLarge,
             )
-            OutlinedTextField(
+            HelmTextField(
                 value = input,
                 onValueChange = { input = it },
                 label = { Text(stringResource(R.string.tor_bridge_line)) },
@@ -576,11 +507,13 @@ private fun AddBridgeSheet(onAdd: (String) -> Unit, onDismiss: () -> Unit) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            FilledTonalButton(
+            HelmButton(
+                text = stringResource(R.string.add),
                 onClick = { onAdd(input) },
                 enabled = input.isNotBlank(),
+                icon = Icons.Filled.Add,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text(stringResource(R.string.add)) }
+            )
         }
     }
 }

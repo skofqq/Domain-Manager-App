@@ -30,7 +30,15 @@ data class DomainStatus(
 )
 
 /** Typed network failure so the UI layer can localize the message. */
-enum class NetFailure { TIMEOUT, UNREACHABLE, UNKNOWN_HOST, INVALID_ADDRESS, EMPTY_RESPONSE, OTHER }
+/**
+ * Transport-level failure kinds. [TLS]: the address answered with HTTPS (usually the
+ * router web UI redirecting there), [NOT_API]: something answered, but with a web page
+ * instead of the API JSON. Both mean the address or port points at the wrong service.
+ */
+enum class NetFailure { TIMEOUT, UNREACHABLE, UNKNOWN_HOST, INVALID_ADDRESS, EMPTY_RESPONSE, TLS, NOT_API, OTHER }
+
+/** Thrown when the reply is an HTML page (a web UI, an error page), not the API. */
+class NotApiException(val httpCode: Int) : java.io.IOException("HTTP $httpCode: not the Helm API (HTML page)")
 
 sealed class ApiResult {
     data class Success(val status: DomainStatus) : ApiResult()
@@ -217,14 +225,25 @@ sealed class MagitrickleGroupsResult {
 }
 
 /** A switchable mihomo proxy group (type Selector): [now] is the active node out of [all]. */
-data class MihomoGroup(val name: String, val now: String, val all: List<String>)
+/** [icon] = the `icon:` URL of the group in the mihomo config (http(s) only), null when none is set. */
+data class MihomoGroup(val name: String, val now: String, val all: List<String>, val icon: String? = null)
 
 /**
  * Per-node capabilities straight from the raw mihomo /proxies payload: protocol
  * [type] plus UDP / TCP Fast Open support flags. Present for every proxy entry,
  * groups included (their type is Selector/URLTest/…).
  */
-data class MihomoNodeInfo(val type: String, val udp: Boolean, val tfo: Boolean, val xudp: Boolean)
+/**
+ * [lastDelay] = the newest entry of mihomo's own `history` for this proxy or group (ms):
+ * null = never tested since mihomo started, 0 = the last test got no answer.
+ */
+data class MihomoNodeInfo(
+    val type: String,
+    val udp: Boolean,
+    val tfo: Boolean,
+    val xudp: Boolean,
+    val lastDelay: Int? = null,
+)
 
 sealed class MihomoProxiesResult {
     data class Success(
@@ -590,6 +609,9 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
             val response = client.newCall(Request.Builder().url(url).build()).execute()
             val body = response.body?.string()
             ApiLog.record(url, response.code, body, System.currentTimeMillis() - started, null)
+            // The API always answers JSON. An HTML page means the address/port reaches a
+            // different web server (LuCI, a 404 page): say so instead of a JSON parse error.
+            if (body != null && body.trimStart().startsWith("<")) throw NotApiException(response.code)
             return HttpReply(response.code, response.isSuccessful, body)
         } catch (e: Exception) {
             ApiLog.record(url, null, null, System.currentTimeMillis() - started, detailOf(e))
@@ -1202,13 +1224,19 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
                             udp = entry.optBoolean("udp", false),
                             tfo = entry.optBoolean("tfo", false),
                             xudp = entry.optBoolean("xudp", false),
+                            lastDelay = entry.optJSONArray("history")
+                                ?.let { h -> if (h.length() > 0) h.optJSONObject(h.length() - 1) else null }
+                                ?.takeIf { it.has("delay") }
+                                ?.optInt("delay"),
                         )
                         if (entry.optString("type") != "Selector") continue
                         val allArray = entry.optJSONArray("all") ?: continue
                         val all = buildList {
                             for (i in 0 until allArray.length()) add(allArray.getString(i))
                         }
-                        add(MihomoGroup(name, entry.optString("now", ""), all))
+                        // mihomo passes the group's `icon:` from the config through /proxies.
+                        val icon = entry.optString("icon").trim().takeIf { it.startsWith("http://") || it.startsWith("https://") }
+                        add(MihomoGroup(name, entry.optString("now", ""), all, icon))
                     }
                 }
                 MihomoProxiesResult.Success(groups, nodes)
@@ -2092,6 +2120,11 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         // HttpUrl.Builder throws this for a malformed host/port (fetchApi builds
         // the URL inside the shared try now).
         is IllegalArgumentException -> NetFailure.INVALID_ADDRESS
+        // http:// was redirected to https:// (router web UI) or the port speaks TLS.
+        is javax.net.ssl.SSLException -> NetFailure.TLS
+        is NotApiException -> NetFailure.NOT_API
+        // A JSON reply that is not ours (some other JSON service on that port).
+        is org.json.JSONException -> NetFailure.NOT_API
         else -> NetFailure.OTHER
     }
 

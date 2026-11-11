@@ -1,0 +1,605 @@
+<resources>
+    <string name="app_name">Helm</string>
+
+    <!-- Navigation -->
+    <string name="settings">Einstellungen</string>
+    <string name="domains">Domains</string>
+
+    <!-- Domain fields / status card -->
+    <string name="domain">Domain</string>
+    <string name="domain_placeholder">example.com</string>
+    <string name="status">Status</string>
+    <string name="add_to">Zu %1$s hinzufügen</string>
+    <string name="remove_from">Aus %1$s entfernen</string>
+
+    <!-- Domains screen -->
+    <string name="tab_routing">Routing</string>
+    <string name="tab_strategies">Strategien</string>
+    <string name="add_domain">Domain hinzufügen</string>
+    <string name="add">Hinzufügen</string>
+    <string name="apply">Anwenden</string>
+    <string name="remove_domain">Domain entfernen</string>
+    <string name="no_domains">Noch keine verwalteten Domains. Zum Aktualisieren nach unten ziehen.</string>
+    <string name="domain_partial">Diese Domain ist nur in %1$s.</string>
+    <string name="edit_domain">Domain bearbeiten</string>
+    <string name="paste_from_clipboard">Aus der Zwischenablage einfügen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="back">Zurück</string>
+
+    <!-- Strategies -->
+    <string name="strategy">Strategie</string>
+    <string name="strategy_n">Strategie %1$d</string>
+    <string name="strategy_pool">Keine eigene Zuordnung — gemeinsamer Pool</string>
+    <string name="strategy_range_loading">Strategiebereich wird vom Router geladen…</string>
+    <string name="strat_showing_active">Läuft — Änderungen gelten sofort</string>
+    <string name="strat_showing_inactive">Gestoppt — Änderungen werden nur gespeichert</string>
+    <string name="engine_running">Läuft</string>
+    <string name="engine_stopped">Gestoppt</string>
+    <string name="strat_no_engine">Keine DPI-Engine aktiv</string>
+    <string name="strat_no_engine_hint">Starte zapret oder zapret2 im Tab „Status“, um Strategien pro Domain zu verwalten.</string>
+    <string name="open_status">Status öffnen</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="no_strat_domains">Noch keine Domains mit eigener Strategie.</string>
+    <string name="strategy_pool_short">Gemeinsamer Pool</string>
+    <string name="search_domains">Domains suchen</string>
+    <string name="search_or_add_domain">Domain suchen oder hinzufügen</string>
+    <string name="clear_search">Suche löschen</string>
+    <string name="search_no_results">Keine Domain passt zur Suche.</string>
+    <string name="search_empty_title">Nichts gefunden</string>
+    <string name="empty_domains_title">Noch keine Domains</string>
+    <string name="empty_strat_title">Noch keine eigenen Strategien</string>
+    <string name="add_domain_named">%1$s hinzufügen</string>
+    <string name="pick_strategy">Strategie wählen</string>
+    <plurals name="n_domains">
+        <item quantity="one">%d Domain</item>
+        <item quantity="other">%d Domains</item>
+    </plurals>
+
+    <!-- zapret2 profiles -->
+    <string name="z2_profiles_title">zapret2-Profile</string>
+    <string name="z2_proto_tls">TLS</string>
+    <string name="z2_proto_udp">QUIC / UDP</string>
+    <string name="z2_proto_http">HTTP</string>
+    <string name="z2_apply_hint">Änderungen an der aktiven Engine werden mit einem kurzen Neustart übernommen.</string>
+    <string name="z2_rollback">Zurücksetzen</string>
+    <string name="z2_rollback_done">Auf den vorherigen Satz zurückgesetzt</string>
+    <string name="z2_rollback_nothing">Nichts gespeichert, auf das zurückgesetzt werden kann</string>
+
+    <!-- zapret v1 profiles -->
+    <string name="z1_profiles_title">zapret-Profile</string>
+
+    <!-- Shared by both zapret profile screens -->
+    <string name="profile_caption">Schlüssel %1$s · aktuell: %2$d</string>
+    <string name="check_reachability">Prüfen</string>
+    <string name="z_profiles_section">Profile</string>
+    <string name="z_actions_section">Änderungen</string>
+    <string name="voice_title">Sprachanrufe — Discord/WhatsApp/Telegram</string>
+    <string name="voice_custom">Eigene</string>
+    <string name="voice_bolvan">bol-van-Skripte</string>
+
+    <!-- Status (services) screen -->
+    <string name="health_model">Modell</string>
+    <string name="health_firmware">Firmware</string>
+    <string name="health_uptime">Laufzeit</string>
+    <string name="health_load">Durchschnittslast</string>
+    <string name="health_cpu_temp">CPU-Temperatur</string>
+    <string name="health_memory">Arbeitsspeicher</string>
+    <string name="health_wan_ip">IPv4</string>
+    <string name="health_wan_ipv6">IPv6</string>
+    <string name="dur_days_hours">%1$d T %2$d Std</string>
+    <string name="dur_hours_minutes">%1$d Std %2$d Min</string>
+    <string name="dur_minutes">%1$d Min</string>
+    <string name="devices_title">Geräte</string>
+    <string name="devices_favorites">Favoriten</string>
+    <string name="devices_all">Alle Geräte</string>
+    <string name="devices_online_of">%1$d von %2$d online</string>
+    <string name="device_scan_label">Geräte werden geprüft</string>
+    <string name="device_unknown">Unbekanntes Gerät</string>
+    <string name="device_icon_title">Gerätesymbol</string>
+    <string name="device_icon_auto">Automatisch</string>
+    <string name="device_type_speaker">Lautsprecher</string>
+    <string name="device_type_bulb">Lampe</string>
+    <string name="device_type_phone">Telefon</string>
+    <string name="device_type_pc">PC</string>
+    <string name="device_type_laptop">Laptop</string>
+    <string name="device_type_router">Router</string>
+    <string name="device_type_zigbee">ZigBee-Gateway</string>
+    <string name="device_type_printer">Drucker</string>
+    <string name="device_type_socket">Steckdose</string>
+    <string name="device_type_tv">TV</string>
+    <string name="device_type_storage">Speicher</string>
+    <string name="device_type_camera">Kamera</string>
+    <string name="device_type_generic">Sonstiges</string>
+    <plurals name="n_devices_online">
+        <item quantity="one">%d Gerät im Netzwerk</item>
+        <item quantity="other">%d Geräte im Netzwerk</item>
+    </plurals>
+    <string name="device_scan_progress">%1$d/%2$d</string>
+    <string name="wake_device">Aufwecken</string>
+    <string name="wake_sent">Wake-on-LAN-Paket gesendet</string>
+    <string name="favorite_device">Zu Favoriten hinzufügen</string>
+    <string name="unfavorite_device">Aus Favoriten entfernen</string>
+    <string name="health_disk">Speicher (/overlay)</string>
+    <string name="svc_running">Läuft</string>
+    <string name="svc_stopped">Gestoppt</string>
+    <string name="svc_failed">Fehlgeschlagen</string>
+    <string name="svc_autostart">Autostart</string>
+    <string name="svc_start">Starten</string>
+    <string name="svc_stop">Stoppen</string>
+    <string name="svc_restart">Neu starten</string>
+    <string name="service_log_button">Protokoll</string>
+    <string name="service_log_title">Protokoll von %1$s</string>
+    <string name="service_log_empty">Keine Protokolleinträge gefunden</string>
+    <string name="refresh">Aktualisieren</string>
+
+    <!-- mihomo drill-down -->
+    <string name="section_proxy_groups">Proxy-Gruppen</string>
+    <string name="groups_view_grid">Rasteransicht</string>
+    <string name="groups_view_list">Listenansicht</string>
+    <string name="section_traffic">Datenverkehr</string>
+    <string name="section_connections">Aktive Verbindungen</string>
+    <string name="traffic_download">Download</string>
+    <string name="traffic_upload">Upload</string>
+    <string name="speed_value">%1$s/s</string>
+    <string name="traffic_total">Gesamt %1$s</string>
+    <string name="no_connections">Keine aktiven Verbindungen</string>
+    <string name="close_connection">Verbindung schließen</string>
+    <string name="err_mihomo_unreachable">mihomo antwortet nicht — prüfe, ob der Dienst läuft</string>
+    <string name="err_mihomo_select_failed">mihomo hat den Knotenwechsel abgelehnt</string>
+    <string name="traffic_chart_caption">Letzte ~5 Minuten, über mihomo</string>
+    <string name="mihomo_only_note">Nur Datenverkehr über den mihomo-Proxy — nicht der gesamte Verkehr des Geräts.</string>
+    <string name="source_all">Alle</string>
+    <string name="source_traffic_summary">%1$s: ↓ %2$s · ↑ %3$s (nur über mihomo)</string>
+
+    <!-- Network diagnostics -->
+    <string name="diag_net_title">Netzwerkdiagnose</string>
+    <string name="diag_entry_desc">Ping, Traceroute, Geschwindigkeitstest und Tunnelprüfung</string>
+    <string name="diag_host_section">Ping / Traceroute</string>
+    <string name="diag_ping">Ping</string>
+    <string name="diag_traceroute">Traceroute</string>
+    <string name="diag_preset_wan">WAN %1$s</string>
+    <string name="ping_result_ok">Erreichbar · Verlust %1$d%% · Ø %2$s ms</string>
+    <string name="ping_result_fail">Keine Antwort (100%% Verlust)</string>
+    <string name="trace_title">Route zu %1$s</string>
+    <string name="diag_speedtest_title">Geschwindigkeitstest</string>
+    <string name="diag_speedtest_note">Misst die WAN-Downloadgeschwindigkeit des ROUTERS, nicht das WLAN dieses Telefons. Dauert bis zu ~25 Sekunden.</string>
+    <string name="diag_speedtest_run">Test starten</string>
+    <string name="diag_speedtest_running">Messung läuft…</string>
+    <string name="diag_speedtest_result_label">WAN-Download des Routers</string>
+    <string name="speed_mbps">%1$s Mbit/s</string>
+    <string name="diag_tunnel_title">Tunnelprüfung</string>
+    <string name="diag_tunnel_note">Der eingebaute Latenztest von mihomo für alle Knoten der Gruppe auf einmal. Ein Knoten ohne Antwort innerhalb von 5 s gilt als nicht erreichbar.</string>
+    <string name="diag_tunnel_run">Knoten testen</string>
+    <string name="diag_tunnel_running">Test läuft…</string>
+    <string name="ms_value">%1$d ms</string>
+    <string name="ms_value_frac">%1$s ms</string>
+    <string name="node_no_response">Antwortet nicht</string>
+    <string name="delay_test">Testen</string>
+    <string name="delay_timeout">Zeitüberschreitung</string>
+    <string name="delay_test_all">Alle Gruppen testen</string>
+
+    <!-- MagiTrickle groups overview -->
+    <string name="magitrickle_groups_title">MagiTrickle-Gruppen</string>
+    <string name="magitrickle_groups_empty">Auf dem Router sind keine Gruppen konfiguriert.</string>
+    <string name="magitrickle_group_no_rules">Keine Regeln in dieser Gruppe.</string>
+    <plurals name="n_rules">
+        <item quantity="one">%d Regel</item>
+        <item quantity="other">%d Regeln</item>
+    </plurals>
+    <string name="domain_in_group">Bereits in Gruppe „%1$s“</string>
+
+    <!-- Share screen -->
+    <string name="share_title">Zum Router hinzufügen</string>
+    <string name="close">Schließen</string>
+    <string name="reload_status">Status neu laden</string>
+    <string name="done">Fertig</string>
+
+    <!-- Settings screen -->
+    <string name="settings_appearance_desc">App-Design ändern</string>
+    <string name="settings_auth_title">Autorisierung</string>
+    <string name="settings_auth_desc">Router-Profile und Tokens</string>
+
+    <!-- Router profiles -->
+    <string name="default_profile_name">Mein Router</string>
+    <string name="settings_profiles_hint">Das ausgewählte Profil ist aktiv — alle Tabs arbeiten damit. Tippe auf eine Zeile zum Bearbeiten.</string>
+    <string name="profile_add">Router hinzufügen</string>
+    <string name="profile_new_title">Neuer Router</string>
+    <string name="profile_name">Name</string>
+    <string name="profile_name_placeholder">Zuhause</string>
+    <string name="profile_delete_title">Profil löschen?</string>
+    <string name="profile_delete_text">„%1$s“ wird von diesem Telefon entfernt. Der Router selbst bleibt unverändert.</string>
+    <string name="profile_delete_last_warning">Das ist der einzige eingerichtete Router — danach gibt es keine Profile mehr.</string>
+    <string name="delete">Löschen</string>
+    <string name="update">Aktualisieren</string>
+    <string name="qr_profile_added">Profil „%1$s“ hinzugefügt</string>
+    <string name="qr_update_title">Profil aktualisieren?</string>
+    <string name="qr_update_text">Der QR-Code enthält die Adresse des vorhandenen Profils „%1$s“ — seine Daten aktualisieren, statt ein Duplikat anzulegen?</string>
+    <string name="auth_to_show_qr">Bestätigen, um den QR-Code anzuzeigen</string>
+    <string name="settings_about_title">Über</string>
+    <string name="settings_about_desc">Version und App-Infos</string>
+
+    <!-- Security -->
+    <string name="section_security">Sicherheit</string>
+    <string name="settings_security_desc">Biometrie und PIN</string>
+    <string name="lock_explain">Nutzt Fingerabdruck oder Gesicht; ohne Biometrie die PIN, das Muster oder das Passwort des Geräts.</string>
+    <string name="lock_unavailable">Auf diesem Gerät ist weder Biometrie noch eine Displaysperre eingerichtet — es gibt nichts abzufragen.</string>
+    <string name="lock_mode_off">Aus</string>
+    <string name="lock_mode_off_desc">Kein zusätzlicher Schutz</string>
+    <string name="lock_mode_token">Nur Token-Anzeige</string>
+    <string name="lock_mode_token_desc">Bestätigung, bevor das Token in der Autorisierung angezeigt wird</string>
+    <string name="lock_mode_app">Gesamte App</string>
+    <string name="lock_mode_app_desc">Biometrie oder PIN bei jedem Start</string>
+    <string name="unlock_title">Helm entsperren</string>
+    <string name="unlock">Entsperren</string>
+    <string name="auth_to_show_token">Bestätigen, um das Token anzuzeigen</string>
+
+    <!-- Backup -->
+    <string name="section_backup">Sicherung</string>
+    <string name="settings_backup_desc">Listen exportieren und importieren</string>
+    <string name="backup_export_title">Export</string>
+    <string name="backup_export_note">Eine Momentaufnahme der aktuellen Listen des Routers zum Nachschlagen oder manuellen Wiederherstellen. Der echte Zustand bleibt immer auf dem Router — diese App liest und schreibt ihn nur über die API.</string>
+    <string name="backup_build">Momentaufnahme erstellen</string>
+    <string name="backup_building">Wird erstellt…</string>
+    <string name="backup_export_summary">Routing: %1$d · zapret2: %2$d · zapret: %3$d</string>
+    <string name="copy">Kopieren</string>
+    <string name="copied">Kopiert</string>
+    <string name="share">Teilen</string>
+    <string name="backup_import_title">Import</string>
+    <string name="backup_import_note">Füge ein Momentaufnahme-JSON oder eine einfache Domainliste ein (eine pro Zeile — sie werden mit dem Standardziel zum Routing hinzugefügt).</string>
+    <string name="backup_import_hint_restart">Läuft eine zapret-Engine, startet jede importierte Strategie deren Daemon neu — ein großer Import kann dauern.</string>
+    <string name="backup_run_import">Importieren</string>
+    <string name="backup_progress">%1$d / %2$d…</string>
+    <string name="backup_result">Hinzugefügt: %1$d · Schon vorhanden: %2$d · Fehlgeschlagen: %3$d</string>
+    <string name="backup_parse_error">Eingabe nicht lesbar — erwartet wird ein Momentaufnahme-JSON oder eine Domainliste</string>
+    <string name="backup_empty">Nichts zu importieren</string>
+
+    <!-- QR setup -->
+    <string name="section_qr">QR-Code</string>
+    <string name="qr_hint">Übertrage diese Einstellungen auf ein anderes Telefon: QR-Code hier anzeigen, dort scannen.</string>
+    <string name="qr_show">QR anzeigen</string>
+    <string name="qr_scan">QR scannen</string>
+    <string name="qr_show_title">Verbindungseinstellungen</string>
+    <string name="qr_show_warning">Der Code enthält Adresse, Port und Zugriffstoken im Klartext — zeige ihn nur auf vertrauenswürdigen Geräten.</string>
+    <string name="qr_scanned">Gescannt — prüfe die Felder und tippe auf „Speichern“</string>
+    <string name="qr_plain_hint">Lange auf den Code drücken, um zu einem einfachen QR-Code (für wählerische Scanner) und zurück zu wechseln.</string>
+    <string name="qr_invalid">Dieser QR-Code ist kein Helm-Einrichtungscode</string>
+
+    <!-- History -->
+    <string name="section_history">Verlauf</string>
+    <string name="settings_history_desc">Lokal protokollierte hinzugefügte Domains</string>
+    <string name="history_note">Nur auf diesem Telefon gespeichert: Jedes erfolgreiche Hinzufügen wird mit Datum protokolliert. Der Router speichert keine Zeitstempel, daher wird die Liste nie mit ihm synchronisiert.</string>
+    <string name="history_empty">Noch leer — hinzugefügte Domains erscheinen hier.</string>
+
+    <!-- Deep link / automation -->
+    <string name="deeplink_added">%1$s zum Router hinzugefügt</string>
+
+    <!-- Widget -->
+    <string name="widget_label">Dienststatus</string>
+    <string name="widget_description">Statuspunkte der Router-Dienste</string>
+    <string name="widget_label_mihomo">mihomo</string>
+    <string name="widget_label_magitrickle">MT</string>
+    <string name="widget_label_zapret">zapret</string>
+    <string name="widget_label_zapret2">zapret2</string>
+
+    <!-- Diagnostics -->
+    <string name="section_diagnostics">Diagnose</string>
+    <string name="settings_diagnostics_desc">Timeouts und Anfrage-Debugging</string>
+    <string name="diag_timeout_title">Timeout für HTTP-Anfragen</string>
+    <string name="diag_timeout_value">%1$d s</string>
+    <string name="diag_log_title">Letzte API-Anfragen</string>
+    <string name="diag_log_note">Das Token ist in URLs maskiert — sicher zum Kopieren für einen Fehlerbericht.</string>
+    <string name="diag_log_empty">Noch keine Anfragen.</string>
+    <string name="diag_failed">FEHLER</string>
+
+    <!-- Background monitoring -->
+    <string name="section_monitoring">Überwachung</string>
+    <string name="settings_monitoring_desc">WAN-IP, Speicher und Latenz im Hintergrund prüfen</string>
+    <string name="monitoring_explain">Prüft den Router regelmäßig im Hintergrund und benachrichtigt bei einer WAN-IP-Änderung, wenig Speicherplatz oder schlechterer Proxy-Latenz. Nutzt WorkManager und läuft nur bei bestehender Netzwerkverbindung.</string>
+    <string name="monitoring_enable">Hintergrundüberwachung aktivieren</string>
+    <string name="monitoring_interval_title">Prüfintervall</string>
+    <string name="monitoring_interval_value">%1$d Min</string>
+    <string name="monitoring_wan_title">WAN-IP-Änderung</string>
+    <string name="monitoring_wan_desc">Benachrichtigen, wenn sich die WAN-IPv4/IPv6 des Routers ändert</string>
+    <string name="monitoring_disk_title">Speicherplatz</string>
+    <string name="monitoring_disk_desc">Benachrichtigen, wenn /overlay zu 90% belegt ist</string>
+    <string name="monitoring_latency_title">Latenzverschlechterung</string>
+    <string name="monitoring_latency_desc">Wähle eine Proxy-Gruppe — Benachrichtigung, wenn sich die Latenz des aktiven Knotens etwa verdoppelt oder er nicht mehr antwortet.</string>
+    <string name="monitoring_latency_off">Aus</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_name">Router-Überwachung</string>
+    <string name="notif_channel_desc">Warnungen zu WAN-IP-Änderungen, wenig Speicherplatz und Latenzverschlechterung</string>
+    <string name="notif_wan_changed_title">Router-IP geändert</string>
+    <string name="notif_wan_changed_text">%1$s → %2$s</string>
+    <string name="notif_disk_title">Wenig Speicherplatz</string>
+    <string name="notif_disk_text">/overlay ist zu %1$d%% voll</string>
+    <string name="notif_latency_title">Verbindung verschlechtert</string>
+    <string name="notif_latency_down_text">%1$s antwortet nicht</string>
+    <string name="notif_latency_degraded_text">%1$s: vorher %2$d ms, jetzt %3$d ms</string>
+
+    <!-- App Shortcuts -->
+    <string name="section_shortcuts">App-Verknüpfungen</string>
+    <string name="settings_shortcuts_desc">2–4 Aktionen für das Verknüpfungsmenü des Launchers wählen</string>
+    <string name="shortcuts_explain">Lange auf das App-Symbol drücken, um direkt zu einer dieser Aktionen zu springen. Aktionen mit Bestätigung (Neustart, mihomo-Update) erfordern weiterhin ein Tippen in der App — die Verknüpfung löst sie nie selbst aus.</string>
+    <string name="shortcuts_min_max_hint">Wähle zwischen 2 und 4 Verknüpfungen.</string>
+    <string name="shortcut_status">Status</string>
+    <string name="shortcut_devices">Geräteliste</string>
+    <string name="shortcut_reboot">Neustart</string>
+    <string name="shortcut_mihomo_update">mihomo aktualisieren</string>
+    <string name="shortcut_speedtest">Geschwindigkeitstest</string>
+    <string name="shortcut_zapret_restart">zapret/zapret2 neu starten</string>
+    <string name="shortcut_zapret_restart_named">%1$s neu starten</string>
+
+    <!-- Router info sheet -->
+    <string name="router_sheet_routers">Router</string>
+    <string name="router_sheet_versions">Dienstversionen</string>
+    <string name="loading">Wird geladen…</string>
+    <string name="svc_name_mihomo">mihomo</string>
+    <string name="svc_name_magitrickle">MagiTrickle</string>
+    <string name="svc_name_zapret">zapret</string>
+    <string name="svc_name_zapret2">zapret2</string>
+    <string name="version_unknown">Version unbekannt</string>
+    <string name="check_for_updates">Nach Updates suchen</string>
+    <string name="update_to_version">Auf %1$s aktualisieren</string>
+    <string name="whats_new_in">Neu in %1$s</string>
+    <string name="mihomo_up_to_date">%1$s — aktuell</string>
+    <string name="mihomo_updating">mihomo wird aktualisiert…</string>
+    <string name="mihomo_update_confirm_title">mihomo aktualisieren?</string>
+    <string name="mihomo_update_confirm_text">mihomo wird gestoppt, durch die neue Version ersetzt und neu gestartet. Das kann etwas dauern und unterbricht den gerouteten Verkehr kurz.</string>
+
+    <!-- Router reboot -->
+    <string name="reboot_router">Neu starten</string>
+    <string name="reboot_confirm_title">Router neu starten?</string>
+    <string name="reboot_confirm_text">Der Router und alle Dienste dahinter sind 1–2 Minuten nicht erreichbar. Aktive Verbindungen werden getrennt.</string>
+    <string name="reboot_confirm_button">Neu starten</string>
+    <string name="rebooting_title">Router startet neu…</string>
+    <string name="rebooting_hint">Das dauert meist 1–2 Minuten.</string>
+    <string name="reboot_countdown">~%1$d s</string>
+    <string name="reboot_check_ready">Der Router sollte wieder laufen — prüfe die Verbindung.</string>
+    <string name="hide_overlay">Ausblenden</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_source_code">Quellcode auf GitHub</string>
+    <string name="developer">Entwickler</string>
+    <string name="about_summary">Verwaltet Domain-Routing-Listen und Dienste auf einem OpenWrt-Router (mihomo, MagiTrickle, zapret).</string>
+    <string name="dynamic_color_hint">Verfügbar ab Android 12</string>
+    <string name="liquid_glass">Liquid Glass</string>
+    <string name="liquid_glass_desc">Unschärfe und Lichtbrechung bei Navigationsleiste, Kopfzeilen-Buttons, Menüs, Sheets und Dialogen</string>
+    <string name="liquid_glass_unsupported">Erfordert Android 12 oder neuer</string>
+    <string name="true_black">Echtes Schwarz</string>
+    <string name="true_black_desc">Reinschwarzer Hintergrund im dunklen Design</string>
+    <string name="haptic_feedback">Haptisches Feedback</string>
+    <string name="haptic_feedback_desc">Kurze Vibration beim Tippen</string>
+    <string name="section_router">Router</string>
+    <string name="host">Host</string>
+    <string name="port">Port</string>
+    <string name="section_auth">Zugang</string>
+    <string name="token">Token</string>
+    <string name="show">Anzeigen</string>
+    <string name="hide">Ausblenden</string>
+    <string name="section_fallback">Ausweichadresse</string>
+    <string name="fallback_hint">Optional — wird automatisch genutzt, wenn die Hauptadresse nicht antwortet (z. B. eine Tailscale-Adresse). Host leer lassen zum Deaktivieren.</string>
+    <string name="section_default_target">Standardziel</string>
+    <string name="section_appearance">Darstellung</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="dynamic_color">Dynamische Farben</string>
+    <string name="dynamic_color_desc">Farben aus dem Hintergrundbild (Material You)</string>
+    <string name="section_language">Sprache</string>
+    <string name="language_system">System</string>
+    <string name="save">Speichern</string>
+    <string name="saved">Gespeichert</string>
+    <string name="test_connection">Verbindung testen</string>
+    <string name="testing">Test läuft…</string>
+    <string name="test_connected">Verbunden</string>
+    <string name="test_connected_bad_token">Verbunden (falsches Token)</string>
+    <string name="test_connected_no_token">Verbunden (Token auf dem Router nicht eingerichtet)</string>
+    <string name="test_http_error">Fehler: HTTP %1$d</string>
+
+    <!-- Rule providers -->
+    <string name="section_rule_providers">Regelsätze</string>
+    <string name="rule_providers_title">Regelsätze</string>
+    <string name="rule_providers_entry_desc">Externe Listen, an eine Proxy-Gruppe gebunden</string>
+    <string name="rule_providers_hint">Regelsätze werden vom Router selbst heruntergeladen und aktualisiert. Passender Verkehr geht an die Proxy-Gruppe, an die die jeweilige Liste gebunden ist.</string>
+    <string name="rule_providers_empty">Noch keine Regelsätze. Tippe auf „Hinzufügen“, um eine Liste an eine Proxy-Gruppe zu binden.</string>
+    <plurals name="n_rule_providers">
+        <item quantity="one">%d Regelsatz hinzugefügt</item>
+        <item quantity="other">%d Regelsätze hinzugefügt</item>
+    </plurals>
+    <plurals name="n_hours">
+        <item quantity="one">Jede Stunde</item>
+        <item quantity="other">Alle %d Stunden</item>
+    </plurals>
+    <string name="provider_routed_to">→ %1$s</string>
+    <string name="provider_delete_title">Regelsatz entfernen?</string>
+    <string name="provider_delete_text">„%1$s“ und seine Routing-Regel werden vom Router entfernt. Die Proxy-Gruppe „%2$s“ bleibt — Gruppen werden auf dem Router selbst verwaltet.</string>
+    <string name="provider_removed">„%1$s“ entfernt</string>
+    <string name="provider_not_found">„%1$s“ war auf dem Router nicht vorhanden</string>
+    <string name="provider_added">„%1$s“ hinzugefügt und an %2$s gebunden</string>
+
+    <string name="provider_add_title">Neuer Regelsatz</string>
+    <string name="provider_step">Schritt %1$d von %2$d</string>
+    <string name="next">Weiter</string>
+    <string name="provider_custom_url">Eigene URL</string>
+    <string name="provider_custom_url_desc">Jede https-Quelle, nicht nur die unten</string>
+    <string name="provider_url">URL des Regelsatzes</string>
+    <string name="provider_url_hint">Muss mit https:// beginnen</string>
+    <string name="provider_url_invalid">Gib einen vollständigen https://-Link ein</string>
+    <string name="provider_behavior">Listentyp</string>
+    <string name="provider_behavior_hint">Was die Liste enthält: Domains, IP-Bereiche oder klassische gemischte Regeln.</string>
+    <string name="behavior_domain">Domains</string>
+    <string name="behavior_ipcidr">IP-Adressen</string>
+    <string name="behavior_classical">Klassisch</string>
+    <string name="provider_format">Format</string>
+    <string name="provider_format_hint">MRS ist das kompakte Binärformat — kleiner und schneller als YAML oder Text.</string>
+    <string name="provider_name">Name</string>
+    <string name="provider_name_hint">Lateinische Kleinbuchstaben, Ziffern und „-“, beginnend mit einem Buchstaben</string>
+    <string name="provider_name_invalid">Nur lateinische Kleinbuchstaben, Ziffern und „-“, beginnend mit einem Buchstaben</string>
+    <string name="provider_name_taken">Ein Regelsatz mit diesem Namen existiert bereits</string>
+    <string name="provider_interval">Aktualisierungsintervall</string>
+    <string name="interval_hour">Stündlich</string>
+    <string name="interval_6h">Alle 6 Stunden</string>
+    <string name="interval_day">Täglich</string>
+    <string name="interval_week">Wöchentlich</string>
+    <string name="provider_fetch_proxy">Über Proxy herunterladen</string>
+    <string name="provider_fetch_proxy_hint">Über welche Proxy-Gruppe der Router diese Liste herunterlädt. Nützlich, wenn die Quelle (z. B. GitHub) direkt nicht erreichbar ist. Hat nichts damit zu tun, wohin passender Verkehr geht.</string>
+    <string name="provider_fetch_proxy_none">Direkt</string>
+    <string name="provider_group_title">Treffer weiterleiten an</string>
+    <string name="provider_group_hint">Wohin der zu dieser Liste passende Verkehr geleitet wird.</string>
+    <string name="provider_group_existing">Vorhandene Gruppe</string>
+    <string name="provider_group_new">Neue Gruppe</string>
+    <string name="provider_new_group_name">Name der neuen Gruppe</string>
+    <string name="provider_new_group_hint">Der Router legt diese Proxy-Gruppe an</string>
+    <string name="provider_new_group_taken">Der Router hat bereits eine Gruppe mit diesem Namen — wähle sie als vorhandene Gruppe</string>
+    <string name="provider_new_group_note">Die neue Gruppe wird auf dem Router angelegt. Das spätere Entfernen des Regelsatzes entfernt die Gruppe nicht — das geschieht auf dem Router selbst.</string>
+    <string name="provider_no_groups">Der Router hat keine Proxy-Gruppen geliefert</string>
+    <string name="provider_add_slow_note">Der Router lädt die Liste herunter und prüft die entstehende Konfiguration, das kann etwas dauern.</string>
+
+    <!-- Live source catalog -->
+    <string name="catalog_search">Katalog durchsuchen</string>
+    <string name="catalog_refresh">Katalog aktualisieren</string>
+    <string name="catalog_loading">Katalog wird geladen…</string>
+    <string name="catalog_count">%1$d von %2$d Dateien</string>
+    <string name="catalog_no_results">Nichts gefunden. Nutze „Eigene URL“ für eine Quelle außerhalb dieses Katalogs.</string>
+    <string name="catalog_not_updated">Katalog nicht aktualisiert</string>
+
+    <!-- mihomo subscriptions -->
+    <string name="section_subscriptions">Abonnements</string>
+    <string name="subscriptions_title">Abonnements</string>
+    <string name="subscriptions_entry_desc">Knotenlisten, aus denen jede Proxy-Gruppe wählt</string>
+    <string name="subscriptions_hint">Alle Abonnements werden zu einem gemeinsamen Knotenpool zusammengeführt — alles Hinzugefügte ist in jeder Proxy-Gruppe wählbar.</string>
+    <plurals name="n_pending_changes">
+        <item quantity="one">%d Änderung noch nicht angewendet</item>
+        <item quantity="other">%d Änderungen noch nicht angewendet</item>
+    </plurals>
+    <plurals name="n_proxy_groups">
+        <item quantity="one">%d Gruppe</item>
+        <item quantity="other">%d Gruppen</item>
+    </plurals>
+    <plurals name="n_routers">
+        <item quantity="one">%d Router</item>
+        <item quantity="other">%d Router</item>
+    </plurals>
+    <plurals name="n_subscriptions">
+        <item quantity="one">%d Abonnement</item>
+        <item quantity="other">%d Abonnements</item>
+    </plurals>
+    <string name="subscription_add_title">Neues Abonnement</string>
+    <string name="subscription_edit_title">URL ändern</string>
+    <string name="subscription_edit">URL ändern</string>
+    <string name="subscription_name">Name</string>
+    <string name="subscription_name_placeholder">work-vpn</string>
+    <string name="subscription_name_fixed">Der Name kann nicht geändert werden — zum Umbenennen entfernen und neu hinzufügen</string>
+    <string name="subscription_url">Abonnement-URL</string>
+    <string name="subscription_slow_note">Der Router prüft die Konfiguration und lädt die Knotenliste neu, das kann etwas dauern.</string>
+    <string name="subscription_saved">„%1$s“ gespeichert</string>
+    <string name="subscription_removed">„%1$s“ entfernt</string>
+    <string name="subscription_not_found">„%1$s“ war auf dem Router nicht vorhanden</string>
+    <string name="subscription_base_badge">Basis</string>
+    <string name="subscription_base_protected">Fest in der Router-Konfiguration — hier nicht änderbar</string>
+    <string name="subscription_delete_title">Abonnement entfernen?</string>
+    <string name="subscription_delete_text">„%1$s“ und seine Knoten werden vom Router entfernt. Die Proxy-Gruppen selbst bleiben.</string>
+
+    <!-- Tor -->
+    <string name="tor_title">Tor</string>
+    <string name="tor_not_installed">Tor ist nicht installiert</string>
+    <string name="tor_not_installed_hint">Auf dem Router gibt es kein Tor-Paket, daher gibt es hier nichts einzurichten.</string>
+    <string name="tor_bootstrap">Verbindungsaufbau</string>
+    <string name="tor_bootstrap_progress">%1$d%%</string>
+    <string name="tor_bridges_label">Bridges</string>
+    <plurals name="n_tor_bridges">
+        <item quantity="one">%d Bridge</item>
+        <item quantity="other">%d Bridges</item>
+    </plurals>
+    <string name="tor_uptime">Laufzeit</string>
+    <string name="tor_socks_port">SOCKS</string>
+    <string name="tor_pac_url">PAC</string>
+    <string name="tor_new_identity">Neue Identität</string>
+    <string name="tor_new_identity_hint">Neue Kanäle für neue Verbindungen. Schneller als ein Neustart und trennt deine Verbindung nicht.</string>
+    <string name="tor_new_identity_sent">Neue Kanäle angefordert</string>
+    <string name="tor_new_identity_failed">Der Steuerport ist noch nicht bereit — versuche es in ein paar Sekunden erneut</string>
+    <string name="tor_test_title">Verbindungstest</string>
+    <string name="tor_test_hint">Der Router sendet eine echte Anfrage über Tor — das dauert ein paar Sekunden.</string>
+    <string name="tor_test_connection">Verbindung testen</string>
+    <string name="tor_testing">Test läuft…</string>
+    <string name="tor_test_ok">Über Tor verbunden</string>
+    <string name="tor_test_failed">Nicht verbunden</string>
+    <string name="tor_test_failed_hint">Tor hat den Verbindungsaufbau noch nicht abgeschlossen oder die Bridges sind nicht erreichbar.</string>
+    <string name="tor_bridges_title">Bridges</string>
+    <string name="tor_bridges_hint">Bridges helfen, wo Tor selbst blockiert ist. Hole sie beim Tor Project und füge jede Zeile unverändert ein. Speichern startet Tor neu.</string>
+    <string name="tor_bridges_saving">Speichern und Tor neu starten…</string>
+    <string name="tor_no_bridges">Direkte Verbindung, keine Bridges</string>
+    <string name="tor_add_bridge">Bridge hinzufügen</string>
+    <string name="tor_bridge_line">Bridge-Zeile</string>
+    <string name="tor_bridge_placeholder">obfs4 1.2.3.4:443 FINGERPRINT cert=… iat-mode=0</string>
+    <string name="tor_bridge_hint">Füge die ganze Zeile genau so ein, wie du sie bekommen hast.</string>
+    <string name="tor_bridge_added">Bridge hinzugefügt, Tor neu gestartet</string>
+    <string name="tor_bridge_removed">Bridge entfernt, Tor neu gestartet</string>
+    <string name="tor_bridge_delete_title">Bridge entfernen?</string>
+    <string name="tor_bridge_delete_text">Die Bridge wird vom Router entfernt und Tor neu gestartet.</string>
+
+    <!-- API / network errors -->
+    <string name="err_bad_token">Falsches Token — prüfe die Einstellungen</string>
+    <string name="err_token_not_configured">Token auf dem Router nicht eingerichtet</string>
+    <string name="err_bad_domain">Ungültiges Domainformat</string>
+    <string name="err_empty_domain">Domain ist leer</string>
+    <string name="err_bad_service">Unbekannter Dienst</string>
+    <string name="err_bad_host">Ungültiger Host</string>
+    <string name="err_bad_mac">Ungültige MAC-Adresse</string>
+    <string name="err_etherwake_missing">etherwake ist auf dem Router nicht installiert</string>
+    <string name="err_bad_engine">Unbekannte Engine</string>
+    <string name="err_bad_strategy">Strategienummer außerhalb des Bereichs</string>
+    <string name="err_strategy_unconfirmed">Der Router hat die Strategieänderung nicht bestätigt</string>
+    <string name="err_bad_provider_name">Ungültiger Name des Regelsatzes</string>
+    <string name="err_bad_url">Der Router hat diese URL abgelehnt</string>
+    <string name="err_bad_behavior">Ungültiger Listentyp</string>
+    <string name="err_bad_format">Ungültiges Format</string>
+    <string name="err_bad_interval">Aktualisierungsintervall außerhalb des Bereichs (60 s – 7 Tage)</string>
+    <string name="err_missing_group">Keine Proxy-Gruppe gewählt</string>
+    <string name="err_group_both_set">Wähle entweder eine vorhandene oder eine neue Gruppe, nicht beides</string>
+    <string name="err_group_not_found">Diese Proxy-Gruppe gibt es auf dem Router nicht mehr — geh zurück und wähle eine andere</string>
+    <string name="err_bad_new_group">Ungültiger Name der neuen Gruppe</string>
+    <string name="err_provider_exists">Der Router hat bereits einen Regelsatz mit diesem Namen</string>
+    <string name="err_group_exists">Der Router hat bereits eine Gruppe mit diesem Namen — wähle sie als vorhandene Gruppe</string>
+    <string name="err_mihomo_config_test_failed">Der Router hat die entstandene mihomo-Konfiguration abgelehnt — der Regelsatz wurde nicht hinzugefügt. Prüfe URL, Listentyp und Format.</string>
+    <string name="err_subscription_exists">Ein Abonnement mit diesem Namen existiert bereits</string>
+    <string name="err_subscription_not_found">Dieses Abonnement gibt es auf dem Router nicht mehr</string>
+    <string name="err_subscription_base_protected">Das eingebaute Abonnement kann nicht entfernt werden</string>
+    <string name="err_tor_controlport_not_ready">Der Tor-Steuerport ist noch nicht bereit — versuche es in ein paar Sekunden erneut</string>
+    <string name="err_tor_controlport_failed">Tor hat den Steuerport-Befehl abgelehnt</string>
+    <string name="err_catalog_rate_limited">GitHub begrenzt die Anfragen (60 pro Stunde und IP ohne Token). Versuche es später erneut oder gib die URL von Hand ein.</string>
+    <string name="err_catalog_http">GitHub antwortete mit HTTP %1$d</string>
+    <string name="err_generic">Fehler %1$d: %2$s</string>
+    <string name="err_timeout">Der Router hat nicht geantwortet. Stelle sicher, dass das Telefon im WLAN des Routers ist und der Port stimmt.</string>
+    <string name="err_unreachable">Router nicht erreichbar — prüfe Adresse und Port.</string>
+    <string name="err_unknown_host">Unbekannter Host — prüfe die Router-Adresse.</string>
+    <string name="err_network">Netzwerkfehler</string>
+    <string name="err_invalid_router_address">Ungültige Router-Adresse: %1$s</string>
+    <string name="err_empty_response">Leere Antwort vom Router</string>
+    <string name="err_tls">Der Router hat per HTTPS statt mit der Helm-API geantwortet. Meist läuft auf diesem Port die Weboberfläche des Routers (LuCI) — prüfe den Port: Die API läuft auf einem eigenen HTTP-Port.</string>
+    <string name="err_not_api">Unter der Adresse antwortet etwas, aber nicht die Helm-API — stattdessen kam eine Webseite zurück. Prüfe den Port und ob die API auf dem Router installiert ist.</string>
+    <string name="err_title_connection">Keine Verbindung zum Router</string>
+    <string name="err_title_config">Router-Adresse prüfen</string>
+    <string name="err_title_access">Zugriff verweigert</string>
+    <string name="err_title_other">Etwas ist schiefgelaufen</string>
+    <string name="err_details">Details</string>
+    <string name="err_open_settings">Router-Einstellungen</string>
+    <string name="err_raw">%1$s</string>
+
+    <!-- Accessibility labels -->
+    <string name="strategy_previous">Vorherige Strategie</string>
+    <string name="strategy_next">Nächste Strategie</string>
+    <string name="theme_previous">Vorheriges Design</string>
+    <string name="theme_next">Nächstes Design</string>
+    <string name="a11y_target_added">%1$s: hinzugefügt</string>
+    <string name="a11y_target_not_added">%1$s: nicht hinzugefügt</string>
+    <string name="a11y_autostart_on">Autostart an</string>
+    <string name="a11y_autostart_off">Autostart aus</string>
+    <string name="a11y_device_online">Online</string>
+    <string name="a11y_device_offline">Offline</string>
+    <string name="a11y_check_ok">Erreichbar</string>
+    <string name="a11y_check_failed">Nicht erreichbar</string>
+    <string name="copy_ip">IP-Adresse kopieren</string>
+    <string name="copy_mac">MAC-Adresse kopieren</string>
+    <string name="open_release_notes">Versionshinweise öffnen</string>
+</resources>

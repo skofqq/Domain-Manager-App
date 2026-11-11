@@ -45,6 +45,10 @@
     <string name="search_or_add_domain">Search or add a domain</string>
     <string name="clear_search">Clear search</string>
     <string name="search_no_results">No domains match the search.</string>
+    <string name="search_empty_title">Nothing found</string>
+    <string name="empty_domains_title">No domains yet</string>
+    <string name="empty_strat_title">No personal strategies yet</string>
+    <string name="add_domain_named">Add %1$s</string>
     <string name="pick_strategy">Pick a strategy</string>
     <plurals name="n_domains">
         <item quantity="one">%d domain</item>
@@ -69,6 +73,8 @@
     <!-- Kept short: on the zapret2 screen this button is half-width, next to
          "Roll back", and the full phrase wrapped the label onto two lines. -->
     <string name="check_reachability">Check</string>
+    <string name="z_profiles_section">Profiles</string>
+    <string name="z_actions_section">Changes</string>
     <string name="voice_title">Voice calls — Discord/WhatsApp/Telegram</string>
     <string name="voice_custom">Custom</string>
     <string name="voice_bolvan">bol-van scripts</string>
@@ -86,6 +92,10 @@
     <string name="dur_hours_minutes">%1$dh %2$dm</string>
     <string name="dur_minutes">%1$dm</string>
     <string name="devices_title">Devices</string>
+    <string name="devices_favorites">Favorites</string>
+    <string name="devices_all">All devices</string>
+    <string name="devices_online_of">%1$d of %2$d online</string>
+    <string name="device_scan_label">Checking devices</string>
     <string name="device_unknown">Unknown device</string>
     <string name="device_icon_title">Device icon</string>
     <string name="device_icon_auto">Auto</string>
@@ -145,6 +155,7 @@
 
     <!-- Network diagnostics -->
     <string name="diag_net_title">Network diagnostics</string>
+    <string name="diag_entry_desc">Ping, traceroute, speed test and tunnel check</string>
     <string name="diag_host_section">Ping / traceroute</string>
     <string name="diag_ping">Ping</string>
     <string name="diag_traceroute">Traceroute</string>
@@ -165,6 +176,9 @@
     <string name="ms_value">%1$d ms</string>
     <string name="ms_value_frac">%1$s ms</string>
     <string name="node_no_response">Not responding</string>
+    <string name="delay_test">Test</string>
+    <string name="delay_timeout">Timeout</string>
+    <string name="delay_test_all">Test all groups</string>
 
     <!-- MagiTrickle groups overview -->
     <string name="magitrickle_groups_title">MagiTrickle groups</string>
@@ -352,6 +366,13 @@
     <string name="developer">Developer</string>
     <string name="about_summary">Manages domain routing lists and services on an OpenWrt router (mihomo, MagiTrickle, zapret).</string>
     <string name="dynamic_color_hint">Available on Android 12 and newer</string>
+    <string name="liquid_glass">Liquid Glass</string>
+    <string name="liquid_glass_desc">Blur and refraction on the bottom bar, header buttons, menus, sheets and dialogs</string>
+    <string name="liquid_glass_unsupported">Needs Android 12 or newer</string>
+    <string name="true_black">True black</string>
+    <string name="true_black_desc">Pure black background in the dark theme</string>
+    <string name="haptic_feedback">Haptic feedback</string>
+    <string name="haptic_feedback_desc">Short vibration on taps</string>
     <string name="section_router">Router</string>
     <string name="host">Host</string>
     <string name="port">Port</string>
@@ -427,6 +448,7 @@
     <string name="provider_fetch_proxy">Download through proxy</string>
     <string name="provider_fetch_proxy_hint">Which proxy group the router uses to download this list. Useful when the source (GitHub, for example) is not reachable directly. Not related to where matched traffic goes.</string>
     <string name="provider_fetch_proxy_none">Directly</string>
+    <string name="provider_group_title">Route matches to</string>
     <string name="provider_group_hint">Where traffic matching this list is routed.</string>
     <string name="provider_group_existing">Existing group</string>
     <string name="provider_group_new">New group</string>
@@ -441,9 +463,9 @@
     <!-- Live source catalog (MetaCubeX/meta-rules-dat, branch meta) -->
     <string name="catalog_search">Search the catalog</string>
     <string name="catalog_refresh">Refresh catalog</string>
-    <string name="catalog_loading">Loading the catalogâ¦</string>
+    <string name="catalog_loading">Loading the catalog…</string>
     <string name="catalog_count">%1$d of %2$d files</string>
-    <string name="catalog_no_results">Nothing matches the search. Use âCustom URLâ for a source outside this catalog.</string>
+    <string name="catalog_no_results">Nothing matches the search. Use “Custom URL” for a source outside this catalog.</string>
     <string name="catalog_not_updated">Catalog not updated</string>
 
     <!-- mihomo subscriptions (proxy providers feeding the shared node pool) -->
@@ -451,6 +473,18 @@
     <string name="subscriptions_title">Subscriptions</string>
     <string name="subscriptions_entry_desc">Node lists every proxy group selects from</string>
     <string name="subscriptions_hint">All subscriptions are merged into one shared pool of nodes, so anything you add becomes selectable in every proxy group.</string>
+    <plurals name="n_pending_changes">
+        <item quantity="one">%d change not applied yet</item>
+        <item quantity="other">%d changes not applied yet</item>
+    </plurals>
+    <plurals name="n_proxy_groups">
+        <item quantity="one">%d group</item>
+        <item quantity="other">%d groups</item>
+    </plurals>
+    <plurals name="n_routers">
+        <item quantity="one">%d router</item>
+        <item quantity="other">%d routers</item>
+    </plurals>
     <plurals name="n_subscriptions">
         <item quantity="one">%d subscription</item>
         <item quantity="other">%d subscriptions</item>
@@ -466,6 +500,7 @@
     <string name="subscription_saved">“%1$s” saved</string>
     <string name="subscription_removed">“%1$s” removed</string>
     <string name="subscription_not_found">There was no “%1$s” on the router</string>
+    <string name="subscription_base_badge">Base</string>
     <string name="subscription_base_protected">Built into the router\'s config — cannot be changed from here</string>
     <string name="subscription_delete_title">Remove subscription?</string>
     <string name="subscription_delete_text">“%1$s” and its nodes will be removed from the router. The proxy groups themselves stay.</string>
@@ -546,6 +581,14 @@
     <string name="err_network">Network error</string>
     <string name="err_invalid_router_address">Invalid router address: %1$s</string>
     <string name="err_empty_response">Empty response from router</string>
+    <string name="err_tls">The router answered over HTTPS instead of the Helm API. Usually this is the router web interface (LuCI) on that port — check the port: the API runs on its own HTTP port.</string>
+    <string name="err_not_api">The address answers, but it is not the Helm API — a web page came back instead. Check the port and that the API is installed on the router.</string>
+    <string name="err_title_connection">No connection to the router</string>
+    <string name="err_title_config">Check the router address</string>
+    <string name="err_title_access">Access denied</string>
+    <string name="err_title_other">Something went wrong</string>
+    <string name="err_details">Details</string>
+    <string name="err_open_settings">Router settings</string>
     <string name="err_raw">%1$s</string>
 
     <!-- Accessibility labels: names for icon-only controls and for state that is

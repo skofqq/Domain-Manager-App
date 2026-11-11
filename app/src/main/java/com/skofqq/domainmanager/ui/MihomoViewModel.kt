@@ -1,5 +1,8 @@
 package com.skofqq.domainmanager.ui
 
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.sync.Semaphore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -73,7 +76,24 @@ data class MihomoUiState(
      */
     val nodeIpv6: Map<String, Boolean>? = null,
     val ipv6Loading: Boolean = false,
+    /**
+     * group → (node, ms) of its current node from an explicit card test (mihomo_group_delay);
+     * 0 = no answer. Used only while that node is still the current one; wins over history.
+     */
+    val groupDelays: Map<String, Pair<String, Int>> = emptyMap(),
+    /** Groups with a card delay test in flight. */
+    val testingGroups: Set<String> = emptySet(),
 )
+
+/**
+ * Latency of the node [group] is using right now: an explicit card test for that very
+ * node first, then mihomo's own history (of the node, then of the group). null = no
+ * figure at all yet; 0 = the last test got no answer.
+ */
+fun MihomoUiState.currentDelay(group: MihomoGroup): Int? =
+    groupDelays[group.name]?.takeIf { it.first == group.now }?.second
+        ?: nodes[group.now]?.lastDelay
+        ?: nodes[group.name]?.lastDelay
 
 class MihomoViewModel(private val api: RouterApi) : ViewModel() {
 
@@ -284,6 +304,45 @@ class MihomoViewModel(private val api: RouterApi) : ViewModel() {
                     )
                 }
             }
+        }
+    }
+
+
+    /**
+     * Delay check from a group card: runs mihomo's test for the whole group and keeps
+     * the figure of the node the group currently uses. A node missing from the answer
+     * did not reply within the 5 s window (stored as 0). Afterwards the group list is
+     * re-read, so mihomo's own history (shown before any explicit test) is fresh too.
+     */
+    fun testGroup(group: String) {
+        if (group in _state.value.testingGroups) return
+        viewModelScope.launch {
+            runGroupTest(group)
+            fetchGroups()
+        }
+    }
+
+    /** Delay check for every group, three at a time so the router is not flooded. */
+    fun testAllGroups() {
+        val groups = _state.value.groups?.map { it.name } ?: return
+        if (_state.value.testingGroups.isNotEmpty()) return
+        viewModelScope.launch {
+            val gate = Semaphore(3)
+            groups.map { name -> launch { gate.withPermit { runGroupTest(name) } } }.joinAll()
+            fetchGroups()
+        }
+    }
+
+    private suspend fun runGroupTest(group: String) {
+        _state.update { it.copy(testingGroups = it.testingGroups + group) }
+        val result = withContext(Dispatchers.IO) { api.mihomoGroupDelay(group) }
+        _state.update { s ->
+            val now = s.groups?.firstOrNull { it.name == group }?.now
+            val ms = (result as? GroupDelayResult.Success)?.delays?.let { d -> d[now] ?: 0 }
+            s.copy(
+                testingGroups = s.testingGroups - group,
+                groupDelays = if (ms != null && now != null) s.groupDelays + (group to (now to ms)) else s.groupDelays,
+            )
         }
     }
 

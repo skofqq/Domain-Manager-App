@@ -18,8 +18,8 @@ android {
         applicationId = "com.skofqq.domainmanager"
         minSdk = 29
         targetSdk = 37
-        versionCode = 8
-        versionName = "1.6.0"
+        versionCode = 9
+        versionName = "1.7.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -56,6 +56,10 @@ android {
 
 kotlin {
     jvmToolchain(11)
+    compilerOptions {
+        // M3 Expressive components (LoadingIndicator, MaterialShapes, wavy progress) used across the design system.
+        optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
+    }
 }
 
 dependencies {
@@ -82,6 +86,8 @@ dependencies {
     implementation(libs.materialkolor)
     // Avatar loading in About
     implementation(libs.coil.compose)
+    // Proxy-group icons from the mihomo config are often SVG
+    implementation(libs.coil.svg)
 
     // Biometric/PIN app lock
     implementation(libs.androidx.biometric)

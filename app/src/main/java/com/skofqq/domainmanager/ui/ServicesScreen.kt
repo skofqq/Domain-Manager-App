@@ -1,5 +1,27 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.VpnLock
+import androidx.compose.material.icons.outlined.AltRoute
+import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.Thermostat
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Router
+import com.skofqq.domainmanager.ui.theme.Helm
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.PlayArrow
+import com.skofqq.domainmanager.ui.theme.Tints
+import com.skofqq.domainmanager.ui.components.*
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -235,7 +257,6 @@ private fun StatusRootScreen(
     onOpenTor: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val ipRevealed = rememberIpFlipRevealState()
 
     LifecycleResumeEffect(Unit) {
@@ -243,35 +264,26 @@ private fun StatusRootScreen(
         onPauseOrDispose { }
     }
 
-    Scaffold(
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(R.string.status)) },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        contentWindowInsets = WindowInsets(0),
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    ) { padding ->
+    HelmScaffold(title = stringResource(R.string.status)) { padding ->
         // First svc_list (no cache yet) → skeletons; later refreshes keep the
         // regular indicator over the existing cards.
         val firstLoad = state.services == null && state.error == null
         val skeletonBrush = if (firstLoad) shimmerBrush() else null
 
-        PullToRefreshBox(
+        HelmPullToRefreshBox(
             isRefreshing = state.isRefreshing && !firstLoad,
             onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(top = padding.calculateTopPadding()),
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp + (LocalBottomBarPadding.current ?: 0.dp)),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 state.error?.let { message ->
-                    item { ErrorCard(message) }
+                    item { ErrorCard(message, onRetry = { viewModel.refresh() }) }
                 }
                 if (skeletonBrush != null) {
                     item { SkeletonHealthCard(skeletonBrush) }
@@ -324,7 +336,7 @@ private fun StatusRootScreen(
 
     val logState by viewModel.serviceLog.collectAsState()
     logState?.let { log ->
-        ModalBottomSheet(onDismissRequest = { viewModel.closeServiceLog() }) {
+        HelmBottomSheet(onDismissRequest = { viewModel.closeServiceLog() }) {
             ServiceLogSheetContent(
                 state = log,
                 onRefresh = { viewModel.refreshServiceLog() },
@@ -351,22 +363,29 @@ private fun ServiceLogSheetContent(state: ServiceLogUiState, onRefresh: () -> Un
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            ShapeIcon(Icons.Outlined.Article, Tints.purple, shape = MaterialShapes.Clover4Leaf, size = 40.dp)
+            Spacer(Modifier.width(12.dp))
             Text(
                 text = stringResource(R.string.service_log_title, serviceLabel(state.service)),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f),
             )
             if (state.loading) {
-                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                LoadingIndicator(Modifier.size(36.dp))
             } else {
-                TextButton(onClick = onRefresh) { Text(stringResource(R.string.refresh)) }
+                SectionIconButton(Icons.Filled.Refresh, stringResource(R.string.refresh), tint = Tints.purple, onClick = onRefresh)
             }
         }
         Spacer(Modifier.height(8.dp))
         state.error?.let { ErrorCard(it) }
         val lines = state.lines
-        LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .clip(RoundedCornerShape(18.dp))
+                .background(Helm.colors.card),
+            contentPadding = PaddingValues(12.dp),
+        ) {
             if (lines != null && lines.isEmpty() && !state.loading) {
                 item {
                     Text(
@@ -379,11 +398,35 @@ private fun ServiceLogSheetContent(state: ServiceLogUiState, onRefresh: () -> Un
             }
             lines?.let { list ->
                 items(list.size) { index ->
-                    Text(
-                        text = list[index],
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                        modifier = Modifier.padding(vertical = 3.dp),
-                    )
+                    val line = list[index]
+                    val palette = rememberLogPalette()
+                    val level = remember(line) { logLevelOf(line) }
+                    val highlighted = remember(line, palette) { highlightLogLine(line, palette) }
+                    // Severity bar on the left; errors also get a faint red wash.
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                if (level == LogLevel.ERROR) Tints.red.bg.copy(alpha = Tints.red.bg.alpha * 0.6f)
+                                else Color.Transparent,
+                            )
+                            .height(IntrinsicSize.Min),
+                    ) {
+                        Box(
+                            Modifier
+                                .width(3.dp)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(50))
+                                .background(palette.colorOf(level)),
+                        )
+                        Text(
+                            text = highlighted,
+                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                            modifier = Modifier.padding(start = 8.dp, end = 4.dp, top = 3.dp, bottom = 3.dp),
+                        )
+                    }
                 }
             }
         }
@@ -417,101 +460,98 @@ private fun shortFirmware(firmware: String): String {
 
 @Composable
 private fun HealthCard(info: SysInfo, disk: DiskInfo?, ipRevealed: Boolean) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (info.model.isNotEmpty()) {
-                HealthRow(label = stringResource(R.string.health_model), value = info.model)
-            }
-            if (info.firmware.isNotEmpty()) {
-                HealthRow(label = stringResource(R.string.health_firmware), value = shortFirmware(info.firmware))
-            }
-            HealthRow(
-                label = stringResource(R.string.health_uptime),
-                value = formatUptime(info.uptimeSeconds),
-            )
-            HealthRow(
-                label = stringResource(R.string.health_load),
-                value = String.format(Locale.US, "%.2f · %.2f · %.2f", info.load1, info.load5, info.load15),
-            )
-            // null = the board exposes no cpu-thermal zone — hide the row entirely,
-            // same convention as the WAN IPv6 row above.
-            info.cpuTempC?.let { temp ->
-                HealthRow(
-                    label = stringResource(R.string.health_cpu_temp),
-                    value = String.format(Locale.US, "%.1f°C", temp),
+    HelmSection(
+        title = info.model.ifEmpty { stringResource(R.string.health_model) },
+        subtitle = info.firmware.takeIf { it.isNotEmpty() }?.let { shortFirmware(it) },
+        icon = Icons.Outlined.Router,
+        tint = Tints.accent,
+        shape = MaterialShapes.Cookie12Sided,
+    ) {
+        val tiles = buildList<@Composable (Modifier) -> Unit> {
+            add { m ->
+                StatTile(
+                    label = stringResource(R.string.health_uptime),
+                    value = formatUptime(info.uptimeSeconds),
+                    icon = Icons.Outlined.Schedule,
+                    tint = Tints.blue,
+                    shape = MaterialShapes.Cookie6Sided,
+                    modifier = m,
                 )
             }
-            // Hidden by default (placeholder dots) — revealed only while the phone
-            // is flipped face-down, same idea as "flip to shhh". Empty = WAN is
-            // down, not an error, so it still renders (as "—") once revealed.
+            add { m ->
+                StatTile(
+                    label = stringResource(R.string.health_load),
+                    value = String.format(Locale.US, "%.2f · %.2f", info.load1, info.load5),
+                    icon = Icons.Outlined.Speed,
+                    tint = if (info.load1 >= 2.0) Tints.orange else Tints.teal,
+                    shape = MaterialShapes.Sunny,
+                    modifier = m,
+                )
+            }
+            // null = the board exposes no cpu-thermal zone: no tile at all.
+            info.cpuTempC?.let { temp ->
+                add { m ->
+                    StatTile(
+                        label = stringResource(R.string.health_cpu_temp),
+                        value = String.format(Locale.US, "%.1f°C", temp),
+                        icon = Icons.Outlined.Thermostat,
+                        tint = when {
+                            temp >= 80 -> Tints.red
+                            temp >= 65 -> Tints.amber
+                            else -> Tints.green
+                        },
+                        shape = MaterialShapes.Flower,
+                        modifier = m,
+                    )
+                }
+            }
+            add { m ->
+                val usedKb = (info.memTotalKb - info.memAvailableKb).coerceAtLeast(0)
+                val pct = if (info.memTotalKb > 0) (usedKb * 100 / info.memTotalKb).toInt() else 0
+                StatTile(
+                    label = "${stringResource(R.string.health_memory)} · ${formatBytes(info.memTotalKb * 1024)}",
+                    value = "$pct% · ${formatBytes(usedKb * 1024)}",
+                    icon = Icons.Outlined.Memory,
+                    tint = if (pct >= 90) Tints.red else Tints.purple,
+                    shape = MaterialShapes.Clover4Leaf,
+                    modifier = m,
+                )
+            }
+        }
+        TileGrid(tiles)
+        // null while the first disk_info has not answered yet: the row just does not
+        // exist yet, same "hide, don't placeholder" convention as WAN IPv6.
+        disk?.let { d ->
+            val warning = d.usedPercent >= 90
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                KeyValueRow(
+                    label = stringResource(R.string.health_disk),
+                    value = "${formatBytes(d.usedKb * 1024)} / ${formatBytes(d.totalKb * 1024)} (${d.usedPercent}%)",
+                    valueColor = if (warning) Tints.red.fg else Helm.colors.text,
+                )
+                LinearWavyProgressIndicator(
+                    progress = { d.usedPercent / 100f },
+                    color = if (warning) Tints.red.fg else Helm.colors.accent,
+                    trackColor = Helm.colors.surface2,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+        // Hidden by default (placeholder dots), revealed only while the phone is
+        // flipped face-down, same idea as "flip to shhh". Empty = WAN is down, not
+        // an error, so it still renders (as "—") once revealed.
+        Column {
             IpRow(
                 label = stringResource(R.string.health_wan_ip),
                 value = info.wanIp.ifEmpty { "—" },
                 revealed = ipRevealed,
             )
-            // No IPv6 → no row at all (not an "IPv6: —" placeholder).
+            // No IPv6: no row at all (not an "IPv6: —" placeholder).
             if (info.wanIpv6.isNotEmpty()) {
                 IpRow(
                     label = stringResource(R.string.health_wan_ipv6),
                     value = info.wanIpv6,
                     revealed = ipRevealed,
-                )
-            }
-            val usedKb = (info.memTotalKb - info.memAvailableKb).coerceAtLeast(0)
-            HealthRow(
-                label = stringResource(R.string.health_memory),
-                value = "${formatBytes(usedKb * 1024)} / ${formatBytes(info.memTotalKb * 1024)}",
-            )
-            LinearProgressIndicator(
-                progress = {
-                    if (info.memTotalKb > 0) usedKb.toFloat() / info.memTotalKb else 0f
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            // null while the first disk_info hasn't answered yet — row just doesn't
-            // exist yet, same "hide, don't placeholder" convention as WAN IPv6.
-            disk?.let { d ->
-                val warning = d.usedPercent >= 90
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        if (warning) {
-                            Icon(
-                                Icons.Filled.Warning,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(16.dp),
-                            )
-                        }
-                        Text(
-                            text = stringResource(R.string.health_disk),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (warning) MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Text(
-                        text = "${formatBytes(d.usedKb * 1024)} / ${formatBytes(d.totalKb * 1024)} (${d.usedPercent}%)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (warning) MaterialTheme.colorScheme.error else Color.Unspecified,
-                        textAlign = TextAlign.End,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 16.dp),
-                    )
-                }
-                LinearProgressIndicator(
-                    progress = { d.usedPercent / 100f },
-                    color = if (warning) MaterialTheme.colorScheme.error else ProgressIndicatorDefaults.linearColor,
-                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -641,7 +681,7 @@ private fun rememberIpFlipRevealState(): Boolean {
 
 @Composable
 private fun SkeletonHealthCard(brush: androidx.compose.ui.graphics.Brush) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    HelmCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -661,60 +701,29 @@ private fun SkeletonHealthCard(brush: androidx.compose.ui.graphics.Brush) {
 
 @Composable
 private fun DevicesSummaryCard(count: Int, onClick: () -> Unit) {
-    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.Outlined.Devices,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = pluralStringResource(R.plurals.n_devices_online, count, count),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 14.dp),
-            )
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+    EntryCard(
+        icon = Icons.Outlined.Devices,
+        title = stringResource(R.string.devices_title),
+        subtitle = pluralStringResource(R.plurals.n_devices_online, count, count),
+        onClick = onClick,
+        tint = Tints.teal,
+        shape = MaterialShapes.Cookie9Sided,
+        trailing = { ValuePill(count.toString(), Tints.teal) },
+    )
 }
 
 // --- Network diagnostics entry ----------------------------------------------------
 
 @Composable
 private fun DiagnosticsEntryCard(onClick: () -> Unit) {
-    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.Outlined.NetworkCheck,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = stringResource(R.string.diag_net_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 14.dp),
-            )
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+    EntryCard(
+        icon = Icons.Outlined.NetworkCheck,
+        title = stringResource(R.string.diag_net_title),
+        subtitle = stringResource(R.string.diag_entry_desc),
+        onClick = onClick,
+        tint = Tints.orange,
+        shape = MaterialShapes.Sunny,
+    )
 }
 
 // --- Service cards ----------------------------------------------------------------
@@ -736,17 +745,16 @@ private fun ServiceCard(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                ServiceIcon(status)
+                Spacer(Modifier.width(14.dp))
                 Text(
+                    style = MaterialTheme.typography.titleLarge,
                     text = serviceLabel(status.service),
-                    style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
                 // svc_start/stop/restart can block up to ~5 s on the router.
                 if (busy) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                    )
+                    LoadingIndicator(Modifier.size(36.dp))
                 } else if (onOpen != null) {
                     Icon(
                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -761,7 +769,7 @@ private fun ServiceCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.weight(1f)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
                     RunningIndicator(running = status.running, enabled = status.enabled)
                     AutostartIndicator(status.enabled)
                 }
@@ -778,33 +786,39 @@ private fun ServiceCard(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (!status.running) {
-                    FilledTonalButton(
+                    TintButton(
+                        text = stringResource(R.string.svc_start),
+                        tint = Tints.green,
+                        enabled = actionsEnabled,
+                        icon = Icons.Filled.PlayArrow,
+                        modifier = Modifier.weight(1f),
                         onClick = onStart,
-                        enabled = actionsEnabled,
-                        modifier = Modifier.weight(1f),
-                    ) { Text(stringResource(R.string.svc_start)) }
+                    )
                 } else {
-                    OutlinedButton(
+                    TintButton(
+                        text = stringResource(R.string.svc_stop),
+                        tint = Tints.red,
+                        enabled = actionsEnabled,
+                        icon = Icons.Filled.Stop,
+                        modifier = Modifier.weight(1f),
                         onClick = onStop,
+                    )
+                    TintButton(
+                        text = stringResource(R.string.svc_restart),
+                        tint = Tints.accent,
                         enabled = actionsEnabled,
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error,
-                        ),
+                        icon = Icons.Filled.Refresh,
                         modifier = Modifier.weight(1f),
-                    ) { Text(stringResource(R.string.svc_stop)) }
-                    FilledTonalButton(
                         onClick = onRestart,
-                        enabled = actionsEnabled,
-                        modifier = Modifier.weight(1f),
-                    ) { Text(stringResource(R.string.svc_restart)) }
+                    )
                 }
             }
         }
     }
     if (onOpen != null) {
-        ElevatedCard(onClick = onOpen, modifier = Modifier.fillMaxWidth()) { content() }
+        HelmCard(onClick = onOpen, modifier = Modifier.fillMaxWidth()) { content() }
     } else {
-        ElevatedCard(modifier = Modifier.fillMaxWidth()) { content() }
+        HelmCard(modifier = Modifier.fillMaxWidth()) { content() }
     }
 }
 
@@ -816,53 +830,42 @@ internal fun RunningIndicator(running: Boolean, enabled: Boolean) {
     val (tint, labelRes) = when {
         running -> statusOk to R.string.svc_running
         enabled -> MaterialTheme.colorScheme.error to R.string.svc_failed
-        else -> MaterialTheme.colorScheme.outline to R.string.svc_stopped
+        else -> Tints.gray.fg to R.string.svc_stopped
     }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(tint),
-        )
-        Text(
-            text = stringResource(labelRes),
-            style = MaterialTheme.typography.labelMedium,
-            color = tint,
-        )
-    }
+    StatusPill(stringResource(labelRes), tint)
 }
 
 @Composable
 internal fun AutostartIndicator(enabled: Boolean) {
-    val tint = if (enabled) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.outline
+    val tint = if (enabled) Helm.colors.accent else Tints.gray.fg
     // The label reads "Autostart" in both states — on or off is carried entirely by
     // the check/cross glyph and the tint, so a screen reader hears the same thing
     // either way. Merge the pair into one node that names the state.
     val stateLabel = stringResource(
         if (enabled) R.string.a11y_autostart_on else R.string.a11y_autostart_off
     )
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
-        modifier = Modifier.semantics(mergeDescendants = true) {
-            contentDescription = stateLabel
-        },
-    ) {
-        Icon(
-            imageVector = if (enabled) Icons.Filled.Check else Icons.Filled.Close,
-            contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(14.dp),
-        )
-        Text(
-            text = stringResource(R.string.svc_autostart),
-            style = MaterialTheme.typography.labelMedium,
-            color = tint,
-        )
+    StatusPill(
+        text = stringResource(R.string.svc_autostart),
+        color = tint,
+        icon = if (enabled) Icons.Filled.Check else Icons.Filled.Close,
+        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = stateLabel },
+    )
+}
+
+/** Shaped, state-tinted icon of a service card: the shape is per service, the colour follows its state. */
+@Composable
+private fun ServiceIcon(status: ServiceStatus) {
+    val tint = when {
+        status.running -> Tints.green
+        status.enabled -> Tints.red
+        else -> Tints.gray
     }
+    val (icon, shape) = when (status.service) {
+        "mihomo" -> Icons.Outlined.Hub to MaterialShapes.Cookie9Sided
+        "magitrickle" -> Icons.Outlined.AltRoute to MaterialShapes.Clover4Leaf
+        "tor" -> Icons.Outlined.VpnLock to MaterialShapes.Cookie12Sided
+        ENGINE_ZAPRET2, ENGINE_ZAPRET -> Icons.Outlined.Shield to MaterialShapes.Cookie6Sided
+        else -> Icons.Outlined.Dns to MaterialShapes.Sunny
+    }
+    ShapeIcon(icon, tint, shape = shape, size = 44.dp)
 }

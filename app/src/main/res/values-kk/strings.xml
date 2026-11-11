@@ -1,0 +1,606 @@
+<resources>
+    <string name="app_name">Helm</string>
+
+    <!-- Navigation -->
+    <string name="settings">Баптаулар</string>
+    <string name="domains">Домендер</string>
+
+    <!-- Domain fields / status card -->
+    <string name="domain">Домен</string>
+    <string name="domain_placeholder">example.com</string>
+    <string name="status">Күйі</string>
+    <string name="add_to">%1$s ішіне қосу</string>
+    <string name="remove_from">%1$s ішінен жою</string>
+
+    <!-- Domains screen -->
+    <string name="tab_routing">Маршрутизация</string>
+    <string name="tab_strategies">Стратегиялар</string>
+    <string name="add_domain">Домен қосу</string>
+    <string name="add">Қосу</string>
+    <string name="apply">Қолдану</string>
+    <string name="remove_domain">Доменді жою</string>
+    <string name="no_domains">Басқарылатын домендер әзірге жоқ. Жаңарту үшін төмен тартыңыз.</string>
+    <string name="domain_partial">Бұл домен тек %1$s ішінде бар.</string>
+    <string name="edit_domain">Доменді өзгерту</string>
+    <string name="paste_from_clipboard">Алмасу буферінен қою</string>
+    <string name="cancel">Бас тарту</string>
+    <string name="back">Артқа</string>
+
+    <!-- Strategies -->
+    <string name="strategy">Стратегия</string>
+    <string name="strategy_n">Стратегия %1$d</string>
+    <string name="strategy_pool">Жеке байланыссыз — ортақ пул</string>
+    <string name="strategy_range_loading">Стратегиялар ауқымы роутерден жүктелуде…</string>
+    <string name="strat_showing_active">Жұмыс істеп тұр — өзгерістер бірден қолданылады</string>
+    <string name="strat_showing_inactive">Тоқтатылған — өзгерістер тек сақталады</string>
+    <string name="engine_running">Жұмыс істеп тұр</string>
+    <string name="engine_stopped">Тоқтатылған</string>
+    <string name="strat_no_engine">Бірде-бір DPI қозғалтқышы іске қосылмаған</string>
+    <string name="strat_no_engine_hint">Домен стратегияларын басқару үшін «Күйі» қойындысында zapret немесе zapret2 іске қосыңыз.</string>
+    <string name="open_status">«Күйі» ашу</string>
+    <string name="retry">Қайталау</string>
+    <string name="no_strat_domains">Жеке стратегиясы бар домендер әзірге жоқ.</string>
+    <string name="strategy_pool_short">Ортақ пул</string>
+    <string name="search_domains">Домендерді іздеу</string>
+    <string name="search_or_add_domain">Доменді іздеу немесе қосу</string>
+    <string name="clear_search">Іздеуді тазалау</string>
+    <string name="search_no_results">Іздеуге сәйкес домендер жоқ.</string>
+    <string name="search_empty_title">Ештеңе табылмады</string>
+    <string name="empty_domains_title">Домендер әзірге жоқ</string>
+    <string name="empty_strat_title">Жеке стратегиялар әзірге жоқ</string>
+    <string name="add_domain_named">%1$s қосу</string>
+    <string name="pick_strategy">Стратегияны таңдаңыз</string>
+    <plurals name="n_domains">
+        <item quantity="one">%d домен</item>
+        <item quantity="other">%d домен</item>
+    </plurals>
+
+    <!-- zapret2 profiles -->
+    <string name="z2_profiles_title">zapret2 профильдері</string>
+    <string name="z2_proto_tls">TLS</string>
+    <string name="z2_proto_udp">QUIC / UDP</string>
+    <string name="z2_proto_http">HTTP</string>
+    <string name="z2_apply_hint">Белсенді қозғалтқышқа енгізілген өзгерістер қысқа қайта іске қосумен қолданылады.</string>
+    <string name="z2_rollback">Кері қайтару</string>
+    <string name="z2_rollback_done">Алдыңғы жиынға қайтарылды</string>
+    <string name="z2_rollback_nothing">Кері қайтаратын сақталған жиын жоқ</string>
+
+    <!-- zapret v1 profiles -->
+    <string name="z1_profiles_title">zapret профильдері</string>
+
+    <!-- Shared by both zapret profile screens -->
+    <string name="profile_caption">кілт %1$s · қазір: %2$d</string>
+    <string name="check_reachability">Тексеру</string>
+    <string name="z_profiles_section">Профильдер</string>
+    <string name="z_actions_section">Өзгерістер</string>
+    <string name="voice_title">Дауыстық қоңыраулар — Discord/WhatsApp/Telegram</string>
+    <string name="voice_custom">Өзіндік</string>
+    <string name="voice_bolvan">bol-van скриптері</string>
+
+    <!-- Status (services) screen -->
+    <string name="health_model">Модель</string>
+    <string name="health_firmware">Микробағдарлама</string>
+    <string name="health_uptime">Жұмыс уақыты</string>
+    <string name="health_load">Орташа жүктеме</string>
+    <string name="health_cpu_temp">CPU температурасы</string>
+    <string name="health_memory">Жад</string>
+    <string name="health_wan_ip">IPv4</string>
+    <string name="health_wan_ipv6">IPv6</string>
+    <string name="dur_days_hours">%1$d к %2$d сағ</string>
+    <string name="dur_hours_minutes">%1$d сағ %2$d мин</string>
+    <string name="dur_minutes">%1$d мин</string>
+    <string name="devices_title">Құрылғылар</string>
+    <string name="devices_favorites">Таңдаулылар</string>
+    <string name="devices_all">Барлық құрылғылар</string>
+    <string name="devices_online_of">%2$d ішінен %1$d желіде</string>
+    <string name="device_scan_label">Құрылғылар тексерілуде</string>
+    <string name="device_unknown">Белгісіз құрылғы</string>
+    <string name="device_icon_title">Құрылғы белгішесі</string>
+    <string name="device_icon_auto">Авто</string>
+    <string name="device_type_speaker">Колонка</string>
+    <string name="device_type_bulb">Шам</string>
+    <string name="device_type_phone">Телефон</string>
+    <string name="device_type_pc">ДК</string>
+    <string name="device_type_laptop">Ноутбук</string>
+    <string name="device_type_router">Роутер</string>
+    <string name="device_type_zigbee">ZigBee шлюзі</string>
+    <string name="device_type_printer">Принтер</string>
+    <string name="device_type_socket">Розетка</string>
+    <string name="device_type_tv">Теледидар</string>
+    <string name="device_type_storage">Қойма</string>
+    <string name="device_type_camera">Камера</string>
+    <string name="device_type_generic">Басқа</string>
+    <plurals name="n_devices_online">
+        <item quantity="one">Желіде %d құрылғы</item>
+        <item quantity="other">Желіде %d құрылғы</item>
+    </plurals>
+    <string name="device_scan_progress">%1$d/%2$d</string>
+    <string name="wake_device">Ояту</string>
+    <string name="wake_sent">Wake-on-LAN пакеті жіберілді</string>
+    <string name="favorite_device">Таңдаулыларға қосу</string>
+    <string name="unfavorite_device">Таңдаулылардан жою</string>
+    <string name="health_disk">Диск (/overlay)</string>
+    <string name="svc_running">Жұмыс істеп тұр</string>
+    <string name="svc_stopped">Тоқтатылған</string>
+    <string name="svc_failed">Ақау</string>
+    <string name="svc_autostart">Автоіске қосу</string>
+    <string name="svc_start">Іске қосу</string>
+    <string name="svc_stop">Тоқтату</string>
+    <string name="svc_restart">Қайта іске қосу</string>
+    <string name="service_log_button">Журнал</string>
+    <string name="service_log_title">%1$s журналы</string>
+    <string name="service_log_empty">Журнал жазбалары жоқ</string>
+    <string name="refresh">Жаңарту</string>
+
+    <!-- mihomo drill-down -->
+    <string name="section_proxy_groups">Прокси топтары</string>
+    <string name="groups_view_grid">Тор көрінісі</string>
+    <string name="groups_view_list">Тізім көрінісі</string>
+    <string name="section_traffic">Трафик</string>
+    <string name="section_connections">Белсенді қосылымдар</string>
+    <string name="traffic_download">Жүктеп алу</string>
+    <string name="traffic_upload">Жүктеп салу</string>
+    <string name="speed_value">%1$s/с</string>
+    <string name="traffic_total">Барлығы %1$s</string>
+    <string name="no_connections">Белсенді қосылымдар жоқ</string>
+    <string name="close_connection">Қосылымды жабу</string>
+    <string name="err_mihomo_unreachable">mihomo жауап бермейді — қызметтің жұмыс істеп тұрғанын тексеріңіз</string>
+    <string name="err_mihomo_select_failed">mihomo түйінді ауыстыруды қабылдамады</string>
+    <string name="traffic_chart_caption">Соңғы ~5 минут, mihomo арқылы</string>
+    <string name="mihomo_only_note">Тек mihomo проксиі арқылы өткен трафик, құрылғының жалпы трафигі емес.</string>
+    <string name="source_all">Барлығы</string>
+    <string name="source_traffic_summary">%1$s: ↓ %2$s · ↑ %3$s (тек mihomo арқылы)</string>
+
+    <!-- Network diagnostics -->
+    <string name="diag_net_title">Желі диагностикасы</string>
+    <string name="diag_entry_desc">Ping, traceroute, жылдамдық сынағы және туннельді тексеру</string>
+    <string name="diag_host_section">Ping / traceroute</string>
+    <string name="diag_ping">Ping</string>
+    <string name="diag_traceroute">Traceroute</string>
+    <string name="diag_preset_wan">WAN %1$s</string>
+    <string name="ping_result_ok">Қолжетімді · жоғалту %1$d%% · орташа %2$s мс</string>
+    <string name="ping_result_fail">Жауап жоқ (100%% жоғалту)</string>
+    <string name="trace_title">%1$s дейінгі маршрут</string>
+    <string name="diag_speedtest_title">Жылдамдық сынағы</string>
+    <string name="diag_speedtest_note">Осы телефонның Wi-Fi емес, РОУТЕРДІҢ WAN жүктеп алу жылдамдығын өлшейді. ~25 секундқа дейін созылады.</string>
+    <string name="diag_speedtest_run">Сынақты бастау</string>
+    <string name="diag_speedtest_running">Өлшенуде…</string>
+    <string name="diag_speedtest_result_label">Роутер WAN жүктеп алу</string>
+    <string name="speed_mbps">%1$s Мбит/с</string>
+    <string name="diag_tunnel_title">Туннельді тексеру</string>
+    <string name="diag_tunnel_note">mihomo ішіндегі кідіріс сынағы топтың барлық түйінін бірден тексереді. 5 с ішінде жауап бермеген түйін жауап бермейді деп белгіленеді.</string>
+    <string name="diag_tunnel_run">Түйіндерді тексеру</string>
+    <string name="diag_tunnel_running">Тексерілуде…</string>
+    <string name="ms_value">%1$d мс</string>
+    <string name="ms_value_frac">%1$s мс</string>
+    <string name="node_no_response">Жауап бермейді</string>
+    <string name="delay_test">Сынақ</string>
+    <string name="delay_timeout">Күту уақыты бітті</string>
+    <string name="delay_test_all">Барлық топты тексеру</string>
+
+    <!-- MagiTrickle groups overview -->
+    <string name="magitrickle_groups_title">MagiTrickle топтары</string>
+    <string name="magitrickle_groups_empty">Роутерде бірде-бір топ бапталмаған.</string>
+    <string name="magitrickle_group_no_rules">Бұл топта ережелер жоқ.</string>
+    <plurals name="n_rules">
+        <item quantity="one">%d ереже</item>
+        <item quantity="other">%d ереже</item>
+    </plurals>
+    <string name="domain_in_group">«%1$s» тобында бар</string>
+
+    <!-- Share screen -->
+    <string name="share_title">Роутерге қосу</string>
+    <string name="close">Жабу</string>
+    <string name="reload_status">Күйді қайта жүктеу</string>
+    <string name="done">Дайын</string>
+
+    <!-- Settings screen -->
+    <string name="settings_appearance_desc">Қолданба тақырыбын өзгерту</string>
+    <string name="settings_auth_title">Авторизация</string>
+    <string name="settings_auth_desc">Роутер профильдері мен токендер</string>
+
+    <!-- Router profiles -->
+    <string name="default_profile_name">Менің роутерім</string>
+    <string name="settings_profiles_hint">Таңдалған профиль белсенді — барлық қойынды сонымен жұмыс істейді. Өзгерту үшін жолды түртіңіз.</string>
+    <string name="profile_add">Роутер қосу</string>
+    <string name="profile_new_title">Жаңа роутер</string>
+    <string name="profile_name">Атауы</string>
+    <string name="profile_name_placeholder">Үй</string>
+    <string name="profile_delete_title">Профильді жою керек пе?</string>
+    <string name="profile_delete_text">«%1$s» осы телефоннан жойылады. Роутердің өзіне әсер етпейді.</string>
+    <string name="profile_delete_last_warning">Бұл бапталған жалғыз роутер — жойғаннан кейін бірде-бір профиль қалмайды.</string>
+    <string name="delete">Жою</string>
+    <string name="update">Жаңарту</string>
+    <string name="qr_profile_added">«%1$s» профилі қосылды</string>
+    <string name="qr_update_title">Профильді жаңарту керек пе?</string>
+    <string name="qr_update_text">QR кодта бар «%1$s» профилінің мекенжайы бар. Көшірме жасаудың орнына оның деректерін жаңарту керек пе?</string>
+    <string name="auth_to_show_qr">QR кодты көрсету үшін растаңыз</string>
+    <string name="settings_about_title">Қолданба туралы</string>
+    <string name="settings_about_desc">Нұсқа және қолданба туралы ақпарат</string>
+
+    <!-- Security -->
+    <string name="section_security">Қауіпсіздік</string>
+    <string name="settings_security_desc">Биометрия және PIN</string>
+    <string name="lock_explain">Саусақ ізі немесе бет қолданылады, ал биометрия қолжетімсіз болса — құрылғының PIN коды, өрнегі немесе құпия сөзі.</string>
+    <string name="lock_unavailable">Бұл құрылғыда биометрия да, экран құлпы да бапталмаған — сұрайтын ештеңе жоқ.</string>
+    <string name="lock_mode_off">Өшірулі</string>
+    <string name="lock_mode_off_desc">Қосымша қорғаныссыз</string>
+    <string name="lock_mode_token">Тек токенді көрсету</string>
+    <string name="lock_mode_token_desc">«Авторизация» бөлімінде токенді көрсету алдында растау</string>
+    <string name="lock_mode_app">Бүкіл қолданба</string>
+    <string name="lock_mode_app_desc">Әр іске қосқанда биометрия немесе PIN</string>
+    <string name="unlock_title">Helm құлпын ашу</string>
+    <string name="unlock">Құлыпты ашу</string>
+    <string name="auth_to_show_token">Токенді көрсету үшін растаңыз</string>
+
+    <!-- Backup -->
+    <string name="section_backup">Сақтық көшірме</string>
+    <string name="settings_backup_desc">Тізімдерді экспорттау және импорттау</string>
+    <string name="backup_export_title">Экспорт</string>
+    <string name="backup_export_note">Роутердің ағымдағы тізімдерінің анықтама немесе қолмен қалпына келтіру үшін суреті. Нақты күй әрқашан роутерде қалады — қолданба оны тек API арқылы оқиды және жазады.</string>
+    <string name="backup_build">Сурет жасау</string>
+    <string name="backup_building">Жасалуда…</string>
+    <string name="backup_export_summary">Маршрутизация: %1$d · zapret2: %2$d · zapret: %3$d</string>
+    <string name="copy">Көшіру</string>
+    <string name="copied">Көшірілді</string>
+    <string name="share">Бөлісу</string>
+    <string name="backup_import_title">Импорт</string>
+    <string name="backup_import_note">JSON суретін немесе домендердің қарапайым тізімін қойыңыз (әр жолға біреуден — олар маршрутизацияға әдепкі мақсатпен қосылады).</string>
+    <string name="backup_import_hint_restart">zapret қозғалтқышы жұмыс істеп тұрса, әр импортталған стратегия оның демонын қайта іске қосады — үлкен импорт біраз уақыт алуы мүмкін.</string>
+    <string name="backup_run_import">Импорттау</string>
+    <string name="backup_progress">%1$d / %2$d…</string>
+    <string name="backup_result">Қосылды: %1$d · Бұрыннан бар: %2$d · Сәтсіз: %3$d</string>
+    <string name="backup_parse_error">Енгізілген деректі талдау мүмкін болмады — JSON суреті немесе домендер тізімі күтілуде</string>
+    <string name="backup_empty">Импорттайтын ештеңе жоқ</string>
+
+    <!-- QR setup -->
+    <string name="section_qr">QR код</string>
+    <string name="qr_hint">Бұл баптауларды басқа телефонға көшіру: QR кодты осында көрсетіп, сонда сканерлеңіз.</string>
+    <string name="qr_show">QR көрсету</string>
+    <string name="qr_scan">QR сканерлеу</string>
+    <string name="qr_show_title">Қосылым баптаулары</string>
+    <string name="qr_show_warning">Кодта мекенжай, порт және кіру токені ашық мәтінмен бар — оны тек сенімді құрылғыларда көрсетіңіз.</string>
+    <string name="qr_scanned">Сканерленді — өрістерді тексеріп, «Сақтау» түймесін басыңыз</string>
+    <string name="qr_plain_hint">Қарапайым QR-ға (талғампаз сканерлер үшін) ауысу және қайту үшін кодты басып тұрыңыз.</string>
+    <string name="qr_invalid">Бұл QR Helm баптау коды емес</string>
+
+    <!-- History -->
+    <string name="section_history">Тарих</string>
+    <string name="settings_history_desc">Қосылған домендердің жергілікті журналы</string>
+    <string name="history_note">Тек осы телефонда сақталады: әр сәтті қосу күнімен бірге жазылады. Роутер уақыт белгілерін сақтамайды, сондықтан бұл тізім онымен синхрондалмайды.</string>
+    <string name="history_empty">Әзірге бос — қосқан домендеріңіз осында пайда болады.</string>
+
+    <!-- Deep link / automation -->
+    <string name="deeplink_added">%1$s роутерге қосылды</string>
+
+    <!-- Widget -->
+    <string name="widget_label">Қызметтер күйі</string>
+    <string name="widget_description">Роутер қызметтерінің күй индикаторлары</string>
+    <string name="widget_label_mihomo">mihomo</string>
+    <string name="widget_label_magitrickle">MT</string>
+    <string name="widget_label_zapret">zapret</string>
+    <string name="widget_label_zapret2">zapret2</string>
+
+    <!-- Diagnostics -->
+    <string name="section_diagnostics">Диагностика</string>
+    <string name="settings_diagnostics_desc">Күту уақыты және сұрауларды жөндеу</string>
+    <string name="diag_timeout_title">HTTP сұрауының күту уақыты</string>
+    <string name="diag_timeout_value">%1$d с</string>
+    <string name="diag_log_title">Соңғы API сұраулары</string>
+    <string name="diag_log_note">URL ішіндегі токен жасырылған — қате туралы есеп үшін көшіріп, бөлісуге болады.</string>
+    <string name="diag_log_empty">Сұраулар әзірге жоқ.</string>
+    <string name="diag_failed">ҚАТЕ</string>
+
+    <!-- Background monitoring -->
+    <string name="section_monitoring">Мониторинг</string>
+    <string name="settings_monitoring_desc">WAN IP, диск және кідірісті фондық тексеру</string>
+    <string name="monitoring_explain">Роутерді фонда мезгіл-мезгіл тексеріп, WAN IP өзгергені, дискіде орын азайғаны немесе прокси кідірісі нашарлағаны туралы хабарлайды. WorkManager қолданады және тек желі болғанда жұмыс істейді.</string>
+    <string name="monitoring_enable">Фондық мониторингті қосу</string>
+    <string name="monitoring_interval_title">Тексеру аралығы</string>
+    <string name="monitoring_interval_value">%1$d мин</string>
+    <string name="monitoring_wan_title">WAN IP өзгерісі</string>
+    <string name="monitoring_wan_desc">Роутердің WAN IPv4/IPv6 өзгергенде хабарлау</string>
+    <string name="monitoring_disk_title">Дискідегі орын</string>
+    <string name="monitoring_disk_desc">/overlay 90% толғанда хабарлау</string>
+    <string name="monitoring_latency_title">Кідірістің нашарлауы</string>
+    <string name="monitoring_latency_desc">Бақылайтын прокси тобын таңдаңыз — белсенді түйіннің кідірісі шамамен екі есе артқанда немесе ол жауап бермей қалғанда хабарланады.</string>
+    <string name="monitoring_latency_off">Өшірулі</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_name">Роутер мониторингі</string>
+    <string name="notif_channel_desc">WAN IP өзгерісі, дискіде орын аздығы және кідірістің нашарлауы туралы ескертулер</string>
+    <string name="notif_wan_changed_title">Роутер IP мекенжайы өзгерді</string>
+    <string name="notif_wan_changed_text">%1$s → %2$s</string>
+    <string name="notif_disk_title">Дискіде орын аз</string>
+    <string name="notif_disk_text">/overlay %1$d%% толды</string>
+    <string name="notif_latency_title">Қосылым нашарлады</string>
+    <string name="notif_latency_down_text">%1$s жауап бермейді</string>
+    <string name="notif_latency_degraded_text">%1$s: бұрын %2$d мс, қазір %3$d мс</string>
+
+    <!-- App Shortcuts -->
+    <string name="section_shortcuts">Қолданба таңбашалары</string>
+    <string name="settings_shortcuts_desc">Таңбашалар мәзірі үшін 2–4 әрекет таңдаңыз</string>
+    <string name="shortcuts_explain">Олардың біріне бірден өту үшін қолданба белгішесін басып тұрыңыз. Растауды қажет ететін әрекеттер (қайта жүктеу, mihomo жаңарту) бәрібір қолданба ішінде анық түртуді талап етеді — таңбаша оларды өзі іске қоспайды.</string>
+    <string name="shortcuts_min_max_hint">2-ден 4-ке дейін таңбаша таңдаңыз.</string>
+    <string name="shortcut_status">Күйі</string>
+    <string name="shortcut_devices">Құрылғылар тізімі</string>
+    <string name="shortcut_reboot">Қайта жүктеу</string>
+    <string name="shortcut_mihomo_update">mihomo жаңарту</string>
+    <string name="shortcut_speedtest">Жылдамдық сынағы</string>
+    <string name="shortcut_zapret_restart">zapret/zapret2 қайта іске қосу</string>
+    <string name="shortcut_zapret_restart_named">%1$s қайта іске қосу</string>
+
+    <!-- Router info sheet -->
+    <string name="router_sheet_routers">Роутерлер</string>
+    <string name="router_sheet_versions">Қызмет нұсқалары</string>
+    <string name="loading">Жүктелуде…</string>
+    <string name="svc_name_mihomo">mihomo</string>
+    <string name="svc_name_magitrickle">MagiTrickle</string>
+    <string name="svc_name_zapret">zapret</string>
+    <string name="svc_name_zapret2">zapret2</string>
+    <string name="version_unknown">нұсқасы белгісіз</string>
+    <string name="check_for_updates">Жаңартуларды тексеру</string>
+    <string name="update_to_version">%1$s нұсқасына жаңарту</string>
+    <string name="whats_new_in">%1$s нұсқасында не жаңа</string>
+    <string name="mihomo_up_to_date">%1$s — ең соңғы</string>
+    <string name="mihomo_updating">mihomo жаңартылуда…</string>
+    <string name="mihomo_update_confirm_title">mihomo жаңарту керек пе?</string>
+    <string name="mihomo_update_confirm_text">mihomo тоқтатылып, жаңа нұсқамен ауыстырылады да, қайта іске қосылады. Бұл біраз уақыт алуы және маршрутталған трафикті қысқа уақытқа үзуі мүмкін.</string>
+
+    <!-- Router reboot -->
+    <string name="reboot_router">Қайта жүктеу</string>
+    <string name="reboot_confirm_title">Роутерді қайта жүктеу керек пе?</string>
+    <string name="reboot_confirm_text">Роутер және ондағы барлық қызмет 1–2 минут қолжетімсіз болады. Белсенді қосылымдар үзіледі.</string>
+    <string name="reboot_confirm_button">Қайта жүктеу</string>
+    <string name="rebooting_title">Роутер қайта жүктелуде…</string>
+    <string name="rebooting_hint">Әдетте бұл 1–2 минут алады.</string>
+    <string name="reboot_countdown">~%1$d с</string>
+    <string name="reboot_check_ready">Роутер қайта жұмыс істеуі тиіс — қосылымды тексеріңіз.</string>
+    <string name="hide_overlay">Жасыру</string>
+    <string name="about_version">Нұсқа %1$s</string>
+    <string name="about_source_code">GitHub-тағы бастапқы код</string>
+    <string name="developer">Әзірлеуші</string>
+    <string name="about_summary">OpenWrt роутеріндегі домен маршрутизациясы тізімдері мен қызметтерді басқарады (mihomo, MagiTrickle, zapret).</string>
+    <string name="dynamic_color_hint">Android 12 және жаңа нұсқаларында қолжетімді</string>
+    <string name="liquid_glass">Liquid Glass</string>
+    <string name="liquid_glass_desc">Төменгі панель, тақырып түймелері, мәзірлер, панельдер мен диалогтардағы бұлдырату және сыну</string>
+    <string name="liquid_glass_unsupported">Android 12 немесе жаңасы қажет</string>
+    <string name="true_black">Таза қара</string>
+    <string name="true_black_desc">Қараңғы тақырыпта толық қара фон</string>
+    <string name="haptic_feedback">Тактильді кері байланыс</string>
+    <string name="haptic_feedback_desc">Түрткенде қысқа діріл</string>
+    <string name="section_router">Роутер</string>
+    <string name="host">Хост</string>
+    <string name="port">Порт</string>
+    <string name="section_auth">Кіру</string>
+    <string name="token">Токен</string>
+    <string name="show">Көрсету</string>
+    <string name="hide">Жасыру</string>
+    <string name="section_fallback">Қосалқы мекенжай</string>
+    <string name="fallback_hint">Міндетті емес — негізгі мекенжай жауап бермегенде автоматты түрде қолданылады (мысалы, Tailscale мекенжайы). Өшіру үшін хостты бос қалдырыңыз.</string>
+    <string name="section_default_target">Әдепкі мақсат</string>
+    <string name="section_appearance">Сыртқы түрі</string>
+    <string name="theme_system">Жүйелік</string>
+    <string name="theme_light">Ашық</string>
+    <string name="theme_dark">Қараңғы</string>
+    <string name="dynamic_color">Динамикалық түс</string>
+    <string name="dynamic_color_desc">Тұсқағаз негізіндегі түстер (Material You)</string>
+    <string name="section_language">Тіл</string>
+    <string name="language_system">Жүйелік</string>
+    <string name="save">Сақтау</string>
+    <string name="saved">Сақталды</string>
+    <string name="test_connection">Қосылымды тексеру</string>
+    <string name="testing">Тексерілуде…</string>
+    <string name="test_connected">Қосылды</string>
+    <string name="test_connected_bad_token">Қосылды (токен қате)</string>
+    <string name="test_connected_no_token">Қосылды (роутерде токен бапталмаған)</string>
+    <string name="test_http_error">Қате: HTTP %1$d</string>
+
+    <!-- Rule providers -->
+    <string name="section_rule_providers">Ереже жиындары</string>
+    <string name="rule_providers_title">Ереже жиындары</string>
+    <string name="rule_providers_entry_desc">Прокси тобына байланған сыртқы тізімдер</string>
+    <string name="rule_providers_hint">Ереже жиындарын роутердің өзі жүктеп алып, жаңартады. Сәйкес трафик тізім байланған прокси тобына жіберіледі.</string>
+    <string name="rule_providers_empty">Ереже жиындары әзірге қосылмаған. Тізімді прокси тобына байлау үшін «Қосу» түймесін түртіңіз.</string>
+    <plurals name="n_rule_providers">
+        <item quantity="one">%d ереже жиыны қосылды</item>
+        <item quantity="other">%d ереже жиыны қосылды</item>
+    </plurals>
+    <plurals name="n_hours">
+        <item quantity="one">Әр %d сағат сайын</item>
+        <item quantity="other">Әр %d сағат сайын</item>
+    </plurals>
+    <string name="provider_routed_to">→ %1$s</string>
+    <string name="provider_delete_title">Ереже жиынын жою керек пе?</string>
+    <string name="provider_delete_text">«%1$s» және оның маршрутизация ережесі роутерден жойылады. «%2$s» прокси тобы қалады — топтар роутердің өзінде басқарылады.</string>
+    <string name="provider_removed">«%1$s» жойылды</string>
+    <string name="provider_not_found">Роутерде «%1$s» болмады</string>
+    <string name="provider_added">«%1$s» қосылып, %2$s тобына байланды</string>
+
+    <string name="provider_add_title">Жаңа ереже жиыны</string>
+    <string name="provider_step">%2$d ішінен %1$d-қадам</string>
+    <string name="next">Келесі</string>
+    <string name="provider_custom_url">Өзіндік URL</string>
+    <string name="provider_custom_url_desc">Төмендегілер ғана емес, кез келген https көзі</string>
+    <string name="provider_url">Ереже жиынының URL-і</string>
+    <string name="provider_url_hint">https:// деп басталуы тиіс</string>
+    <string name="provider_url_invalid">Толық https:// сілтемесін енгізіңіз</string>
+    <string name="provider_behavior">Тізім түрі</string>
+    <string name="provider_behavior_hint">Тізімде не бар: домендер, IP ауқымдары немесе классикалық аралас ережелер.</string>
+    <string name="behavior_domain">Домендер</string>
+    <string name="behavior_ipcidr">IP мекенжайлары</string>
+    <string name="behavior_classical">Классикалық</string>
+    <string name="provider_format">Пішім</string>
+    <string name="provider_format_hint">MRS — ықшам екілік пішім, YAML немесе қарапайым мәтіннен кішірек әрі жылдамырақ.</string>
+    <string name="provider_name">Атауы</string>
+    <string name="provider_name_hint">Кіші латын әріптері, сандар және «-», әріптен басталады</string>
+    <string name="provider_name_invalid">Тек кіші латын әріптері, сандар және «-», әріптен басталуы тиіс</string>
+    <string name="provider_name_taken">Мұндай атаулы ереже жиыны бұрыннан бар</string>
+    <string name="provider_interval">Жаңарту кезеңі</string>
+    <string name="interval_hour">Әр сағат сайын</string>
+    <string name="interval_6h">Әр 6 сағат сайын</string>
+    <string name="interval_day">Күн сайын</string>
+    <string name="interval_week">Апта сайын</string>
+    <string name="provider_fetch_proxy">Прокси арқылы жүктеп алу</string>
+    <string name="provider_fetch_proxy_hint">Роутер бұл тізімді қай прокси тобы арқылы жүктеп алады. Көзге (мысалы, GitHub) тікелей қол жеткізу мүмкін болмағанда пайдалы. Сәйкес трафиктің қайда баратынына қатысы жоқ.</string>
+    <string name="provider_fetch_proxy_none">Тікелей</string>
+    <string name="provider_group_title">Сәйкестіктерді жіберу</string>
+    <string name="provider_group_hint">Осы тізімге сәйкес трафик қайда жіберіледі.</string>
+    <string name="provider_group_existing">Бар топ</string>
+    <string name="provider_group_new">Жаңа топ</string>
+    <string name="provider_new_group_name">Жаңа топ атауы</string>
+    <string name="provider_new_group_hint">Роутер осы прокси тобын жасайды</string>
+    <string name="provider_new_group_taken">Роутерде мұндай атаулы топ бар — оны бар топ ретінде таңдаңыз</string>
+    <string name="provider_new_group_note">Жаңа топ роутерде жасалады. Кейін ереже жиынын жою топты жоймайды — бұл роутердің өзінде жасалады.</string>
+    <string name="provider_no_groups">Роутер бірде-бір прокси тобын қайтармады</string>
+    <string name="provider_add_slow_note">Роутер тізімді жүктеп алып, алынған конфигурацияны тексереді, сондықтан бұл біраз уақыт алуы мүмкін.</string>
+
+
+    <!-- Live source catalog -->
+    <string name="catalog_search">Каталогтан іздеу</string>
+    <string name="catalog_refresh">Каталогты жаңарту</string>
+    <string name="catalog_loading">Каталог жүктелуде…</string>
+    <string name="catalog_count">%2$d файлдың %1$d</string>
+    <string name="catalog_no_results">Іздеуге ештеңе сәйкес келмеді. Каталогтан тыс көз үшін «Өзіндік URL» пайдаланыңыз.</string>
+    <string name="catalog_not_updated">Каталог жаңартылмады</string>
+
+    <!-- mihomo subscriptions -->
+    <string name="section_subscriptions">Жазылымдар</string>
+    <string name="subscriptions_title">Жазылымдар</string>
+    <string name="subscriptions_entry_desc">Барлық прокси тобы таңдайтын түйіндер тізімі</string>
+    <string name="subscriptions_hint">Барлық жазылым бір ортақ түйіндер пулына біріктіріледі, сондықтан қосқанның бәрі әр прокси тобында таңдауға қолжетімді болады.</string>
+    <plurals name="n_pending_changes">
+        <item quantity="one">%d өзгеріс әлі қолданылмаған</item>
+        <item quantity="other">%d өзгеріс әлі қолданылмаған</item>
+    </plurals>
+    <plurals name="n_proxy_groups">
+        <item quantity="one">%d топ</item>
+        <item quantity="other">%d топ</item>
+    </plurals>
+    <plurals name="n_routers">
+        <item quantity="one">%d роутер</item>
+        <item quantity="other">%d роутер</item>
+    </plurals>
+    <plurals name="n_subscriptions">
+        <item quantity="one">%d жазылым</item>
+        <item quantity="other">%d жазылым</item>
+    </plurals>
+    <string name="subscription_add_title">Жаңа жазылым</string>
+    <string name="subscription_edit_title">URL өзгерту</string>
+    <string name="subscription_edit">URL өзгерту</string>
+    <string name="subscription_name">Атауы</string>
+    <string name="subscription_name_placeholder">work-vpn</string>
+    <string name="subscription_name_fixed">Атауын өзгерту мүмкін емес — атын ауыстыру үшін жойып, қайта қосыңыз</string>
+    <string name="subscription_url">Жазылым URL-і</string>
+    <string name="subscription_slow_note">Роутер конфигурацияны тексеріп, түйіндер тізімін қайта алады, сондықтан бұл біраз уақыт алуы мүмкін.</string>
+    <string name="subscription_saved">«%1$s» сақталды</string>
+    <string name="subscription_removed">«%1$s» жойылды</string>
+    <string name="subscription_not_found">Роутерде «%1$s» болмады</string>
+    <string name="subscription_base_badge">Негізгі</string>
+    <string name="subscription_base_protected">Роутер конфигурациясына кірістірілген — мұнда өзгерту мүмкін емес</string>
+    <string name="subscription_delete_title">Жазылымды жою керек пе?</string>
+    <string name="subscription_delete_text">«%1$s» және оның түйіндері роутерден жойылады. Прокси топтарының өздері қалады.</string>
+
+    <!-- Tor -->
+    <string name="tor_title">Tor</string>
+    <string name="tor_not_installed">Tor орнатылмаған</string>
+    <string name="tor_not_installed_hint">Роутерде Tor пакеті жоқ, сондықтан мұнда баптайтын ештеңе жоқ.</string>
+    <string name="tor_bootstrap">Жүктелу</string>
+    <string name="tor_bootstrap_progress">%1$d%%</string>
+    <string name="tor_bridges_label">Көпірлер</string>
+    <plurals name="n_tor_bridges">
+        <item quantity="one">%d көпір</item>
+        <item quantity="other">%d көпір</item>
+    </plurals>
+    <string name="tor_uptime">Жұмыс уақыты</string>
+    <string name="tor_socks_port">SOCKS</string>
+    <string name="tor_pac_url">PAC</string>
+    <string name="tor_new_identity">Жаңа сәйкестік</string>
+    <string name="tor_new_identity_hint">Жаңа қосылымдар үшін жаңа тізбектер. Қайта іске қосудан жылдам және қосылымды үзбейді.</string>
+    <string name="tor_new_identity_sent">Жаңа тізбектер сұралды</string>
+    <string name="tor_new_identity_failed">Басқару порты әлі дайын емес — бірнеше секундтан кейін қайталаңыз</string>
+    <string name="tor_test_title">Қосылымды тексеру</string>
+    <string name="tor_test_hint">Роутер Tor арқылы нақты сұрау жасайды — бұл бірнеше секунд алады.</string>
+    <string name="tor_test_connection">Қосылымды тексеру</string>
+    <string name="tor_testing">Тексерілуде…</string>
+    <string name="tor_test_ok">Tor арқылы қосылды</string>
+    <string name="tor_test_failed">Қосылмаған</string>
+    <string name="tor_test_failed_hint">Tor жүктелуін әлі аяқтамаған немесе көпірлер қолжетімсіз.</string>
+    <string name="tor_bridges_title">Көпірлер</string>
+    <string name="tor_bridges_hint">Көпірлер Tor-дың өзі бұғатталған жерде көмектеседі. Оларды Tor Project-тен алып, әр жолды сол күйінде қойыңыз. Сақтау Tor-ды қайта іске қосады.</string>
+    <string name="tor_bridges_saving">Сақталып, Tor қайта іске қосылуда…</string>
+    <string name="tor_no_bridges">Тікелей қосылым, көпірсіз</string>
+    <string name="tor_add_bridge">Көпір қосу</string>
+    <string name="tor_bridge_line">Көпір жолы</string>
+    <string name="tor_bridge_placeholder">obfs4 1.2.3.4:443 FINGERPRINT cert=… iat-mode=0</string>
+    <string name="tor_bridge_hint">Жолды алған күйінде толығымен қойыңыз.</string>
+    <string name="tor_bridge_added">Көпір қосылды, Tor қайта іске қосылды</string>
+    <string name="tor_bridge_removed">Көпір жойылды, Tor қайта іске қосылды</string>
+    <string name="tor_bridge_delete_title">Көпірді жою керек пе?</string>
+    <string name="tor_bridge_delete_text">Көпір роутерден жойылып, Tor қайта іске қосылады.</string>
+
+    <!-- API / network errors -->
+    <string name="err_bad_token">Токен қате — баптауларды тексеріңіз</string>
+    <string name="err_token_not_configured">Роутерде токен бапталмаған</string>
+    <string name="err_bad_domain">Домен пішімі жарамсыз</string>
+    <string name="err_empty_domain">Домен бос</string>
+    <string name="err_bad_service">Белгісіз қызмет</string>
+    <string name="err_bad_host">Хост жарамсыз</string>
+    <string name="err_bad_mac">MAC мекенжайы жарамсыз</string>
+    <string name="err_etherwake_missing">Роутерде etherwake орнатылмаған</string>
+    <string name="err_bad_engine">Белгісіз қозғалтқыш</string>
+    <string name="err_bad_strategy">Стратегия нөмірі ауқымнан тыс</string>
+    <string name="err_strategy_unconfirmed">Роутер стратегия өзгерісін растамады</string>
+    <string name="err_bad_provider_name">Ереже жиынының атауы жарамсыз</string>
+    <string name="err_bad_url">Роутер бұл URL-ді қабылдамады</string>
+    <string name="err_bad_behavior">Тізім түрі жарамсыз</string>
+    <string name="err_bad_format">Пішім жарамсыз</string>
+    <string name="err_bad_interval">Жаңарту кезеңі ауқымнан тыс (60 с – 7 күн)</string>
+    <string name="err_missing_group">Прокси тобы таңдалмаған</string>
+    <string name="err_group_both_set">Бар топты немесе жаңасын таңдаңыз, екеуін бірдей емес</string>
+    <string name="err_group_not_found">Роутерде мұндай прокси тобы енді жоқ — артқа оралып, басқасын таңдаңыз</string>
+    <string name="err_bad_new_group">Жаңа топ атауы жарамсыз</string>
+    <string name="err_provider_exists">Роутерде мұндай атаулы ереже жиыны бар</string>
+    <string name="err_group_exists">Роутерде мұндай атаулы топ бар — оны бар топ ретінде таңдаңыз</string>
+    <string name="err_mihomo_config_test_failed">Роутер алынған mihomo конфигурациясын қабылдамады — ереже жиыны қосылмады. URL-ді, тізім түрін және пішімді тексеріңіз.</string>
+    <string name="err_subscription_exists">Мұндай атаулы жазылым бұрыннан бар</string>
+    <string name="err_subscription_not_found">Роутерде мұндай жазылым енді жоқ</string>
+    <string name="err_subscription_base_protected">Кірістірілген жазылымды жою мүмкін емес</string>
+    <string name="err_tor_controlport_not_ready">Tor басқару порты әлі дайын емес — бірнеше секундтан кейін қайталаңыз</string>
+    <string name="err_tor_controlport_failed">Tor басқару порты командасын қабылдамады</string>
+    <string name="err_catalog_rate_limited">GitHub сұрауларды шектеп тұр (токенсіз бір IP-ден сағатына 60). Кейінірек қайталаңыз немесе URL-ді қолмен енгізіңіз.</string>
+    <string name="err_catalog_http">GitHub HTTP %1$d деп жауап берді</string>
+    <string name="err_generic">Қате %1$d: %2$s</string>
+    <string name="err_timeout">Роутер жауап бермеді. Телефон роутердің Wi-Fi желісіне қосылғанын және порт дұрыс екенін тексеріңіз.</string>
+    <string name="err_unreachable">Роутерге қосылу мүмкін емес — мекенжай мен портты тексеріңіз.</string>
+    <string name="err_unknown_host">Белгісіз хост — роутер мекенжайын тексеріңіз.</string>
+    <string name="err_network">Желі қатесі</string>
+    <string name="err_invalid_router_address">Роутер мекенжайы жарамсыз: %1$s</string>
+    <string name="err_empty_response">Роутерден бос жауап келді</string>
+    <string name="err_tls">Роутер Helm API орнына HTTPS арқылы жауап берді. Әдетте бұл порттағы роутердің веб-интерфейсі (LuCI) — портты тексеріңіз: API өз HTTP портында жұмыс істейді.</string>
+    <string name="err_not_api">Мекенжай жауап береді, бірақ бұл Helm API емес — оның орнына веб-бет қайтарылды. Портты және роутерде API орнатылғанын тексеріңіз.</string>
+    <string name="err_title_connection">Роутермен байланыс жоқ</string>
+    <string name="err_title_config">Роутер мекенжайын тексеріңіз</string>
+    <string name="err_title_access">Кіруге тыйым салынды</string>
+    <string name="err_title_other">Бірдеңе дұрыс болмады</string>
+    <string name="err_details">Толығырақ</string>
+    <string name="err_open_settings">Роутер баптаулары</string>
+    <string name="err_raw">%1$s</string>
+
+    <!-- Accessibility labels -->
+    <string name="strategy_previous">Алдыңғы стратегия</string>
+    <string name="strategy_next">Келесі стратегия</string>
+    <string name="theme_previous">Алдыңғы тақырып</string>
+    <string name="theme_next">Келесі тақырып</string>
+    <string name="a11y_target_added">%1$s: қосылған</string>
+    <string name="a11y_target_not_added">%1$s: қосылмаған</string>
+    <string name="a11y_autostart_on">Автоіске қосу қосулы</string>
+    <string name="a11y_autostart_off">Автоіске қосу өшірулі</string>
+    <string name="a11y_device_online">Желіде</string>
+    <string name="a11y_device_offline">Желіде емес</string>
+    <string name="a11y_check_ok">Қолжетімді</string>
+    <string name="a11y_check_failed">Қолжетімсіз</string>
+    <string name="copy_ip">IP мекенжайын көшіру</string>
+    <string name="copy_mac">MAC мекенжайын көшіру</string>
+    <string name="open_release_notes">Шығарылым жазбаларын ашу</string>
+</resources>

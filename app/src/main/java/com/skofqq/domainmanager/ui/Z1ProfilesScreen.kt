@@ -1,5 +1,9 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.foundation.layout.width
+import com.skofqq.domainmanager.ui.theme.Helm
+import androidx.compose.ui.text.font.FontWeight
+import com.skofqq.domainmanager.ui.components.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -64,7 +68,7 @@ fun Z1ProfilesScreen(viewModel: Z1ProfilesViewModel, onBack: () -> Unit) {
         val firstLoad = state.profiles == null && state.error == null
         val skeletonBrush = if (firstLoad) shimmerBrush() else null
 
-        PullToRefreshBox(
+        HelmPullToRefreshBox(
             isRefreshing = state.isRefreshing && !firstLoad,
             onRefresh = { viewModel.refresh() },
             modifier = Modifier
@@ -74,28 +78,32 @@ fun Z1ProfilesScreen(viewModel: Z1ProfilesViewModel, onBack: () -> Unit) {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 state.error?.let { message ->
                     item { ErrorCard(message) }
                 }
 
                 if (skeletonBrush != null) {
-                    items(4) { SkeletonProfileRow(skeletonBrush) }
+                    item { SkeletonBox(skeletonBrush, Modifier.fillMaxWidth().height(260.dp), CardShape) }
                 }
 
                 state.profiles?.let { profiles ->
-                    items(profiles, key = { it.key }) { profile ->
-                        CategoryRow(
-                            profile = profile,
-                            value = state.shownValue(profile),
-                            changed = state.pending.containsKey(profile.key),
-                            enabled = !state.applying,
-                            onChange = { viewModel.setPending(profile.key, it) },
-                        )
+                    item {
+                        ProfilesSection(pendingCount = state.pending.size) {
+                            profiles.forEachIndexed { index, profile ->
+                                if (index > 0) SectionDivider()
+                                CategoryRow(
+                                    profile = profile,
+                                    value = state.shownValue(profile),
+                                    changed = state.pending.containsKey(profile.key),
+                                    enabled = !state.applying,
+                                    onChange = { viewModel.setPending(profile.key, it) },
+                                )
+                            }
+                        }
                     }
 
-                    item { Spacer(Modifier.height(4.dp)) }
                     item {
                         VoiceCard(
                             voice = voice,
@@ -103,38 +111,18 @@ fun Z1ProfilesScreen(viewModel: Z1ProfilesViewModel, onBack: () -> Unit) {
                         )
                     }
 
-                    item { Spacer(Modifier.height(4.dp)) }
-                    item {
-                        FilledTonalButton(
-                            onClick = { viewModel.apply() },
-                            enabled = state.hasChanges && !state.applying,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            if (state.applying) {
-                                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                            } else {
-                                Text(stringResource(R.string.apply))
-                            }
-                        }
-                    }
-                    // No rollback button here — z1profile_apply has no undo, unlike
+                    // No rollback button here: z1profile_apply has no undo, unlike
                     // zapret2's z2profile_rollback.
                     item {
-                        OutlinedButton(
-                            onClick = { viewModel.check() },
-                            enabled = !state.checking,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            if (state.checking) {
-                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                            } else {
-                                Text(stringResource(R.string.check_reachability))
-                            }
-                        }
-                    }
-
-                    state.checkResults?.let { checks ->
-                        item { CheckResultsCard(checks) }
+                        ProfileActionsSection(
+                            hint = null,
+                            canApply = state.hasChanges,
+                            applying = state.applying,
+                            onApply = { viewModel.apply() },
+                            checking = state.checking,
+                            onCheck = { viewModel.check() },
+                            checks = state.checkResults,
+                        )
                     }
                 }
             }
@@ -142,7 +130,6 @@ fun Z1ProfilesScreen(viewModel: Z1ProfilesViewModel, onBack: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CategoryRow(
     profile: Z1Profile,
@@ -151,64 +138,43 @@ private fun CategoryRow(
     enabled: Boolean,
     onChange: (Int) -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = profile.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                // No protocol badge — zapret v1 categories carry no proto tag,
-                // unlike zapret2's profile rows.
-                Text(
-                    text = stringResource(R.string.profile_caption, profile.key, profile.strategy),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                FilledTonalIconButton(
-                    // 0 is a legitimate value here (unlike zapret2's 1..max floor).
-                    onClick = { onChange((value - 1).coerceAtLeast(0)) },
-                    shapes = IconButtonDefaults.shapes(),
-                    enabled = enabled && value > 0,
-                ) {
-                    Icon(
-                        Icons.Filled.Remove,
-                        contentDescription = stringResource(R.string.strategy_previous),
-                    )
-                }
-                Text(
-                    text = value.toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (changed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.widthIn(min = 28.dp),
-                )
-                FilledTonalIconButton(
-                    onClick = { onChange((value + 1).coerceAtMost(profile.max)) },
-                    shapes = IconButtonDefaults.shapes(),
-                    enabled = enabled && value < profile.max,
-                ) {
-                    Icon(
-                        Icons.Filled.Add,
-                        contentDescription = stringResource(R.string.strategy_next),
-                    )
-                }
-            }
+            Text(
+                text = profile.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = Helm.colors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            // No protocol badge: zapret v1 categories carry no proto tag,
+            // unlike zapret2's profile rows.
+            Text(
+                text = stringResource(R.string.profile_caption, profile.key, profile.strategy),
+                style = MaterialTheme.typography.bodySmall,
+                color = Helm.colors.text2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
+        Spacer(Modifier.width(8.dp))
+        // 0 is a legitimate value here (unlike the 1..max floor of zapret2).
+        Stepper(
+            value = value,
+            onChange = onChange,
+            min = 0,
+            max = profile.max,
+            enabled = enabled,
+            changed = changed,
+            decreaseLabel = stringResource(R.string.strategy_previous),
+            increaseLabel = stringResource(R.string.strategy_next),
+        )
     }
 }

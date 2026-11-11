@@ -1,5 +1,40 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.SearchOff
+import com.skofqq.domainmanager.ui.theme.Tint
+import com.skofqq.domainmanager.ui.theme.Tints
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material3.toShape
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.AltRoute
+import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.ui.semantics.Role
+import androidx.compose.material.icons.outlined.Router
+import com.skofqq.domainmanager.ui.theme.Helm
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.foundation.text.BasicTextField
+import com.skofqq.domainmanager.ui.components.*
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
@@ -147,118 +182,47 @@ private fun EngineSwitcher(
     active: String,
     onSelect: (String) -> Unit,
 ) {
-    // MutableTransitionState keeps the popup composed until the exit spring ends.
-    val menuState = remember { MutableTransitionState(false) }
-    val density = LocalDensity.current
-    val positionProvider = remember(density) { RightEdgePositionProvider(density) }
-
+    var open by remember { mutableStateOf(false) }
     Box {
-        // "Minimal bar" trigger: light pill, a solid accent band carrying the
-        // engine name, chevron-down at the right edge.
-        Surface(
-            onClick = { menuState.targetState = true },
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        ) {
-            Row(
-                modifier = Modifier.padding(start = 6.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                ) {
-                    Text(
-                        text = shown,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    )
-                }
-                Icon(
-                    Icons.Filled.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-
-        if (menuState.currentState || menuState.targetState) {
-            Popup(
-                popupPositionProvider = positionProvider,
-                onDismissRequest = { menuState.targetState = false },
-                properties = PopupProperties(focusable = true),
-            ) {
-                val motion = MaterialTheme.motionScheme
-                val origin = TransformOrigin(0.9f, 0f)
-                AnimatedVisibility(
-                    visibleState = menuState,
-                    enter = scaleIn(
-                        animationSpec = motion.fastSpatialSpec(),
-                        initialScale = 0.75f,
-                        transformOrigin = origin,
-                    ) + fadeIn(animationSpec = motion.fastEffectsSpec()),
-                    exit = scaleOut(
-                        animationSpec = motion.fastSpatialSpec(),
-                        targetScale = 0.75f,
-                        transformOrigin = origin,
-                    ) + fadeOut(animationSpec = motion.fastEffectsSpec()),
-                ) {
-                    Surface(
-                        shape = MaterialTheme.shapes.large,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        shadowElevation = 3.dp,
-                    ) {
-                        // Compact: sized to the widest item, never full-width.
-                        Column(
-                            modifier = Modifier
-                                .width(IntrinsicSize.Max)
-                                .padding(vertical = 8.dp),
-                        ) {
-                            listOf(ENGINE_ZAPRET2, ENGINE_ZAPRET).forEach { engine ->
-                                val running = engine == active
-                                val selected = engine == shown
-                                DropdownMenuItem(
-                                    text = {
-                                        Column(modifier = Modifier.padding(end = 12.dp)) {
-                                            Text(engine, style = MaterialTheme.typography.bodyLarge)
-                                            Text(
-                                                stringResource(
-                                                    if (running) R.string.engine_running
-                                                    else R.string.engine_stopped
-                                                ),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            )
-                                        }
-                                    },
-                                    leadingIcon = {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(8.dp)
-                                                .clip(CircleShape)
-                                                .background(
-                                                    if (running) statusOk
-                                                    else MaterialTheme.colorScheme.outline
-                                                ),
-                                        )
-                                    },
-                                    trailingIcon = if (selected) {
-                                        { Icon(Icons.Filled.Check, contentDescription = null) }
-                                    } else null,
-                                    modifier = if (selected) {
-                                        Modifier.background(
-                                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
-                                        )
-                                    } else Modifier,
-                                    onClick = {
-                                        onSelect(engine)
-                                        menuState.targetState = false
-                                    },
-                                )
-                            }
+        // Glass pill trigger, like the router pill and Boxy's header chips.
+        GlassPill(
+            text = shown,
+            onClick = { open = true },
+            trailing = Icons.Filled.KeyboardArrowDown,
+        )
+        // Liquid glass menu that springs out of the pill's corner.
+        GlassMenu(expanded = open, onDismissRequest = { open = false }) {
+            listOf(ENGINE_ZAPRET2, ENGINE_ZAPRET).forEach { engine ->
+                val running = engine == active
+                val selected = engine == shown
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.RadioButton) {
+                            onSelect(engine)
+                            open = false
                         }
+                        .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(if (running) statusOk else Helm.colors.text2.copy(alpha = 0.5f)),
+                    )
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(engine, style = MaterialTheme.typography.bodyLarge, color = Helm.colors.text)
+                        Text(
+                            stringResource(if (running) R.string.engine_running else R.string.engine_stopped),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Helm.colors.text2,
+                        )
+                    }
+                    if (selected) {
+                        Spacer(Modifier.width(10.dp))
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Helm.colors.accent)
                     }
                 }
             }
@@ -285,7 +249,7 @@ fun DomainsScreen(
     autoOpenRouterSheet: Boolean = false,
     onAutoOpenRouterSheetConsumed: () -> Unit = {},
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     val pagerState = rememberPagerState { 2 }
     val scope = rememberCoroutineScope()
 
@@ -315,75 +279,45 @@ fun DomainsScreen(
     val activeEngine = (activeState as? ActiveEngineUiState.Running)?.engine
     val shownEngine = activeEngine?.let { engineOverride ?: it }
 
-    Scaffold(
-        topBar = {
-            Column {
-                // Full-width router bar — moved out of the cramped title row so
-                // it reads as its own destination, not an accessory next to the
-                // engine picker. Always visible: the active router matters to
-                // every page of every tab.
-                if (routerProfiles.isNotEmpty()) {
-                    RouterInfoBar(
-                        profiles = routerProfiles,
-                        activeId = activeRouterId,
-                        onClick = { showRouterSheet = true },
-                    )
-                }
-                LargeTopAppBar(
-                    title = {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(end = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(stringResource(R.string.domains))
-                            Spacer(Modifier.weight(1f))
-                            // Compact "zapret2 ▾" dropdown pinned to the right edge —
-                            // only while the Strategies page shows an engine list;
-                            // irrelevant on Routing.
-                            if (onStrategiesPage && activeEngine != null && shownEngine != null) {
-                                EngineSwitcher(
-                                    shown = shownEngine,
-                                    active = activeEngine,
-                                    onSelect = { engineOverride = it },
-                                )
-                            }
-                        }
-                    },
-                    // The router bar above already claims the status-bar inset —
-                    // without zeroing it here the LargeTopAppBar would pad twice.
-                    windowInsets = WindowInsets(0),
-                    scrollBehavior = scrollBehavior,
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Helm.colors.page)
+            .statusBarsPadding(),
+    ) {
+        // Active router as a glass pill above the title (same spot as the back pill on
+        // sub-pages): always visible, the active router matters to every page of every tab.
+        if (routerProfiles.isNotEmpty()) {
+            RouterInfoBar(
+                profiles = routerProfiles,
+                activeId = activeRouterId,
+                onClick = { showRouterSheet = true },
+            )
+        }
+        PageHeader(title = stringResource(R.string.domains)) {
+            // Compact "zapret2 ▾" dropdown pinned to the right edge — only while the
+            // Strategies page shows an engine list; irrelevant on Routing.
+            if (onStrategiesPage && activeEngine != null && shownEngine != null) {
+                EngineSwitcher(
+                    shown = shownEngine,
+                    active = activeEngine,
+                    onSelect = { engineOverride = it },
                 )
             }
-        },
-        contentWindowInsets = WindowInsets(0),
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
-                listOf(R.string.tab_routing, R.string.tab_strategies).forEachIndexed { index, labelRes ->
-                    Tab(
-                        selected = pagerState.currentPage == index,
-                        onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                        text = { Text(stringResource(labelRes)) },
-                    )
-                }
-            }
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-            ) { page ->
-                when (page) {
-                    0 -> RoutingTab(domainsViewModel, magitrickleGroupsState.groups)
-                    1 -> StrategiesTab(strategiesViewModel, engineOverride, onOpenStatus)
-                }
+        }
+        PillTabs(
+            labels = listOf(stringResource(R.string.tab_routing), stringResource(R.string.tab_strategies)),
+            selected = (pagerState.currentPage + pagerState.currentPageOffsetFraction).coerceIn(0f, 1f),
+            onSelect = { scope.launch { pagerState.animateScrollToPage(it) } },
+            modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 12.dp),
+        )
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+        ) { page ->
+            when (page) {
+                0 -> RoutingTab(domainsViewModel, magitrickleGroupsState.groups)
+                1 -> StrategiesTab(strategiesViewModel, engineOverride, onOpenStatus)
             }
         }
     }
@@ -410,41 +344,14 @@ private fun RouterInfoBar(
     onClick: () -> Unit,
 ) {
     val active = profiles.firstOrNull { it.id == activeId } ?: profiles.firstOrNull() ?: return
-    Surface(
+    GlassPill(
+        text = active.name.ifEmpty { active.host },
+        supporting = "${active.host}:${active.port}",
         onClick = onClick,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding(),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = active.name.ifEmpty { active.host },
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = "${active.host}:${active.port}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Icon(
-                Icons.Filled.KeyboardArrowDown,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+        leading = Icons.Outlined.Router,
+        trailing = Icons.Filled.KeyboardArrowDown,
+        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp),
+    )
 }
 
 /**
@@ -466,7 +373,7 @@ private fun RouterInfoSheet(
     val state by viewModel.state.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Re-fetched every time the sheet opens — versions/update-availability can
+    // Re-fetched every time the sheet opens: versions/update-availability can
     // change on the router between visits and are cheap to re-read.
     LaunchedEffect(Unit) { viewModel.loadVersions() }
 
@@ -475,103 +382,91 @@ private fun RouterInfoSheet(
         if (state.updateSucceeded) viewModel.clearUpdateSucceeded()
     }
 
-    ModalBottomSheet(
+    HelmBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
                 .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                text = stringResource(R.string.router_sheet_routers),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 4.dp),
+            // --- Router picker ---------------------------------------------------
+            HelmSectionHeader(
+                title = stringResource(R.string.router_sheet_routers),
+                subtitle = pluralStringResource(R.plurals.n_routers, profiles.size, profiles.size),
+                icon = Icons.Outlined.Router,
+                tint = Tints.accent,
+                shape = MaterialShapes.Cookie12Sided,
+                modifier = Modifier.padding(horizontal = 4.dp),
             )
-            profiles.forEach { profile ->
-                val selected = profile.id == activeId
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.medium)
-                        .let {
-                            if (selected) it.background(
-                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
-                            ) else it
-                        }
-                        .clickable { onSelectRouter(profile.id) }
-                        .padding(horizontal = 12.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            profile.name.ifEmpty { profile.host },
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            "${profile.host}:${profile.port}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    if (selected) Icon(Icons.Filled.Check, contentDescription = null)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                profiles.forEachIndexed { index, profile ->
+                    RouterChoiceCard(
+                        profile = profile,
+                        index = index,
+                        selected = profile.id == activeId,
+                        onClick = { onSelectRouter(profile.id) },
+                    )
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            Text(
-                text = stringResource(R.string.router_sheet_versions),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 4.dp),
-            )
-
-            if (state.versionsLoading && state.versions == null) {
-                Row(
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                    Text(
-                        stringResource(R.string.loading),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+            // --- Installed services + mihomo update -----------------------------
+            HelmSection(
+                title = stringResource(R.string.router_sheet_versions),
+                icon = Icons.Outlined.Inventory2,
+                tint = Tints.teal,
+                shape = MaterialShapes.Sunny,
+                trailing = if (state.versionsLoading && state.versions != null) {
+                    { LoadingIndicator(Modifier.size(36.dp)) }
+                } else null,
+            ) {
+                when {
+                    state.versionsLoading && state.versions == null -> {
+                        Box(Modifier.fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
+                            LoadingIndicator(Modifier.size(56.dp))
+                        }
+                    }
+                    state.versionsError != null -> ErrorCard(state.versionsError!!)
+                    else -> {
+                        val versions = state.versions
+                        TileGrid(
+                            listOf(
+                                Triple(R.string.svc_name_mihomo, versions?.mihomo, Icons.Outlined.Hub to MaterialShapes.Cookie9Sided),
+                                Triple(R.string.svc_name_magitrickle, versions?.magitrickle, Icons.Outlined.AltRoute to MaterialShapes.Clover4Leaf),
+                                Triple(R.string.svc_name_zapret, versions?.zapret, Icons.Outlined.Shield to MaterialShapes.Cookie6Sided),
+                                Triple(R.string.svc_name_zapret2, versions?.zapret2, Icons.Outlined.Shield to MaterialShapes.Flower),
+                            ).mapIndexed { i, (nameRes, version, look) ->
+                                @Composable { m: Modifier ->
+                                    val known = !version.isNullOrBlank()
+                                    StatTile(
+                                        label = stringResource(nameRes),
+                                        value = if (known) version!! else stringResource(R.string.version_unknown),
+                                        icon = look.first,
+                                        tint = if (known) cycleTint(i) else Tints.gray,
+                                        shape = look.second,
+                                        monospace = known,
+                                        modifier = m,
+                                    )
+                                }
+                            },
+                        )
+                        MihomoUpdateSection(
+                            state = state,
+                            onCheckUpdate = { viewModel.checkMihomoUpdate() },
+                            onRequestUpdate = { pendingUpdateConfirm = true },
+                        )
+                    }
                 }
-            } else if (state.versionsError != null) {
-                Text(
-                    text = state.versionsError!!.resolve(),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
-            } else {
-                val versions = state.versions
-                VersionRow(stringResource(R.string.svc_name_mihomo), versions?.mihomo)
-                MihomoUpdateSection(
-                    state = state,
-                    onCheckUpdate = { viewModel.checkMihomoUpdate() },
-                    onRequestUpdate = { pendingUpdateConfirm = true },
-                )
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                VersionRow(stringResource(R.string.svc_name_magitrickle), versions?.magitrickle)
-                VersionRow(stringResource(R.string.svc_name_zapret), versions?.zapret)
-                VersionRow(stringResource(R.string.svc_name_zapret2), versions?.zapret2)
             }
         }
     }
 
     if (pendingUpdateConfirm) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { pendingUpdateConfirm = false },
             title = { Text(stringResource(R.string.mihomo_update_confirm_title)) },
             text = { Text(stringResource(R.string.mihomo_update_confirm_text)) },
@@ -592,26 +487,92 @@ private fun RouterInfoSheet(
     }
 }
 
+/**
+ * One router in the picker. The active one fills with the accent, its shaped icon
+ * springs up and turns into a fuller cookie; the others stay calm and neutral.
+ */
 @Composable
-private fun VersionRow(name: String, version: String?) {
+private fun RouterChoiceCard(
+    profile: RouterProfile,
+    index: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val motion = MaterialTheme.motionScheme
+    val bg by animateColorAsState(
+        if (selected) Tints.accent.bg.compositeOver(Helm.colors.card) else Helm.colors.card,
+        motion.defaultEffectsSpec(),
+        label = "routerBg",
+    )
+    val iconScale by animateFloatAsState(if (selected) 1f else 0.86f, motion.fastSpatialSpec(), label = "routerScale")
+    val iconTurn by animateFloatAsState(if (selected) 0f else -30f, motion.defaultSpatialSpec(), label = "routerTurn")
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .clip(RoundedCornerShape(if (selected) 28.dp else 22.dp))
+            .background(bg)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        Text(
-            text = version?.takeIf { it.isNotBlank() } ?: stringResource(R.string.version_unknown),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Box(
+            Modifier.graphicsLayer {
+                scaleX = iconScale
+                scaleY = iconScale
+                rotationZ = iconTurn
+            },
+        ) {
+            ShapeIcon(
+                Icons.Outlined.Router,
+                if (selected) Tint(Helm.colors.onBrand, Helm.colors.brand) else cycleTint(index),
+                shape = if (selected) MaterialShapes.Cookie12Sided else MaterialShapes.Cookie6Sided,
+                size = 48.dp,
+            )
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                profile.name.ifEmpty { profile.host },
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
+                color = if (selected) Helm.colors.accent else Helm.colors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                "${profile.host}:${profile.port}",
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                color = Helm.colors.text2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (profile.fallbackHost.isNotBlank()) {
+                Text(
+                    "↪ ${profile.fallbackHost}:${profile.fallbackPort}",
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    color = Helm.colors.text2.copy(alpha = 0.75f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        AnimatedVisibility(
+            visible = selected,
+            enter = scaleIn(motion.fastSpatialSpec()) + fadeIn(motion.fastEffectsSpec()),
+            exit = scaleOut(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
+        ) {
+            Box(
+                Modifier.size(32.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(Helm.colors.brand),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.Check, contentDescription = null, tint = Helm.colors.onBrand, modifier = Modifier.size(18.dp))
+            }
+        }
     }
 }
 
 /**
- * Only mihomo has an update flow — plain-version rows for the other three
- * services never show these controls.
+ * Only mihomo has an update flow; the other three services just show their version.
  */
 @Composable
 private fun MihomoUpdateSection(
@@ -623,101 +584,73 @@ private fun MihomoUpdateSection(
     val info = state.updateInfo
 
     if (state.updating) {
-        Row(
-            modifier = Modifier.padding(start = 0.dp, top = 2.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-            Text(
-                stringResource(R.string.mihomo_updating),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            SectionNote(stringResource(R.string.mihomo_updating))
+            WorkingStrip(true)
         }
         return
     }
 
-    // The button itself never disappears — only its label/action changes with
-    // the check result: "Проверить обновления" → (up to date: still tappable to
-    // recheck) → (update available: becomes "Обновить", now triggers the
-    // confirm-gated mihomo_update instead of a recheck). A real Button, not a
-    // TextButton — it reads as an action here, not a hyperlink.
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        if (info != null && info.updateAvailable) {
-            FilledTonalButton(onClick = onRequestUpdate, modifier = Modifier.fillMaxWidth()) {
-                Icon(
-                    Icons.Filled.SystemUpdate,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.update_to_version, info.latest))
-            }
-        } else {
-            OutlinedButton(
-                onClick = onCheckUpdate,
-                enabled = !state.checkingUpdate,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                if (state.checkingUpdate) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
+    if (info != null && info.updateAvailable) {
+        // Update available: an accent banner with the new version, the confirm-gated
+        // update button and the link to the release notes.
+        Column(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Tints.accent.bg).padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ShapeIcon(Icons.Filled.SystemUpdate, Tint(Helm.colors.onBrand, Helm.colors.brand), shape = MaterialShapes.Sunny, size = 40.dp)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.update_to_version, info.latest),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Helm.colors.accent,
                     )
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.check_for_updates))
-                } else if (info != null) {
-                    Text(stringResource(R.string.mihomo_up_to_date, info.current))
-                } else {
-                    Text(stringResource(R.string.check_for_updates))
+                    Text(
+                        "mihomo ${info.current} → ${info.latest}",
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                        color = Helm.colors.text2,
+                    )
                 }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HelmButton(
+                    text = stringResource(R.string.update),
+                    onClick = onRequestUpdate,
+                    icon = Icons.Filled.SystemUpdate,
+                    modifier = Modifier.weight(1f),
+                )
+                HelmButton(
+                    text = stringResource(R.string.whats_new_in, info.latest),
+                    onClick = {
+                        val url = "https://github.com/MetaCubeX/mihomo/releases/tag/${info.latest}"
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    },
+                    icon = Icons.AutoMirrored.Filled.OpenInNew,
+                    style = ButtonStyle.Neutral,
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
-    }
-
-    if (info != null && info.updateAvailable) {
-        Text(
-            text = stringResource(R.string.whats_new_in, info.latest),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            // Underlined, not tinted-only: a colored line of body text is
-            // indistinguishable from the static captions around it, and the tint
-            // alone is the sole cue that this opens a browser. The padding also
-            // lifts a ~16dp line of text to a usable touch target.
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier
-                .padding(start = 4.dp)
-                .clickable(onClickLabel = stringResource(R.string.open_release_notes)) {
-                    val url = "https://github.com/MetaCubeX/mihomo/releases/tag/${info.latest}"
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                }
-                .padding(vertical = 8.dp),
+    } else {
+        // The button never disappears: "check for updates", then "up to date vX"
+        // (still tappable to recheck).
+        HelmButton(
+            text = when {
+                info != null && !state.checkingUpdate -> stringResource(R.string.mihomo_up_to_date, info.current)
+                else -> stringResource(R.string.check_for_updates)
+            },
+            onClick = onCheckUpdate,
+            loading = state.checkingUpdate,
+            icon = if (info != null) Icons.Filled.Check else Icons.Filled.Refresh,
+            style = if (info != null) ButtonStyle.Success else ButtonStyle.Tonal,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 
-    state.checkUpdateError?.let {
-        Text(
-            text = it.resolve(),
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
-        )
-    }
-    state.updateError?.let {
-        Text(
-            text = it.resolve(),
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
-        )
-    }
+    state.checkUpdateError?.let { ErrorCard(it) }
+    state.updateError?.let { ErrorCard(it) }
 }
 
 @Composable
@@ -749,55 +682,24 @@ private fun RoutingTab(viewModel: DomainsViewModel, magitrickleGroups: List<Magi
     val firstLoad = state.domains == null && state.error == null
     val skeletonBrush = if (firstLoad) shimmerBrush() else null
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Same pinned SearchBar look as the Strategies page, but this one also
-        // carries the old add-field's features: paste while empty, + / IME-action
-        // to add the typed domain.
-        RoutingSearchAddBar(
-            query = query,
-            onQueryChange = { query = it },
-            addEnabled = query.isNotBlank() && state.busyDomain == null,
-            onPaste = {
-                // URL-looking clip → registrable domain (same heuristic as the
-                // share flow); plain text → paste as-is for manual editing.
-                val clip = clipboard.getText()?.text?.trim().orEmpty()
-                if (clip.isNotBlank()) {
-                    query = extractDomain(clip) ?: clip
-                }
-            },
-            onAdd = ::submit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-        )
-        // Domain already routed elsewhere via a MagiTrickle group (not the Custom
-        // one — that's already covered by the mihomo/MagiTrickle row indicators).
-        val existingGroup = remember(query, magitrickleGroups) { matchMagitrickleGroup(magitrickleGroups, query) }
-        existingGroup?.let { groupName ->
-            Text(
-                text = stringResource(R.string.domain_in_group, groupName),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp),
-            )
-        }
-        // Bottom padding: breathing room between the search bar (+ hint, if any)
-        // and the first list row (the list's own 8dp top padding alone read as "stuck").
-        Spacer(Modifier.height(8.dp))
-        PullToRefreshBox(
+    // Domain already routed elsewhere via a MagiTrickle group (not the Custom
+    // one: that is already covered by the mihomo/MagiTrickle row indicators).
+    val existingGroup = remember(query, magitrickleGroups) { matchMagitrickleGroup(magitrickleGroups, query) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        HelmPullToRefreshBox(
             isRefreshing = state.isRefreshing && !firstLoad,
             onRefresh = { viewModel.refresh() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
+            modifier = Modifier.fillMaxSize(),
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                // The list runs under the floating search: room for it and the bottom bar.
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp + FloatingSearchHeight + (LocalBottomBarPadding.current ?: 0.dp)),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 state.error?.let { message ->
-                    item { ErrorCard(message) }
+                    item { ErrorCard(message, onRetry = { viewModel.refresh() }) }
                 }
 
                 if (skeletonBrush != null) {
@@ -812,17 +714,13 @@ private fun RoutingTab(viewModel: DomainsViewModel, magitrickleGroups: List<Magi
                         else domains.filter { it.domain.contains(filter, ignoreCase = true) }
                     if (filtered.isEmpty() && !state.isRefreshing) {
                         item {
-                            Text(
-                                text = stringResource(
-                                    if (domains.isEmpty()) R.string.no_domains
-                                    else R.string.search_no_results
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 32.dp),
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodyMedium,
+                            DomainsEmptyState(
+                                query = query,
+                                emptyTitleRes = R.string.empty_domains_title,
+                                emptyBodyRes = R.string.no_domains,
+                                listEmpty = domains.isEmpty(),
+                                addEnabled = state.busyDomain == null,
+                                onAdd = ::submit,
                             )
                         }
                     }
@@ -846,12 +744,44 @@ private fun RoutingTab(viewModel: DomainsViewModel, magitrickleGroups: List<Magi
                 }
             }
         }
+        // One field, two jobs, floating over the list right above the bottom bar (Boxy
+        // panel style): the text filters live AND is the input for add (+ / IME);
+        // paste while it is empty.
+        FloatingSearch(
+            query = query,
+            onQuery = { query = it },
+            hint = stringResource(R.string.search_or_add_domain),
+            note = existingGroup?.let { stringResource(R.string.domain_in_group, it) },
+            onDone = ::submit,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
+            if (query.isEmpty()) {
+                GlassAction(
+                    icon = Icons.Filled.ContentPaste,
+                    description = stringResource(R.string.paste_from_clipboard),
+                    onClick = {
+                        // URL-looking clip: registrable domain (same heuristic as the
+                        // share flow); plain text: paste as-is for manual editing.
+                        val clip = clipboard.getText()?.text?.trim().orEmpty()
+                        if (clip.isNotBlank()) query = extractDomain(clip) ?: clip
+                    },
+                )
+            } else {
+                GlassAction(
+                    icon = Icons.Filled.Add,
+                    description = stringResource(R.string.add_domain),
+                    onClick = ::submit,
+                    enabled = state.busyDomain == null,
+                    accent = true,
+                )
+            }
+        }
     }
 
     dialogEntry?.let { entry ->
         val present = if (entry.mihomo) "mihomo" else "magitrickle"
         val missing = if (entry.mihomo) "magitrickle" else "mihomo"
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { dialogEntry = null },
             title = { Text(entry.domain) },
             text = {
@@ -891,11 +821,11 @@ private fun RoutingTab(viewModel: DomainsViewModel, magitrickleGroups: List<Magi
 
     editEntry?.let { entry ->
         var editText by remember(entry) { mutableStateOf(entry.domain) }
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { editEntry = null },
             title = { Text(stringResource(R.string.edit_domain)) },
             text = {
-                OutlinedTextField(
+                HelmTextField(
                     value = editText,
                     onValueChange = { editText = it },
                     label = { Text(stringResource(R.string.domain)) },
@@ -922,66 +852,6 @@ private fun RoutingTab(viewModel: DomainsViewModel, magitrickleGroups: List<Magi
     }
 }
 
-/**
- * The single top field shared by Routing and Strategies: a collapsed SearchBar
- * that filters as you type, plus the old add-field's actions — paste (while
- * empty), clear and add (while filled); the IME action also submits the add.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun RoutingSearchAddBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    addEnabled: Boolean,
-    onPaste: () -> Unit,
-    onAdd: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    SearchBar(
-        inputField = {
-            SearchBarDefaults.InputField(
-                query = query,
-                onQueryChange = onQueryChange,
-                onSearch = { onAdd() },
-                expanded = false,
-                onExpandedChange = {},
-                placeholder = { Text(stringResource(R.string.search_or_add_domain)) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                trailingIcon = {
-                    Row {
-                        if (query.isEmpty()) {
-                            IconButton(onClick = onPaste) {
-                                Icon(
-                                    Icons.Filled.ContentPaste,
-                                    contentDescription = stringResource(R.string.paste_from_clipboard),
-                                )
-                            }
-                        } else {
-                            IconButton(onClick = { onQueryChange("") }) {
-                                Icon(
-                                    Icons.Filled.Close,
-                                    contentDescription = stringResource(R.string.clear_search),
-                                )
-                            }
-                            IconButton(onClick = onAdd, enabled = addEnabled) {
-                                Icon(
-                                    Icons.Filled.Add,
-                                    contentDescription = stringResource(R.string.add_domain),
-                                )
-                            }
-                        }
-                    }
-                },
-            )
-        },
-        expanded = false,
-        onExpandedChange = {},
-        // Default SearchBar insets add status-bar top padding even under a
-        // TopAppBar — same suppression as the Strategies search.
-        windowInsets = WindowInsets(0),
-        modifier = modifier,
-    ) {}
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -992,10 +862,10 @@ private fun DomainRow(
     onLongPress: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    ElevatedCard(
+    HelmCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(CardDefaults.elevatedShape)
+            .clip(CardShape)
             // Editing used to hang off an unlabeled long press with a no-op tap in
             // front of it — the row rippled and did nothing, and the only way in was
             // undiscoverable. Tap now opens the editor, matching the Strategies rows,
@@ -1023,18 +893,13 @@ private fun DomainRow(
                 )
                 // The two lists are independent on the router — always show both
                 // flags separately so a half-added domain is visible at a glance.
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     TargetIndicator("mihomo", entry.mihomo)
                     TargetIndicator("MagiTrickle", entry.magitrickle)
                 }
             }
             if (busy) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .size(24.dp),
-                    strokeWidth = 2.5.dp,
-                )
+                LoadingIndicator(Modifier.padding(4.dp).size(40.dp))
             } else {
                 IconButton(onClick = onDelete, enabled = actionsEnabled) {
                     Icon(
@@ -1051,8 +916,6 @@ private fun DomainRow(
 
 @Composable
 private fun TargetIndicator(name: String, active: Boolean) {
-    val tint = if (active) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.outline
     // Sighted users read the state off the check/cross glyph and the tint; neither
     // reaches a screen reader, which would otherwise hear the bare target name in
     // both states. Merge the pair into one node that spells the state out.
@@ -1060,23 +923,52 @@ private fun TargetIndicator(name: String, active: Boolean) {
         if (active) R.string.a11y_target_added else R.string.a11y_target_not_added,
         name,
     )
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
-        modifier = Modifier.semantics(mergeDescendants = true) {
-            contentDescription = stateLabel
-        },
-    ) {
-        Icon(
-            imageVector = if (active) Icons.Filled.Check else Icons.Filled.Close,
-            contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(14.dp),
+    StatusPill(
+        text = name,
+        color = if (active) Helm.colors.accent else Helm.colors.text2.copy(alpha = 0.8f),
+        icon = if (active) Icons.Filled.Check else Icons.Filled.Close,
+        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = stateLabel },
+    )
+}
+
+/**
+ * Empty list or no search match on the Routing and Strategies pages, in the expressive
+ * empty-state style. A miss with text typed offers to add exactly that text right away.
+ */
+@Composable
+internal fun DomainsEmptyState(
+    query: String,
+    emptyTitleRes: Int,
+    emptyBodyRes: Int,
+    listEmpty: Boolean,
+    addEnabled: Boolean,
+    onAdd: () -> Unit,
+) {
+    if (listEmpty && query.isBlank()) {
+        EmptyState(
+            icon = Icons.Outlined.Public,
+            title = stringResource(emptyTitleRes),
+            body = stringResource(emptyBodyRes),
+            tint = Tints.accent,
+            shape = MaterialShapes.Cookie12Sided,
+            modifier = Modifier.padding(top = 8.dp),
         )
-        Text(
-            text = name,
-            style = MaterialTheme.typography.labelMedium,
-            color = tint,
+    } else {
+        EmptyState(
+            icon = Icons.Outlined.SearchOff,
+            title = stringResource(R.string.search_empty_title),
+            body = stringResource(R.string.search_no_results),
+            tint = Tints.purple,
+            shape = MaterialShapes.Flower,
+            modifier = Modifier.padding(top = 8.dp),
+            action = {
+                HelmButton(
+                    text = stringResource(R.string.add_domain_named, query.trim()),
+                    onClick = onAdd,
+                    enabled = addEnabled,
+                    icon = Icons.Filled.Add,
+                )
+            },
         )
     }
 }

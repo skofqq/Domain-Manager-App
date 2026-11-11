@@ -1,0 +1,615 @@
+<resources>
+    <string name="app_name">Helm</string>
+
+    <!-- Navigation -->
+    <string name="settings">Impostazioni</string>
+    <string name="domains">Domini</string>
+
+    <!-- Domain fields / status card -->
+    <string name="domain">Dominio</string>
+    <string name="domain_placeholder">example.com</string>
+    <string name="status">Stato</string>
+    <string name="add_to">Aggiungi a %1$s</string>
+    <string name="remove_from">Rimuovi da %1$s</string>
+
+    <!-- Domains screen -->
+    <string name="tab_routing">Instradamento</string>
+    <string name="tab_strategies">Strategie</string>
+    <string name="add_domain">Aggiungi dominio</string>
+    <string name="add">Aggiungi</string>
+    <string name="apply">Applica</string>
+    <string name="remove_domain">Rimuovi dominio</string>
+    <string name="no_domains">Ancora nessun dominio gestito. Trascina verso il basso per aggiornare.</string>
+    <string name="domain_partial">Questo dominio è solo in %1$s.</string>
+    <string name="edit_domain">Modifica dominio</string>
+    <string name="paste_from_clipboard">Incolla dagli appunti</string>
+    <string name="cancel">Annulla</string>
+    <string name="back">Indietro</string>
+
+    <!-- Strategies -->
+    <string name="strategy">Strategia</string>
+    <string name="strategy_n">Strategia %1$d</string>
+    <string name="strategy_pool">Nessuna assegnazione propria — pool condiviso</string>
+    <string name="strategy_range_loading">Caricamento dell’intervallo di strategie dal router…</string>
+    <string name="strat_showing_active">In esecuzione — le modifiche si applicano subito</string>
+    <string name="strat_showing_inactive">Fermo — le modifiche vengono solo salvate</string>
+    <string name="engine_running">In esecuzione</string>
+    <string name="engine_stopped">Fermo</string>
+    <string name="strat_no_engine">Nessun motore DPI in esecuzione</string>
+    <string name="strat_no_engine_hint">Avvia zapret o zapret2 nella scheda Stato per gestire le strategie per dominio.</string>
+    <string name="open_status">Apri Stato</string>
+    <string name="retry">Riprova</string>
+    <string name="no_strat_domains">Ancora nessun dominio con strategia propria.</string>
+    <string name="strategy_pool_short">Pool condiviso</string>
+    <string name="search_domains">Cerca domini</string>
+    <string name="search_or_add_domain">Cerca o aggiungi un dominio</string>
+    <string name="clear_search">Cancella ricerca</string>
+    <string name="search_no_results">Nessun dominio corrisponde alla ricerca.</string>
+    <string name="search_empty_title">Nessun risultato</string>
+    <string name="empty_domains_title">Ancora nessun dominio</string>
+    <string name="empty_strat_title">Ancora nessuna strategia propria</string>
+    <string name="add_domain_named">Aggiungi %1$s</string>
+    <string name="pick_strategy">Scegli una strategia</string>
+    <plurals name="n_domains">
+        <item quantity="one">%d dominio</item>
+        <item quantity="many">%d domini</item>
+        <item quantity="other">%d domini</item>
+    </plurals>
+
+    <!-- zapret2 profiles -->
+    <string name="z2_profiles_title">Profili zapret2</string>
+    <string name="z2_proto_tls">TLS</string>
+    <string name="z2_proto_udp">QUIC / UDP</string>
+    <string name="z2_proto_http">HTTP</string>
+    <string name="z2_apply_hint">Le modifiche al motore attivo si applicano con un breve riavvio.</string>
+    <string name="z2_rollback">Ripristina</string>
+    <string name="z2_rollback_done">Ripristinato il set precedente</string>
+    <string name="z2_rollback_nothing">Niente di salvato da ripristinare</string>
+
+    <!-- zapret v1 profiles -->
+    <string name="z1_profiles_title">Profili zapret</string>
+
+    <!-- Shared by both zapret profile screens -->
+    <string name="profile_caption">chiave %1$s · ora: %2$d</string>
+    <string name="check_reachability">Verifica</string>
+    <string name="z_profiles_section">Profili</string>
+    <string name="z_actions_section">Modifiche</string>
+    <string name="voice_title">Chiamate vocali — Discord/WhatsApp/Telegram</string>
+    <string name="voice_custom">Personalizzato</string>
+    <string name="voice_bolvan">Script bol-van</string>
+
+    <!-- Status (services) screen -->
+    <string name="health_model">Modello</string>
+    <string name="health_firmware">Firmware</string>
+    <string name="health_uptime">Tempo di attività</string>
+    <string name="health_load">Carico medio</string>
+    <string name="health_cpu_temp">Temperatura CPU</string>
+    <string name="health_memory">Memoria</string>
+    <string name="health_wan_ip">IPv4</string>
+    <string name="health_wan_ipv6">IPv6</string>
+    <string name="dur_days_hours">%1$d g %2$d h</string>
+    <string name="dur_hours_minutes">%1$d h %2$d min</string>
+    <string name="dur_minutes">%1$d min</string>
+    <string name="devices_title">Dispositivi</string>
+    <string name="devices_favorites">Preferiti</string>
+    <string name="devices_all">Tutti i dispositivi</string>
+    <string name="devices_online_of">%1$d di %2$d online</string>
+    <string name="device_scan_label">Verifica dei dispositivi</string>
+    <string name="device_unknown">Dispositivo sconosciuto</string>
+    <string name="device_icon_title">Icona del dispositivo</string>
+    <string name="device_icon_auto">Automatica</string>
+    <string name="device_type_speaker">Altoparlante</string>
+    <string name="device_type_bulb">Lampadina</string>
+    <string name="device_type_phone">Telefono</string>
+    <string name="device_type_pc">PC</string>
+    <string name="device_type_laptop">Portatile</string>
+    <string name="device_type_router">Router</string>
+    <string name="device_type_zigbee">Gateway ZigBee</string>
+    <string name="device_type_printer">Stampante</string>
+    <string name="device_type_socket">Presa</string>
+    <string name="device_type_tv">TV</string>
+    <string name="device_type_storage">Archiviazione</string>
+    <string name="device_type_camera">Videocamera</string>
+    <string name="device_type_generic">Altro</string>
+    <plurals name="n_devices_online">
+        <item quantity="one">%d dispositivo in rete</item>
+        <item quantity="many">%d dispositivi in rete</item>
+        <item quantity="other">%d dispositivi in rete</item>
+    </plurals>
+    <string name="device_scan_progress">%1$d/%2$d</string>
+    <string name="wake_device">Riattiva</string>
+    <string name="wake_sent">Pacchetto Wake-on-LAN inviato</string>
+    <string name="favorite_device">Aggiungi ai preferiti</string>
+    <string name="unfavorite_device">Rimuovi dai preferiti</string>
+    <string name="health_disk">Disco (/overlay)</string>
+    <string name="svc_running">In esecuzione</string>
+    <string name="svc_stopped">Fermo</string>
+    <string name="svc_failed">Errore</string>
+    <string name="svc_autostart">Avvio automatico</string>
+    <string name="svc_start">Avvia</string>
+    <string name="svc_stop">Ferma</string>
+    <string name="svc_restart">Riavvia</string>
+    <string name="service_log_button">Log</string>
+    <string name="service_log_title">Log di %1$s</string>
+    <string name="service_log_empty">Nessuna voce trovata nel log</string>
+    <string name="refresh">Aggiorna</string>
+
+    <!-- mihomo drill-down -->
+    <string name="section_proxy_groups">Gruppi proxy</string>
+    <string name="groups_view_grid">Vista a griglia</string>
+    <string name="groups_view_list">Vista a elenco</string>
+    <string name="section_traffic">Traffico</string>
+    <string name="section_connections">Connessioni attive</string>
+    <string name="traffic_download">Download</string>
+    <string name="traffic_upload">Upload</string>
+    <string name="speed_value">%1$s/s</string>
+    <string name="traffic_total">Totale %1$s</string>
+    <string name="no_connections">Nessuna connessione attiva</string>
+    <string name="close_connection">Chiudi connessione</string>
+    <string name="err_mihomo_unreachable">mihomo non risponde — verifica che il servizio sia in esecuzione</string>
+    <string name="err_mihomo_select_failed">mihomo ha rifiutato il cambio di nodo</string>
+    <string name="traffic_chart_caption">Ultimi ~5 minuti, tramite mihomo</string>
+    <string name="mihomo_only_note">Solo il traffico che passa per il proxy mihomo — non tutto il traffico del dispositivo.</string>
+    <string name="source_all">Tutti</string>
+    <string name="source_traffic_summary">%1$s: ↓ %2$s · ↑ %3$s (solo tramite mihomo)</string>
+
+    <!-- Network diagnostics -->
+    <string name="diag_net_title">Diagnostica di rete</string>
+    <string name="diag_entry_desc">Ping, traceroute, test di velocità e verifica del tunnel</string>
+    <string name="diag_host_section">Ping / traceroute</string>
+    <string name="diag_ping">Ping</string>
+    <string name="diag_traceroute">Traceroute</string>
+    <string name="diag_preset_wan">WAN %1$s</string>
+    <string name="ping_result_ok">Raggiungibile · perdita %1$d%% · media %2$s ms</string>
+    <string name="ping_result_fail">Nessuna risposta (100%% di perdita)</string>
+    <string name="trace_title">Percorso verso %1$s</string>
+    <string name="diag_speedtest_title">Test di velocità</string>
+    <string name="diag_speedtest_note">Misura la velocità di download WAN del ROUTER, non il Wi-Fi di questo telefono. Richiede fino a ~25 secondi.</string>
+    <string name="diag_speedtest_run">Avvia test</string>
+    <string name="diag_speedtest_running">Misurazione…</string>
+    <string name="diag_speedtest_result_label">Download WAN del router</string>
+    <string name="speed_mbps">%1$s Mbit/s</string>
+    <string name="diag_tunnel_title">Verifica del tunnel</string>
+    <string name="diag_tunnel_note">Il test di latenza integrato di mihomo per tutti i nodi del gruppo insieme. Un nodo senza risposta entro 5 s viene segnato come non rispondente.</string>
+    <string name="diag_tunnel_run">Testa i nodi</string>
+    <string name="diag_tunnel_running">Test in corso…</string>
+    <string name="ms_value">%1$d ms</string>
+    <string name="ms_value_frac">%1$s ms</string>
+    <string name="node_no_response">Non risponde</string>
+    <string name="delay_test">Testa</string>
+    <string name="delay_timeout">Timeout</string>
+    <string name="delay_test_all">Testa tutti i gruppi</string>
+
+    <!-- MagiTrickle groups overview -->
+    <string name="magitrickle_groups_title">Gruppi MagiTrickle</string>
+    <string name="magitrickle_groups_empty">Nessun gruppo configurato sul router.</string>
+    <string name="magitrickle_group_no_rules">Nessuna regola in questo gruppo.</string>
+    <plurals name="n_rules">
+        <item quantity="one">%d regola</item>
+        <item quantity="many">%d regole</item>
+        <item quantity="other">%d regole</item>
+    </plurals>
+    <string name="domain_in_group">Già nel gruppo «%1$s»</string>
+
+    <!-- Share screen -->
+    <string name="share_title">Aggiungi al router</string>
+    <string name="close">Chiudi</string>
+    <string name="reload_status">Ricarica stato</string>
+    <string name="done">Fatto</string>
+
+    <!-- Settings screen -->
+    <string name="settings_appearance_desc">Cambia il tema dell’app</string>
+    <string name="settings_auth_title">Autorizzazione</string>
+    <string name="settings_auth_desc">Profili router e token</string>
+
+    <!-- Router profiles -->
+    <string name="default_profile_name">Il mio router</string>
+    <string name="settings_profiles_hint">Il profilo selezionato è attivo — tutte le schede lavorano con esso. Tocca una riga per modificarla.</string>
+    <string name="profile_add">Aggiungi router</string>
+    <string name="profile_new_title">Nuovo router</string>
+    <string name="profile_name">Nome</string>
+    <string name="profile_name_placeholder">Casa</string>
+    <string name="profile_delete_title">Eliminare il profilo?</string>
+    <string name="profile_delete_text">«%1$s» verrà rimosso da questo telefono. Il router non viene toccato.</string>
+    <string name="profile_delete_last_warning">È l’unico router configurato — non rimarrà nessun profilo.</string>
+    <string name="delete">Elimina</string>
+    <string name="update">Aggiorna</string>
+    <string name="qr_profile_added">Profilo «%1$s» aggiunto</string>
+    <string name="qr_update_title">Aggiornare il profilo?</string>
+    <string name="qr_update_text">Il QR contiene l’indirizzo del profilo esistente «%1$s» — aggiornarne i dati invece di creare un duplicato?</string>
+    <string name="auth_to_show_qr">Conferma per mostrare il codice QR</string>
+    <string name="settings_about_title">Informazioni</string>
+    <string name="settings_about_desc">Versione e informazioni sull’app</string>
+
+    <!-- Security -->
+    <string name="section_security">Sicurezza</string>
+    <string name="settings_security_desc">Biometria e PIN</string>
+    <string name="lock_explain">Usa impronta o volto e, se la biometria non è disponibile, il PIN, la sequenza o la password del dispositivo.</string>
+    <string name="lock_unavailable">Su questo dispositivo non sono configurati né biometria né blocco schermo — non c’è nulla da richiedere.</string>
+    <string name="lock_mode_off">Disattivato</string>
+    <string name="lock_mode_off_desc">Nessuna protezione aggiuntiva</string>
+    <string name="lock_mode_token">Solo visualizzazione del token</string>
+    <string name="lock_mode_token_desc">Conferma prima di mostrare il token in Autorizzazione</string>
+    <string name="lock_mode_app">Tutta l’app</string>
+    <string name="lock_mode_app_desc">Biometria o PIN a ogni avvio</string>
+    <string name="unlock_title">Sblocca Helm</string>
+    <string name="unlock">Sblocca</string>
+    <string name="auth_to_show_token">Conferma per mostrare il token</string>
+
+    <!-- Backup -->
+    <string name="section_backup">Backup</string>
+    <string name="settings_backup_desc">Esporta e importa elenchi</string>
+    <string name="backup_export_title">Esporta</string>
+    <string name="backup_export_note">Un’istantanea degli elenchi attuali del router, da consultare o per il ripristino manuale. Lo stato reale resta sempre sul router — questa app lo legge e lo scrive solo tramite l’API.</string>
+    <string name="backup_build">Crea istantanea</string>
+    <string name="backup_building">Creazione…</string>
+    <string name="backup_export_summary">Instradamento: %1$d · zapret2: %2$d · zapret: %3$d</string>
+    <string name="copy">Copia</string>
+    <string name="copied">Copiato</string>
+    <string name="share">Condividi</string>
+    <string name="backup_import_title">Importa</string>
+    <string name="backup_import_note">Incolla un JSON di istantanea o un semplice elenco di domini (uno per riga — vengono aggiunti all’instradamento con la destinazione predefinita).</string>
+    <string name="backup_import_hint_restart">Se un motore zapret è in esecuzione, ogni strategia importata ne riavvia il demone — un’importazione grande può richiedere tempo.</string>
+    <string name="backup_run_import">Importa</string>
+    <string name="backup_progress">%1$d / %2$d…</string>
+    <string name="backup_result">Aggiunti: %1$d · Già presenti: %2$d · Non riusciti: %3$d</string>
+    <string name="backup_parse_error">Impossibile leggere l’input — è atteso un JSON di istantanea o un elenco di domini</string>
+    <string name="backup_empty">Niente da importare</string>
+
+    <!-- QR setup -->
+    <string name="section_qr">Codice QR</string>
+    <string name="qr_hint">Trasferisci queste impostazioni su un altro telefono: mostra il QR qui e scansionalo là.</string>
+    <string name="qr_show">Mostra QR</string>
+    <string name="qr_scan">Scansiona QR</string>
+    <string name="qr_show_title">Impostazioni di connessione</string>
+    <string name="qr_show_warning">Il codice contiene indirizzo, porta e token di accesso in chiaro — mostralo solo su dispositivi fidati.</string>
+    <string name="qr_scanned">Scansionato — controlla i campi e tocca Salva</string>
+    <string name="qr_plain_hint">Tieni premuto il codice per passare a un QR semplice (per scanner esigenti) e tornare indietro.</string>
+    <string name="qr_invalid">Questo QR non è un codice di configurazione di Helm</string>
+
+    <!-- History -->
+    <string name="section_history">Cronologia</string>
+    <string name="settings_history_desc">Domini aggiunti registrati in locale</string>
+    <string name="history_note">Salvata solo su questo telefono: ogni aggiunta riuscita viene registrata con la data. Il router non conserva orari, quindi questo elenco non viene mai sincronizzato con esso.</string>
+    <string name="history_empty">Ancora vuota — qui appariranno i domini che aggiungi.</string>
+
+    <!-- Deep link / automation -->
+    <string name="deeplink_added">%1$s aggiunto al router</string>
+
+    <!-- Widget -->
+    <string name="widget_label">Stato dei servizi</string>
+    <string name="widget_description">Indicatori di stato dei servizi del router</string>
+    <string name="widget_label_mihomo">mihomo</string>
+    <string name="widget_label_magitrickle">MT</string>
+    <string name="widget_label_zapret">zapret</string>
+    <string name="widget_label_zapret2">zapret2</string>
+
+    <!-- Diagnostics -->
+    <string name="section_diagnostics">Diagnostica</string>
+    <string name="settings_diagnostics_desc">Timeout e debug delle richieste</string>
+    <string name="diag_timeout_title">Timeout delle richieste HTTP</string>
+    <string name="diag_timeout_value">%1$d s</string>
+    <string name="diag_log_title">Richieste API recenti</string>
+    <string name="diag_log_note">Il token è mascherato negli URL — si può copiare in sicurezza per una segnalazione di bug.</string>
+    <string name="diag_log_empty">Ancora nessuna richiesta.</string>
+    <string name="diag_failed">ERRORE</string>
+
+    <!-- Background monitoring -->
+    <string name="section_monitoring">Monitoraggio</string>
+    <string name="settings_monitoring_desc">Controlli in background di IP WAN, disco e latenza</string>
+    <string name="monitoring_explain">Controlla periodicamente il router in background e ti avvisa di un cambio di IP WAN, di poco spazio su disco o di un peggioramento della latenza del proxy. Usa WorkManager e funziona solo con accesso alla rete.</string>
+    <string name="monitoring_enable">Attiva il monitoraggio in background</string>
+    <string name="monitoring_interval_title">Intervallo di controllo</string>
+    <string name="monitoring_interval_value">%1$d min</string>
+    <string name="monitoring_wan_title">Cambio di IP WAN</string>
+    <string name="monitoring_wan_desc">Avvisa quando cambia l’IPv4/IPv6 WAN del router</string>
+    <string name="monitoring_disk_title">Spazio su disco</string>
+    <string name="monitoring_disk_desc">Avvisa quando /overlay raggiunge il 90%</string>
+    <string name="monitoring_latency_title">Peggioramento della latenza</string>
+    <string name="monitoring_latency_desc">Scegli un gruppo proxy da controllare — avviso quando la latenza del nodo attivo circa raddoppia o smette di rispondere.</string>
+    <string name="monitoring_latency_off">Disattivato</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_name">Monitoraggio del router</string>
+    <string name="notif_channel_desc">Avvisi su cambio di IP WAN, poco spazio su disco e peggioramento della latenza</string>
+    <string name="notif_wan_changed_title">L’IP del router è cambiato</string>
+    <string name="notif_wan_changed_text">%1$s → %2$s</string>
+    <string name="notif_disk_title">Poco spazio su disco</string>
+    <string name="notif_disk_text">/overlay è pieno al %1$d%%</string>
+    <string name="notif_latency_title">Connessione peggiorata</string>
+    <string name="notif_latency_down_text">%1$s non risponde</string>
+    <string name="notif_latency_degraded_text">%1$s: prima %2$d ms, ora %3$d ms</string>
+
+    <!-- App Shortcuts -->
+    <string name="section_shortcuts">Scorciatoie dell’app</string>
+    <string name="settings_shortcuts_desc">Scegli 2–4 azioni per il menu delle scorciatoie del launcher</string>
+    <string name="shortcuts_explain">Tieni premuta l’icona dell’app per andare direttamente a una di queste azioni. Le azioni che richiedono conferma (riavvio, aggiornamento di mihomo) richiedono comunque un tocco esplicito nell’app — la scorciatoia non le avvia mai da sola.</string>
+    <string name="shortcuts_min_max_hint">Scegli da 2 a 4 scorciatoie.</string>
+    <string name="shortcut_status">Stato</string>
+    <string name="shortcut_devices">Elenco dispositivi</string>
+    <string name="shortcut_reboot">Riavvia</string>
+    <string name="shortcut_mihomo_update">Aggiorna mihomo</string>
+    <string name="shortcut_speedtest">Test di velocità</string>
+    <string name="shortcut_zapret_restart">Riavvia zapret/zapret2</string>
+    <string name="shortcut_zapret_restart_named">Riavvia %1$s</string>
+
+    <!-- Router info sheet -->
+    <string name="router_sheet_routers">Router</string>
+    <string name="router_sheet_versions">Versioni dei servizi</string>
+    <string name="loading">Caricamento…</string>
+    <string name="svc_name_mihomo">mihomo</string>
+    <string name="svc_name_magitrickle">MagiTrickle</string>
+    <string name="svc_name_zapret">zapret</string>
+    <string name="svc_name_zapret2">zapret2</string>
+    <string name="version_unknown">versione sconosciuta</string>
+    <string name="check_for_updates">Cerca aggiornamenti</string>
+    <string name="update_to_version">Aggiorna a %1$s</string>
+    <string name="whats_new_in">Novità di %1$s</string>
+    <string name="mihomo_up_to_date">%1$s — la più recente</string>
+    <string name="mihomo_updating">Aggiornamento di mihomo…</string>
+    <string name="mihomo_update_confirm_title">Aggiornare mihomo?</string>
+    <string name="mihomo_update_confirm_text">mihomo verrà fermato, sostituito con la nuova versione e riavviato. Può richiedere tempo e interromperà brevemente il traffico instradato.</string>
+
+    <!-- Router reboot -->
+    <string name="reboot_router">Riavvia</string>
+    <string name="reboot_confirm_title">Riavviare il router?</string>
+    <string name="reboot_confirm_text">Il router e tutti i servizi dietro di esso non saranno disponibili per 1–2 minuti. Le connessioni attive verranno interrotte.</string>
+    <string name="reboot_confirm_button">Riavvia</string>
+    <string name="rebooting_title">Il router si sta riavviando…</string>
+    <string name="rebooting_hint">Di solito richiede 1–2 minuti.</string>
+    <string name="reboot_countdown">~%1$d s</string>
+    <string name="reboot_check_ready">Il router dovrebbe essere di nuovo attivo — verifica la connessione.</string>
+    <string name="hide_overlay">Nascondi</string>
+    <string name="about_version">Versione %1$s</string>
+    <string name="about_source_code">Codice sorgente su GitHub</string>
+    <string name="developer">Sviluppatore</string>
+    <string name="about_summary">Gestisce gli elenchi di instradamento dei domini e i servizi su un router OpenWrt (mihomo, MagiTrickle, zapret).</string>
+    <string name="dynamic_color_hint">Disponibile su Android 12 e versioni successive</string>
+    <string name="liquid_glass">Liquid Glass</string>
+    <string name="liquid_glass_desc">Sfocatura e rifrazione su barra inferiore, pulsanti dell’intestazione, menu, pannelli e finestre di dialogo</string>
+    <string name="liquid_glass_unsupported">Richiede Android 12 o versioni successive</string>
+    <string name="true_black">Nero assoluto</string>
+    <string name="true_black_desc">Sfondo completamente nero nel tema scuro</string>
+    <string name="haptic_feedback">Feedback aptico</string>
+    <string name="haptic_feedback_desc">Breve vibrazione al tocco</string>
+    <string name="section_router">Router</string>
+    <string name="host">Host</string>
+    <string name="port">Porta</string>
+    <string name="section_auth">Accesso</string>
+    <string name="token">Token</string>
+    <string name="show">Mostra</string>
+    <string name="hide">Nascondi</string>
+    <string name="section_fallback">Indirizzo di riserva</string>
+    <string name="fallback_hint">Facoltativo — usato automaticamente quando l’indirizzo principale non risponde (ad esempio un indirizzo Tailscale). Lascia vuoto l’host per disattivarlo.</string>
+    <string name="section_default_target">Destinazione predefinita</string>
+    <string name="section_appearance">Aspetto</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Chiaro</string>
+    <string name="theme_dark">Scuro</string>
+    <string name="dynamic_color">Colori dinamici</string>
+    <string name="dynamic_color_desc">Colori dallo sfondo (Material You)</string>
+    <string name="section_language">Lingua</string>
+    <string name="language_system">Sistema</string>
+    <string name="save">Salva</string>
+    <string name="saved">Salvato</string>
+    <string name="test_connection">Verifica connessione</string>
+    <string name="testing">Verifica in corso…</string>
+    <string name="test_connected">Connesso</string>
+    <string name="test_connected_bad_token">Connesso (token errato)</string>
+    <string name="test_connected_no_token">Connesso (token non configurato sul router)</string>
+    <string name="test_http_error">Errore: HTTP %1$d</string>
+
+    <!-- Rule providers -->
+    <string name="section_rule_providers">Set di regole</string>
+    <string name="rule_providers_title">Set di regole</string>
+    <string name="rule_providers_entry_desc">Elenchi esterni collegati a un gruppo proxy</string>
+    <string name="rule_providers_hint">I set di regole vengono scaricati e aggiornati dal router stesso. Il traffico corrispondente va al gruppo proxy a cui è collegato ogni elenco.</string>
+    <string name="rule_providers_empty">Ancora nessun set di regole. Tocca «Aggiungi» per collegare un elenco a un gruppo proxy.</string>
+    <plurals name="n_rule_providers">
+        <item quantity="one">%d set di regole aggiunto</item>
+        <item quantity="many">%d set di regole aggiunti</item>
+        <item quantity="other">%d set di regole aggiunti</item>
+    </plurals>
+    <plurals name="n_hours">
+        <item quantity="one">Ogni ora</item>
+        <item quantity="many">Ogni %d ore</item>
+        <item quantity="other">Ogni %d ore</item>
+    </plurals>
+    <string name="provider_routed_to">→ %1$s</string>
+    <string name="provider_delete_title">Rimuovere il set di regole?</string>
+    <string name="provider_delete_text">«%1$s» e la sua regola di instradamento verranno rimossi dal router. Il gruppo proxy «%2$s» resta — i gruppi si gestiscono sul router stesso.</string>
+    <string name="provider_removed">«%1$s» rimosso</string>
+    <string name="provider_not_found">«%1$s» non era presente sul router</string>
+    <string name="provider_added">«%1$s» aggiunto e collegato a %2$s</string>
+
+    <string name="provider_add_title">Nuovo set di regole</string>
+    <string name="provider_step">Passo %1$d di %2$d</string>
+    <string name="next">Avanti</string>
+    <string name="provider_custom_url">URL personalizzato</string>
+    <string name="provider_custom_url_desc">Qualsiasi fonte https, non solo quelle sotto</string>
+    <string name="provider_url">URL del set di regole</string>
+    <string name="provider_url_hint">Deve iniziare con https://</string>
+    <string name="provider_url_invalid">Inserisci un link https:// completo</string>
+    <string name="provider_behavior">Tipo di elenco</string>
+    <string name="provider_behavior_hint">Cosa contiene l’elenco: domini, intervalli IP o regole classiche miste.</string>
+    <string name="behavior_domain">Domini</string>
+    <string name="behavior_ipcidr">Indirizzi IP</string>
+    <string name="behavior_classical">Classico</string>
+    <string name="provider_format">Formato</string>
+    <string name="provider_format_hint">MRS è il formato binario compatto — più piccolo e veloce di YAML o testo semplice.</string>
+    <string name="provider_name">Nome</string>
+    <string name="provider_name_hint">Lettere latine minuscole, cifre e «-», iniziando con una lettera</string>
+    <string name="provider_name_invalid">Solo lettere latine minuscole, cifre e «-», iniziando con una lettera</string>
+    <string name="provider_name_taken">Esiste già un set di regole con questo nome</string>
+    <string name="provider_interval">Periodo di aggiornamento</string>
+    <string name="interval_hour">Ogni ora</string>
+    <string name="interval_6h">Ogni 6 ore</string>
+    <string name="interval_day">Ogni giorno</string>
+    <string name="interval_week">Ogni settimana</string>
+    <string name="provider_fetch_proxy">Scarica tramite proxy</string>
+    <string name="provider_fetch_proxy_hint">Il gruppo proxy che il router usa per scaricare questo elenco. Utile quando la fonte (ad esempio GitHub) non è raggiungibile direttamente. Non c’entra con la destinazione del traffico corrispondente.</string>
+    <string name="provider_fetch_proxy_none">Diretto</string>
+    <string name="provider_group_title">Invia le corrispondenze a</string>
+    <string name="provider_group_hint">Dove viene instradato il traffico che corrisponde a questo elenco.</string>
+    <string name="provider_group_existing">Gruppo esistente</string>
+    <string name="provider_group_new">Nuovo gruppo</string>
+    <string name="provider_new_group_name">Nome del nuovo gruppo</string>
+    <string name="provider_new_group_hint">Il router creerà questo gruppo proxy</string>
+    <string name="provider_new_group_taken">Il router ha già un gruppo con questo nome — sceglilo come gruppo esistente</string>
+    <string name="provider_new_group_note">Il nuovo gruppo viene creato sul router. Rimuovere poi il set di regole non rimuove il gruppo — questo si fa sul router stesso.</string>
+    <string name="provider_no_groups">Il router non ha restituito alcun gruppo proxy</string>
+    <string name="provider_add_slow_note">Il router scarica l’elenco e convalida la configurazione risultante, quindi può richiedere tempo.</string>
+
+    <!-- Live source catalog -->
+    <string name="catalog_search">Cerca nel catalogo</string>
+    <string name="catalog_refresh">Aggiorna catalogo</string>
+    <string name="catalog_loading">Caricamento del catalogo…</string>
+    <string name="catalog_count">%1$d di %2$d file</string>
+    <string name="catalog_no_results">Nessun risultato. Usa «URL personalizzato» per una fonte fuori da questo catalogo.</string>
+    <string name="catalog_not_updated">Catalogo non aggiornato</string>
+
+    <!-- mihomo subscriptions -->
+    <string name="section_subscriptions">Abbonamenti</string>
+    <string name="subscriptions_title">Abbonamenti</string>
+    <string name="subscriptions_entry_desc">Elenchi di nodi tra cui scelgono tutti i gruppi proxy</string>
+    <string name="subscriptions_hint">Tutti gli abbonamenti confluiscono in un unico pool di nodi condiviso, quindi tutto ciò che aggiungi diventa selezionabile in ogni gruppo proxy.</string>
+    <plurals name="n_pending_changes">
+        <item quantity="one">%d modifica non ancora applicata</item>
+        <item quantity="many">%d modifiche non ancora applicate</item>
+        <item quantity="other">%d modifiche non ancora applicate</item>
+    </plurals>
+    <plurals name="n_proxy_groups">
+        <item quantity="one">%d gruppo</item>
+        <item quantity="many">%d gruppi</item>
+        <item quantity="other">%d gruppi</item>
+    </plurals>
+    <plurals name="n_routers">
+        <item quantity="one">%d router</item>
+        <item quantity="many">%d router</item>
+        <item quantity="other">%d router</item>
+    </plurals>
+    <plurals name="n_subscriptions">
+        <item quantity="one">%d abbonamento</item>
+        <item quantity="many">%d abbonamenti</item>
+        <item quantity="other">%d abbonamenti</item>
+    </plurals>
+    <string name="subscription_add_title">Nuovo abbonamento</string>
+    <string name="subscription_edit_title">Cambia URL</string>
+    <string name="subscription_edit">Cambia URL</string>
+    <string name="subscription_name">Nome</string>
+    <string name="subscription_name_placeholder">work-vpn</string>
+    <string name="subscription_name_fixed">Il nome non può essere cambiato — rimuovilo e aggiungilo di nuovo per rinominarlo</string>
+    <string name="subscription_url">URL dell’abbonamento</string>
+    <string name="subscription_slow_note">Il router convalida la configurazione e riscarica l’elenco dei nodi, quindi può richiedere tempo.</string>
+    <string name="subscription_saved">«%1$s» salvato</string>
+    <string name="subscription_removed">«%1$s» rimosso</string>
+    <string name="subscription_not_found">«%1$s» non era presente sul router</string>
+    <string name="subscription_base_badge">Base</string>
+    <string name="subscription_base_protected">Integrato nella configurazione del router — non modificabile da qui</string>
+    <string name="subscription_delete_title">Rimuovere l’abbonamento?</string>
+    <string name="subscription_delete_text">«%1$s» e i suoi nodi verranno rimossi dal router. I gruppi proxy restano.</string>
+
+    <!-- Tor -->
+    <string name="tor_title">Tor</string>
+    <string name="tor_not_installed">Tor non è installato</string>
+    <string name="tor_not_installed_hint">Sul router non c’è il pacchetto Tor, quindi qui non c’è nulla da configurare.</string>
+    <string name="tor_bootstrap">Avvio</string>
+    <string name="tor_bootstrap_progress">%1$d%%</string>
+    <string name="tor_bridges_label">Bridge</string>
+    <plurals name="n_tor_bridges">
+        <item quantity="one">%d bridge</item>
+        <item quantity="many">%d bridge</item>
+        <item quantity="other">%d bridge</item>
+    </plurals>
+    <string name="tor_uptime">Tempo di attività</string>
+    <string name="tor_socks_port">SOCKS</string>
+    <string name="tor_pac_url">PAC</string>
+    <string name="tor_new_identity">Nuova identità</string>
+    <string name="tor_new_identity_hint">Nuovi circuiti per le nuove connessioni. Più veloce di un riavvio e non interrompe la tua connessione.</string>
+    <string name="tor_new_identity_sent">Nuovi circuiti richiesti</string>
+    <string name="tor_new_identity_failed">La porta di controllo non è ancora pronta — riprova tra qualche secondo</string>
+    <string name="tor_test_title">Test di connessione</string>
+    <string name="tor_test_hint">Il router esegue una vera richiesta tramite Tor — richiede qualche secondo.</string>
+    <string name="tor_test_connection">Verifica connessione</string>
+    <string name="tor_testing">Verifica in corso…</string>
+    <string name="tor_test_ok">Connesso tramite Tor</string>
+    <string name="tor_test_failed">Non connesso</string>
+    <string name="tor_test_failed_hint">Tor non ha ancora completato l’avvio o i bridge non sono raggiungibili.</string>
+    <string name="tor_bridges_title">Bridge</string>
+    <string name="tor_bridges_hint">I bridge aiutano dove Tor stesso è bloccato. Ottienili dal Tor Project e incolla ogni riga così com’è. Il salvataggio riavvia Tor.</string>
+    <string name="tor_bridges_saving">Salvataggio e riavvio di Tor…</string>
+    <string name="tor_no_bridges">Connessione diretta, nessun bridge</string>
+    <string name="tor_add_bridge">Aggiungi bridge</string>
+    <string name="tor_bridge_line">Riga del bridge</string>
+    <string name="tor_bridge_placeholder">obfs4 1.2.3.4:443 FINGERPRINT cert=… iat-mode=0</string>
+    <string name="tor_bridge_hint">Incolla l’intera riga esattamente come l’hai ricevuta.</string>
+    <string name="tor_bridge_added">Bridge aggiunto, Tor riavviato</string>
+    <string name="tor_bridge_removed">Bridge rimosso, Tor riavviato</string>
+    <string name="tor_bridge_delete_title">Rimuovere il bridge?</string>
+    <string name="tor_bridge_delete_text">Il bridge verrà rimosso dal router e Tor si riavvierà.</string>
+
+    <!-- API / network errors -->
+    <string name="err_bad_token">Token errato — controlla le impostazioni</string>
+    <string name="err_token_not_configured">Token non configurato sul router</string>
+    <string name="err_bad_domain">Formato del dominio non valido</string>
+    <string name="err_empty_domain">Il dominio è vuoto</string>
+    <string name="err_bad_service">Servizio sconosciuto</string>
+    <string name="err_bad_host">Host non valido</string>
+    <string name="err_bad_mac">Indirizzo MAC non valido</string>
+    <string name="err_etherwake_missing">etherwake non è installato sul router</string>
+    <string name="err_bad_engine">Motore sconosciuto</string>
+    <string name="err_bad_strategy">Numero di strategia fuori intervallo</string>
+    <string name="err_strategy_unconfirmed">Il router non ha confermato il cambio di strategia</string>
+    <string name="err_bad_provider_name">Nome del set di regole non valido</string>
+    <string name="err_bad_url">Il router ha rifiutato questo URL</string>
+    <string name="err_bad_behavior">Tipo di elenco non valido</string>
+    <string name="err_bad_format">Formato non valido</string>
+    <string name="err_bad_interval">Periodo di aggiornamento fuori intervallo (60 s – 7 giorni)</string>
+    <string name="err_missing_group">Nessun gruppo proxy selezionato</string>
+    <string name="err_group_both_set">Scegli un gruppo esistente o uno nuovo, non entrambi</string>
+    <string name="err_group_not_found">Quel gruppo proxy non esiste più sul router — torna indietro e scegline un altro</string>
+    <string name="err_bad_new_group">Nome del nuovo gruppo non valido</string>
+    <string name="err_provider_exists">Il router ha già un set di regole con questo nome</string>
+    <string name="err_group_exists">Il router ha già un gruppo con questo nome — sceglilo come gruppo esistente</string>
+    <string name="err_mihomo_config_test_failed">Il router ha rifiutato la configurazione mihomo risultante — il set di regole non è stato aggiunto. Controlla URL, tipo di elenco e formato.</string>
+    <string name="err_subscription_exists">Esiste già un abbonamento con questo nome</string>
+    <string name="err_subscription_not_found">Quell’abbonamento non esiste più sul router</string>
+    <string name="err_subscription_base_protected">L’abbonamento integrato non può essere rimosso</string>
+    <string name="err_tor_controlport_not_ready">La porta di controllo di Tor non è ancora pronta — riprova tra qualche secondo</string>
+    <string name="err_tor_controlport_failed">Tor ha rifiutato il comando della porta di controllo</string>
+    <string name="err_catalog_rate_limited">GitHub sta limitando le richieste (60 all’ora per IP senza token). Riprova più tardi o inserisci l’URL a mano.</string>
+    <string name="err_catalog_http">GitHub ha risposto con HTTP %1$d</string>
+    <string name="err_generic">Errore %1$d: %2$s</string>
+    <string name="err_timeout">Il router non ha risposto. Assicurati che il telefono sia sul Wi-Fi del router e che la porta sia corretta.</string>
+    <string name="err_unreachable">Impossibile raggiungere il router — controlla indirizzo e porta.</string>
+    <string name="err_unknown_host">Host sconosciuto — controlla l’indirizzo del router.</string>
+    <string name="err_network">Errore di rete</string>
+    <string name="err_invalid_router_address">Indirizzo del router non valido: %1$s</string>
+    <string name="err_empty_response">Risposta vuota dal router</string>
+    <string name="err_tls">Il router ha risposto via HTTPS invece che con l’API di Helm. Di solito su quella porta c’è l’interfaccia web del router (LuCI) — controlla la porta: l’API funziona su una sua porta HTTP.</string>
+    <string name="err_not_api">L’indirizzo risponde, ma non è l’API di Helm — è tornata una pagina web. Controlla la porta e che l’API sia installata sul router.</string>
+    <string name="err_title_connection">Nessuna connessione al router</string>
+    <string name="err_title_config">Controlla l’indirizzo del router</string>
+    <string name="err_title_access">Accesso negato</string>
+    <string name="err_title_other">Qualcosa è andato storto</string>
+    <string name="err_details">Dettagli</string>
+    <string name="err_open_settings">Impostazioni del router</string>
+    <string name="err_raw">%1$s</string>
+
+    <!-- Accessibility labels -->
+    <string name="strategy_previous">Strategia precedente</string>
+    <string name="strategy_next">Strategia successiva</string>
+    <string name="theme_previous">Tema precedente</string>
+    <string name="theme_next">Tema successivo</string>
+    <string name="a11y_target_added">%1$s: aggiunto</string>
+    <string name="a11y_target_not_added">%1$s: non aggiunto</string>
+    <string name="a11y_autostart_on">Avvio automatico attivo</string>
+    <string name="a11y_autostart_off">Avvio automatico disattivo</string>
+    <string name="a11y_device_online">Online</string>
+    <string name="a11y_device_offline">Offline</string>
+    <string name="a11y_check_ok">Raggiungibile</string>
+    <string name="a11y_check_failed">Non raggiungibile</string>
+    <string name="copy_ip">Copia indirizzo IP</string>
+    <string name="copy_mac">Copia indirizzo MAC</string>
+    <string name="open_release_notes">Apri le note di rilascio</string>
+</resources>

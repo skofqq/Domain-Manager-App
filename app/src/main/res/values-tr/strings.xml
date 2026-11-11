@@ -1,0 +1,605 @@
+<resources>
+    <string name="app_name">Helm</string>
+
+    <!-- Navigation -->
+    <string name="settings">Ayarlar</string>
+    <string name="domains">Alan adları</string>
+
+    <!-- Domain fields / status card -->
+    <string name="domain">Alan adı</string>
+    <string name="domain_placeholder">example.com</string>
+    <string name="status">Durum</string>
+    <string name="add_to">%1$s öğesine ekle</string>
+    <string name="remove_from">%1$s öğesinden kaldır</string>
+
+    <!-- Domains screen -->
+    <string name="tab_routing">Yönlendirme</string>
+    <string name="tab_strategies">Stratejiler</string>
+    <string name="add_domain">Alan adı ekle</string>
+    <string name="add">Ekle</string>
+    <string name="apply">Uygula</string>
+    <string name="remove_domain">Alan adını kaldır</string>
+    <string name="no_domains">Henüz yönetilen alan adı yok. Yenilemek için aşağı çekin.</string>
+    <string name="domain_partial">Bu alan adı yalnızca %1$s içinde.</string>
+    <string name="edit_domain">Alan adını düzenle</string>
+    <string name="paste_from_clipboard">Panodan yapıştır</string>
+    <string name="cancel">İptal</string>
+    <string name="back">Geri</string>
+
+    <!-- Strategies -->
+    <string name="strategy">Strateji</string>
+    <string name="strategy_n">Strateji %1$d</string>
+    <string name="strategy_pool">Kişisel atama yok — ortak havuz</string>
+    <string name="strategy_range_loading">Strateji aralığı yönlendiriciden yükleniyor…</string>
+    <string name="strat_showing_active">Çalışıyor — değişiklikler hemen uygulanır</string>
+    <string name="strat_showing_inactive">Durduruldu — değişiklikler yalnızca kaydedilir</string>
+    <string name="engine_running">Çalışıyor</string>
+    <string name="engine_stopped">Durduruldu</string>
+    <string name="strat_no_engine">Çalışan DPI motoru yok</string>
+    <string name="strat_no_engine_hint">Alan adı başına stratejileri yönetmek için Durum sekmesinden zapret veya zapret2’yi başlatın.</string>
+    <string name="open_status">Durumu aç</string>
+    <string name="retry">Yeniden dene</string>
+    <string name="no_strat_domains">Henüz kişisel stratejisi olan alan adı yok.</string>
+    <string name="strategy_pool_short">Ortak havuz</string>
+    <string name="search_domains">Alan adı ara</string>
+    <string name="search_or_add_domain">Alan adı ara veya ekle</string>
+    <string name="clear_search">Aramayı temizle</string>
+    <string name="search_no_results">Aramayla eşleşen alan adı yok.</string>
+    <string name="search_empty_title">Hiçbir şey bulunamadı</string>
+    <string name="empty_domains_title">Henüz alan adı yok</string>
+    <string name="empty_strat_title">Henüz kişisel strateji yok</string>
+    <string name="add_domain_named">%1$s ekle</string>
+    <string name="pick_strategy">Strateji seçin</string>
+    <plurals name="n_domains">
+        <item quantity="one">%d alan adı</item>
+        <item quantity="other">%d alan adı</item>
+    </plurals>
+
+    <!-- zapret2 profiles -->
+    <string name="z2_profiles_title">zapret2 profilleri</string>
+    <string name="z2_proto_tls">TLS</string>
+    <string name="z2_proto_udp">QUIC / UDP</string>
+    <string name="z2_proto_http">HTTP</string>
+    <string name="z2_apply_hint">Etkin motordaki değişiklikler kısa bir yeniden başlatmayla uygulanır.</string>
+    <string name="z2_rollback">Geri al</string>
+    <string name="z2_rollback_done">Önceki sete geri dönüldü</string>
+    <string name="z2_rollback_nothing">Geri dönülecek kayıt yok</string>
+
+    <!-- zapret v1 profiles -->
+    <string name="z1_profiles_title">zapret profilleri</string>
+
+    <!-- Shared by both zapret profile screens -->
+    <string name="profile_caption">anahtar %1$s · şu an: %2$d</string>
+    <string name="check_reachability">Kontrol et</string>
+    <string name="z_profiles_section">Profiller</string>
+    <string name="z_actions_section">Değişiklikler</string>
+    <string name="voice_title">Sesli aramalar — Discord/WhatsApp/Telegram</string>
+    <string name="voice_custom">Özel</string>
+    <string name="voice_bolvan">bol-van betikleri</string>
+
+    <!-- Status (services) screen -->
+    <string name="health_model">Model</string>
+    <string name="health_firmware">Donanım yazılımı</string>
+    <string name="health_uptime">Çalışma süresi</string>
+    <string name="health_load">Ortalama yük</string>
+    <string name="health_cpu_temp">CPU sıcaklığı</string>
+    <string name="health_memory">Bellek</string>
+    <string name="health_wan_ip">IPv4</string>
+    <string name="health_wan_ipv6">IPv6</string>
+    <string name="dur_days_hours">%1$d g %2$d sa</string>
+    <string name="dur_hours_minutes">%1$d sa %2$d dk</string>
+    <string name="dur_minutes">%1$d dk</string>
+    <string name="devices_title">Cihazlar</string>
+    <string name="devices_favorites">Favoriler</string>
+    <string name="devices_all">Tüm cihazlar</string>
+    <string name="devices_online_of">%2$d cihazdan %1$d çevrimiçi</string>
+    <string name="device_scan_label">Cihazlar kontrol ediliyor</string>
+    <string name="device_unknown">Bilinmeyen cihaz</string>
+    <string name="device_icon_title">Cihaz simgesi</string>
+    <string name="device_icon_auto">Otomatik</string>
+    <string name="device_type_speaker">Hoparlör</string>
+    <string name="device_type_bulb">Ampul</string>
+    <string name="device_type_phone">Telefon</string>
+    <string name="device_type_pc">Bilgisayar</string>
+    <string name="device_type_laptop">Dizüstü</string>
+    <string name="device_type_router">Yönlendirici</string>
+    <string name="device_type_zigbee">ZigBee ağ geçidi</string>
+    <string name="device_type_printer">Yazıcı</string>
+    <string name="device_type_socket">Priz</string>
+    <string name="device_type_tv">TV</string>
+    <string name="device_type_storage">Depolama</string>
+    <string name="device_type_camera">Kamera</string>
+    <string name="device_type_generic">Diğer</string>
+    <plurals name="n_devices_online">
+        <item quantity="one">Ağda %d cihaz</item>
+        <item quantity="other">Ağda %d cihaz</item>
+    </plurals>
+    <string name="device_scan_progress">%1$d/%2$d</string>
+    <string name="wake_device">Uyandır</string>
+    <string name="wake_sent">Wake-on-LAN paketi gönderildi</string>
+    <string name="favorite_device">Favorilere ekle</string>
+    <string name="unfavorite_device">Favorilerden kaldır</string>
+    <string name="health_disk">Disk (/overlay)</string>
+    <string name="svc_running">Çalışıyor</string>
+    <string name="svc_stopped">Durduruldu</string>
+    <string name="svc_failed">Hata</string>
+    <string name="svc_autostart">Otomatik başlat</string>
+    <string name="svc_start">Başlat</string>
+    <string name="svc_stop">Durdur</string>
+    <string name="svc_restart">Yeniden başlat</string>
+    <string name="service_log_button">Günlük</string>
+    <string name="service_log_title">%1$s günlüğü</string>
+    <string name="service_log_empty">Günlük kaydı bulunamadı</string>
+    <string name="refresh">Yenile</string>
+
+    <!-- mihomo drill-down -->
+    <string name="section_proxy_groups">Proxy grupları</string>
+    <string name="groups_view_grid">Izgara görünümü</string>
+    <string name="groups_view_list">Liste görünümü</string>
+    <string name="section_traffic">Trafik</string>
+    <string name="section_connections">Etkin bağlantılar</string>
+    <string name="traffic_download">İndirme</string>
+    <string name="traffic_upload">Yükleme</string>
+    <string name="speed_value">%1$s/sn</string>
+    <string name="traffic_total">Toplam %1$s</string>
+    <string name="no_connections">Etkin bağlantı yok</string>
+    <string name="close_connection">Bağlantıyı kapat</string>
+    <string name="err_mihomo_unreachable">mihomo yanıt vermiyor — hizmetin çalıştığını kontrol edin</string>
+    <string name="err_mihomo_select_failed">mihomo düğüm değişikliğini reddetti</string>
+    <string name="traffic_chart_caption">Son ~5 dakika, mihomo üzerinden</string>
+    <string name="mihomo_only_note">Yalnızca mihomo proxy’si üzerinden geçen trafik — cihazın tüm trafiği değil.</string>
+    <string name="source_all">Tümü</string>
+    <string name="source_traffic_summary">%1$s: ↓ %2$s · ↑ %3$s (yalnızca mihomo üzerinden)</string>
+
+    <!-- Network diagnostics -->
+    <string name="diag_net_title">Ağ tanılama</string>
+    <string name="diag_entry_desc">Ping, traceroute, hız testi ve tünel kontrolü</string>
+    <string name="diag_host_section">Ping / traceroute</string>
+    <string name="diag_ping">Ping</string>
+    <string name="diag_traceroute">Traceroute</string>
+    <string name="diag_preset_wan">WAN %1$s</string>
+    <string name="ping_result_ok">Erişilebilir · kayıp %%%1$d · ort. %2$s ms</string>
+    <string name="ping_result_fail">Yanıt yok (%%100 kayıp)</string>
+    <string name="trace_title">%1$s rotası</string>
+    <string name="diag_speedtest_title">Hız testi</string>
+    <string name="diag_speedtest_note">Bu telefonun Wi-Fi’sini değil, YÖNLENDİRİCİNİN WAN indirme hızını ölçer. ~25 saniyeye kadar sürer.</string>
+    <string name="diag_speedtest_run">Hız testini başlat</string>
+    <string name="diag_speedtest_running">Ölçülüyor…</string>
+    <string name="diag_speedtest_result_label">Yönlendirici WAN indirmesi</string>
+    <string name="speed_mbps">%1$s Mbit/sn</string>
+    <string name="diag_tunnel_title">Tünel kontrolü</string>
+    <string name="diag_tunnel_note">mihomo’nun yerleşik gecikme testi, gruptaki tüm düğümler için aynı anda. 5 sn içinde yanıt vermeyen düğüm yanıt vermiyor olarak işaretlenir.</string>
+    <string name="diag_tunnel_run">Düğümleri test et</string>
+    <string name="diag_tunnel_running">Test ediliyor…</string>
+    <string name="ms_value">%1$d ms</string>
+    <string name="ms_value_frac">%1$s ms</string>
+    <string name="node_no_response">Yanıt vermiyor</string>
+    <string name="delay_test">Test et</string>
+    <string name="delay_timeout">Zaman aşımı</string>
+    <string name="delay_test_all">Tüm grupları test et</string>
+
+    <!-- MagiTrickle groups overview -->
+    <string name="magitrickle_groups_title">MagiTrickle grupları</string>
+    <string name="magitrickle_groups_empty">Yönlendiricide yapılandırılmış grup yok.</string>
+    <string name="magitrickle_group_no_rules">Bu grupta kural yok.</string>
+    <plurals name="n_rules">
+        <item quantity="one">%d kural</item>
+        <item quantity="other">%d kural</item>
+    </plurals>
+    <string name="domain_in_group">Zaten “%1$s” grubunda</string>
+
+    <!-- Share screen -->
+    <string name="share_title">Yönlendiriciye ekle</string>
+    <string name="close">Kapat</string>
+    <string name="reload_status">Durumu yeniden yükle</string>
+    <string name="done">Bitti</string>
+
+    <!-- Settings screen -->
+    <string name="settings_appearance_desc">Uygulama temasını değiştir</string>
+    <string name="settings_auth_title">Yetkilendirme</string>
+    <string name="settings_auth_desc">Yönlendirici profilleri ve token’lar</string>
+
+    <!-- Router profiles -->
+    <string name="default_profile_name">Yönlendiricim</string>
+    <string name="settings_profiles_hint">Seçili profil etkin — tüm sekmeler onunla çalışır. Düzenlemek için bir satıra dokunun.</string>
+    <string name="profile_add">Yönlendirici ekle</string>
+    <string name="profile_new_title">Yeni yönlendirici</string>
+    <string name="profile_name">Ad</string>
+    <string name="profile_name_placeholder">Ev</string>
+    <string name="profile_delete_title">Profil silinsin mi?</string>
+    <string name="profile_delete_text">“%1$s” bu telefondan kaldırılacak. Yönlendiricinin kendisine dokunulmaz.</string>
+    <string name="profile_delete_last_warning">Bu, yapılandırılmış tek yönlendirici — hiç profil kalmayacak.</string>
+    <string name="delete">Sil</string>
+    <string name="update">Güncelle</string>
+    <string name="qr_profile_added">“%1$s” profili eklendi</string>
+    <string name="qr_update_title">Profil güncellensin mi?</string>
+    <string name="qr_update_text">QR, mevcut “%1$s” profilinin adresini içeriyor — kopya oluşturmak yerine verileri güncellensin mi?</string>
+    <string name="auth_to_show_qr">QR kodunu göstermek için onaylayın</string>
+    <string name="settings_about_title">Hakkında</string>
+    <string name="settings_about_desc">Sürüm ve uygulama bilgisi</string>
+
+    <!-- Security -->
+    <string name="section_security">Güvenlik</string>
+    <string name="settings_security_desc">Biyometri ve PIN</string>
+    <string name="lock_explain">Parmak izi veya yüz kullanır; biyometri yoksa cihazın PIN’i, deseni veya şifresi kullanılır.</string>
+    <string name="lock_unavailable">Bu cihazda ne biyometri ne de ekran kilidi ayarlı — istenecek bir şey yok.</string>
+    <string name="lock_mode_off">Kapalı</string>
+    <string name="lock_mode_off_desc">Ek koruma yok</string>
+    <string name="lock_mode_token">Yalnızca token gösterimi</string>
+    <string name="lock_mode_token_desc">Yetkilendirme’de token göstermeden önce onay</string>
+    <string name="lock_mode_app">Tüm uygulama</string>
+    <string name="lock_mode_app_desc">Her açılışta biyometri veya PIN</string>
+    <string name="unlock_title">Helm kilidini aç</string>
+    <string name="unlock">Kilidi aç</string>
+    <string name="auth_to_show_token">Token’ı göstermek için onaylayın</string>
+
+    <!-- Backup -->
+    <string name="section_backup">Yedekleme</string>
+    <string name="settings_backup_desc">Listeleri dışa ve içe aktar</string>
+    <string name="backup_export_title">Dışa aktar</string>
+    <string name="backup_export_note">Yönlendiricinin mevcut listelerinin başvuru veya elle geri yükleme için anlık görüntüsü. Gerçek durum her zaman yönlendiricide kalır — bu uygulama onu yalnızca API üzerinden okur ve yazar.</string>
+    <string name="backup_build">Anlık görüntü oluştur</string>
+    <string name="backup_building">Oluşturuluyor…</string>
+    <string name="backup_export_summary">Yönlendirme: %1$d · zapret2: %2$d · zapret: %3$d</string>
+    <string name="copy">Kopyala</string>
+    <string name="copied">Kopyalandı</string>
+    <string name="share">Paylaş</string>
+    <string name="backup_import_title">İçe aktar</string>
+    <string name="backup_import_note">Bir anlık görüntü JSON’u veya düz bir alan adı listesi yapıştırın (satır başına bir tane — varsayılan hedefle yönlendirmeye eklenir).</string>
+    <string name="backup_import_hint_restart">Bir zapret motoru çalışıyorsa, içe aktarılan her strateji onun hizmetini yeniden başlatır — büyük bir içe aktarma zaman alabilir.</string>
+    <string name="backup_run_import">İçe aktar</string>
+    <string name="backup_progress">%1$d / %2$d…</string>
+    <string name="backup_result">Eklenen: %1$d · Zaten vardı: %2$d · Başarısız: %3$d</string>
+    <string name="backup_parse_error">Girdi okunamadı — anlık görüntü JSON’u veya alan adı listesi bekleniyor</string>
+    <string name="backup_empty">İçe aktarılacak bir şey yok</string>
+
+    <!-- QR setup -->
+    <string name="section_qr">QR kodu</string>
+    <string name="qr_hint">Bu ayarları başka bir telefona taşıyın: QR’ı burada gösterin, orada tarayın.</string>
+    <string name="qr_show">QR göster</string>
+    <string name="qr_scan">QR tara</string>
+    <string name="qr_show_title">Bağlantı ayarları</string>
+    <string name="qr_show_warning">Kod; adresi, bağlantı noktasını ve erişim token’ını açık metin olarak içerir — yalnızca güvenilir cihazlarda gösterin.</string>
+    <string name="qr_scanned">Tarandı — alanları kontrol edin ve Kaydet’e dokunun</string>
+    <string name="qr_plain_hint">Düz QR’a (seçici tarayıcılar için) geçmek ve geri dönmek için koda uzun basın.</string>
+    <string name="qr_invalid">Bu QR bir Helm kurulum kodu değil</string>
+
+    <!-- History -->
+    <string name="section_history">Geçmiş</string>
+    <string name="settings_history_desc">Yerel olarak kaydedilen eklenmiş alan adları</string>
+    <string name="history_note">Yalnızca bu telefonda saklanır: her başarılı ekleme tarihiyle kaydedilir. Yönlendirici zaman damgası tutmaz, bu yüzden bu liste onunla asla eşitlenmez.</string>
+    <string name="history_empty">Henüz boş — eklediğiniz alan adları burada görünecek.</string>
+
+    <!-- Deep link / automation -->
+    <string name="deeplink_added">%1$s yönlendiriciye eklendi</string>
+
+    <!-- Widget -->
+    <string name="widget_label">Hizmet durumu</string>
+    <string name="widget_description">Yönlendirici hizmetlerinin durum noktaları</string>
+    <string name="widget_label_mihomo">mihomo</string>
+    <string name="widget_label_magitrickle">MT</string>
+    <string name="widget_label_zapret">zapret</string>
+    <string name="widget_label_zapret2">zapret2</string>
+
+    <!-- Diagnostics -->
+    <string name="section_diagnostics">Tanılama</string>
+    <string name="settings_diagnostics_desc">Zaman aşımları ve istek hata ayıklama</string>
+    <string name="diag_timeout_title">HTTP istek zaman aşımı</string>
+    <string name="diag_timeout_value">%1$d sn</string>
+    <string name="diag_log_title">Son API istekleri</string>
+    <string name="diag_log_note">Token, URL’lerde maskelenir — hata raporu için güvenle kopyalanabilir.</string>
+    <string name="diag_log_empty">Henüz istek yok.</string>
+    <string name="diag_failed">HATA</string>
+
+    <!-- Background monitoring -->
+    <string name="section_monitoring">İzleme</string>
+    <string name="settings_monitoring_desc">Arka planda WAN IP, disk ve gecikme kontrolleri</string>
+    <string name="monitoring_explain">Yönlendiriciyi arka planda düzenli olarak kontrol eder ve WAN IP değişikliği, düşük disk alanı veya kötüleşen proxy gecikmesi hakkında bildirir. WorkManager kullanır ve yalnızca ağ erişimi varken çalışır.</string>
+    <string name="monitoring_enable">Arka plan izlemeyi etkinleştir</string>
+    <string name="monitoring_interval_title">Kontrol aralığı</string>
+    <string name="monitoring_interval_value">%1$d dk</string>
+    <string name="monitoring_wan_title">WAN IP değişikliği</string>
+    <string name="monitoring_wan_desc">Yönlendiricinin WAN IPv4/IPv6 adresi değişince bildir</string>
+    <string name="monitoring_disk_title">Disk alanı</string>
+    <string name="monitoring_disk_desc">/overlay %90 dolduğunda bildir</string>
+    <string name="monitoring_latency_title">Gecikmede kötüleşme</string>
+    <string name="monitoring_latency_desc">İzlenecek bir proxy grubu seçin — etkin düğümün gecikmesi yaklaşık iki katına çıkınca veya yanıt vermeyi bırakınca bildirim.</string>
+    <string name="monitoring_latency_off">Kapalı</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_name">Yönlendirici izleme</string>
+    <string name="notif_channel_desc">WAN IP değişikliği, düşük disk alanı ve gecikme kötüleşmesi uyarıları</string>
+    <string name="notif_wan_changed_title">Yönlendirici IP’si değişti</string>
+    <string name="notif_wan_changed_text">%1$s → %2$s</string>
+    <string name="notif_disk_title">Disk alanı az</string>
+    <string name="notif_disk_text">/overlay %%%1$d dolu</string>
+    <string name="notif_latency_title">Bağlantı kötüleşti</string>
+    <string name="notif_latency_down_text">%1$s yanıt vermiyor</string>
+    <string name="notif_latency_degraded_text">%1$s: önce %2$d ms, şimdi %3$d ms</string>
+
+    <!-- App Shortcuts -->
+    <string name="section_shortcuts">Uygulama kısayolları</string>
+    <string name="settings_shortcuts_desc">Başlatıcı kısayol menüsü için 2–4 işlem seçin</string>
+    <string name="shortcuts_explain">Bu işlemlerden birine doğrudan gitmek için uygulama simgesine uzun basın. Onay gerektiren işlemler (yeniden başlatma, mihomo güncellemesi) yine uygulama içinde açık bir dokunuş ister — kısayol bunları asla kendisi tetiklemez.</string>
+    <string name="shortcuts_min_max_hint">2 ile 4 arasında kısayol seçin.</string>
+    <string name="shortcut_status">Durum</string>
+    <string name="shortcut_devices">Cihaz listesi</string>
+    <string name="shortcut_reboot">Yeniden başlat</string>
+    <string name="shortcut_mihomo_update">mihomo’yu güncelle</string>
+    <string name="shortcut_speedtest">Hız testi</string>
+    <string name="shortcut_zapret_restart">zapret/zapret2’yi yeniden başlat</string>
+    <string name="shortcut_zapret_restart_named">%1$s yeniden başlat</string>
+
+    <!-- Router info sheet -->
+    <string name="router_sheet_routers">Yönlendiriciler</string>
+    <string name="router_sheet_versions">Hizmet sürümleri</string>
+    <string name="loading">Yükleniyor…</string>
+    <string name="svc_name_mihomo">mihomo</string>
+    <string name="svc_name_magitrickle">MagiTrickle</string>
+    <string name="svc_name_zapret">zapret</string>
+    <string name="svc_name_zapret2">zapret2</string>
+    <string name="version_unknown">sürüm bilinmiyor</string>
+    <string name="check_for_updates">Güncellemeleri denetle</string>
+    <string name="update_to_version">%1$s sürümüne güncelle</string>
+    <string name="whats_new_in">%1$s sürümündeki yenilikler</string>
+    <string name="mihomo_up_to_date">%1$s — en güncel</string>
+    <string name="mihomo_updating">mihomo güncelleniyor…</string>
+    <string name="mihomo_update_confirm_title">mihomo güncellensin mi?</string>
+    <string name="mihomo_update_confirm_text">mihomo durdurulacak, yeni sürümle değiştirilecek ve yeniden başlatılacak. Bu biraz sürebilir ve yönlendirilen trafiği kısa süre kesintiye uğratır.</string>
+
+    <!-- Router reboot -->
+    <string name="reboot_router">Yeniden başlat</string>
+    <string name="reboot_confirm_title">Yönlendirici yeniden başlatılsın mı?</string>
+    <string name="reboot_confirm_text">Yönlendirici ve arkasındaki tüm hizmetler 1–2 dakika kullanılamayacak. Etkin bağlantılar kesilecek.</string>
+    <string name="reboot_confirm_button">Yeniden başlat</string>
+    <string name="rebooting_title">Yönlendirici yeniden başlatılıyor…</string>
+    <string name="rebooting_hint">Bu genellikle 1–2 dakika sürer.</string>
+    <string name="reboot_countdown">~%1$d sn</string>
+    <string name="reboot_check_ready">Yönlendirici yeniden çalışıyor olmalı — bağlantıyı kontrol edin.</string>
+    <string name="hide_overlay">Gizle</string>
+    <string name="about_version">Sürüm %1$s</string>
+    <string name="about_source_code">GitHub’da kaynak kodu</string>
+    <string name="developer">Geliştirici</string>
+    <string name="about_summary">OpenWrt yönlendiricide alan adı yönlendirme listelerini ve hizmetleri yönetir (mihomo, MagiTrickle, zapret).</string>
+    <string name="dynamic_color_hint">Android 12 ve sonrasında kullanılabilir</string>
+    <string name="liquid_glass">Liquid Glass</string>
+    <string name="liquid_glass_desc">Alt çubukta, başlık düğmelerinde, menülerde, sayfalarda ve iletişim kutularında bulanıklık ve kırılma</string>
+    <string name="liquid_glass_unsupported">Android 12 veya sonrası gerekir</string>
+    <string name="true_black">Tam siyah</string>
+    <string name="true_black_desc">Koyu temada tamamen siyah arka plan</string>
+    <string name="haptic_feedback">Dokunsal geri bildirim</string>
+    <string name="haptic_feedback_desc">Dokunuşlarda kısa titreşim</string>
+    <string name="section_router">Yönlendirici</string>
+    <string name="host">Ana bilgisayar</string>
+    <string name="port">Bağlantı noktası</string>
+    <string name="section_auth">Erişim</string>
+    <string name="token">Token</string>
+    <string name="show">Göster</string>
+    <string name="hide">Gizle</string>
+    <string name="section_fallback">Yedek adres</string>
+    <string name="fallback_hint">İsteğe bağlı — ana adres yanıt vermediğinde otomatik olarak kullanılır (örneğin bir Tailscale adresi). Devre dışı bırakmak için ana bilgisayarı boş bırakın.</string>
+    <string name="section_default_target">Varsayılan hedef</string>
+    <string name="section_appearance">Görünüm</string>
+    <string name="theme_system">Sistem</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
+    <string name="dynamic_color">Dinamik renk</string>
+    <string name="dynamic_color_desc">Duvar kâğıdından renkler (Material You)</string>
+    <string name="section_language">Dil</string>
+    <string name="language_system">Sistem</string>
+    <string name="save">Kaydet</string>
+    <string name="saved">Kaydedildi</string>
+    <string name="test_connection">Bağlantıyı test et</string>
+    <string name="testing">Test ediliyor…</string>
+    <string name="test_connected">Bağlandı</string>
+    <string name="test_connected_bad_token">Bağlandı (token hatalı)</string>
+    <string name="test_connected_no_token">Bağlandı (yönlendiricide token ayarlı değil)</string>
+    <string name="test_http_error">Hata: HTTP %1$d</string>
+
+    <!-- Rule providers -->
+    <string name="section_rule_providers">Kural setleri</string>
+    <string name="rule_providers_title">Kural setleri</string>
+    <string name="rule_providers_entry_desc">Bir proxy grubuna bağlı harici listeler</string>
+    <string name="rule_providers_hint">Kural setlerini yönlendiricinin kendisi indirir ve günceller. Eşleşen trafik, her listenin bağlı olduğu proxy grubuna gider.</string>
+    <string name="rule_providers_empty">Henüz kural seti yok. Bir listeyi proxy grubuna bağlamak için “Ekle”ye dokunun.</string>
+    <plurals name="n_rule_providers">
+        <item quantity="one">%d kural seti eklendi</item>
+        <item quantity="other">%d kural seti eklendi</item>
+    </plurals>
+    <plurals name="n_hours">
+        <item quantity="one">Her saat</item>
+        <item quantity="other">Her %d saatte bir</item>
+    </plurals>
+    <string name="provider_routed_to">→ %1$s</string>
+    <string name="provider_delete_title">Kural seti kaldırılsın mı?</string>
+    <string name="provider_delete_text">“%1$s” ve yönlendirme kuralı yönlendiriciden kaldırılacak. “%2$s” proxy grubu kalır — gruplar yönlendiricinin kendisinde yönetilir.</string>
+    <string name="provider_removed">“%1$s” kaldırıldı</string>
+    <string name="provider_not_found">Yönlendiricide “%1$s” yoktu</string>
+    <string name="provider_added">“%1$s” eklendi ve %2$s grubuna bağlandı</string>
+
+    <string name="provider_add_title">Yeni kural seti</string>
+    <string name="provider_step">Adım %1$d / %2$d</string>
+    <string name="next">İleri</string>
+    <string name="provider_custom_url">Özel URL</string>
+    <string name="provider_custom_url_desc">Yalnızca aşağıdakiler değil, herhangi bir https kaynağı</string>
+    <string name="provider_url">Kural seti URL’si</string>
+    <string name="provider_url_hint">https:// ile başlamalı</string>
+    <string name="provider_url_invalid">Tam bir https:// bağlantısı girin</string>
+    <string name="provider_behavior">Liste türü</string>
+    <string name="provider_behavior_hint">Listenin içeriği: alan adları, IP aralıkları veya klasik karma kurallar.</string>
+    <string name="behavior_domain">Alan adları</string>
+    <string name="behavior_ipcidr">IP adresleri</string>
+    <string name="behavior_classical">Klasik</string>
+    <string name="provider_format">Biçim</string>
+    <string name="provider_format_hint">MRS, sıkıştırılmış ikili biçimdir — YAML veya düz metinden daha küçük ve hızlıdır.</string>
+    <string name="provider_name">Ad</string>
+    <string name="provider_name_hint">Küçük Latin harfleri, rakamlar ve “-”, harfle başlamalı</string>
+    <string name="provider_name_invalid">Yalnızca küçük Latin harfleri, rakamlar ve “-”, harfle başlamalı</string>
+    <string name="provider_name_taken">Bu ada sahip bir kural seti zaten var</string>
+    <string name="provider_interval">Yenileme süresi</string>
+    <string name="interval_hour">Her saat</string>
+    <string name="interval_6h">6 saatte bir</string>
+    <string name="interval_day">Her gün</string>
+    <string name="interval_week">Her hafta</string>
+    <string name="provider_fetch_proxy">Proxy üzerinden indir</string>
+    <string name="provider_fetch_proxy_hint">Yönlendiricinin bu listeyi indirmek için kullandığı proxy grubu. Kaynağa (örneğin GitHub) doğrudan erişilemediğinde işe yarar. Eşleşen trafiğin nereye gittiğiyle ilgisi yoktur.</string>
+    <string name="provider_fetch_proxy_none">Doğrudan</string>
+    <string name="provider_group_title">Eşleşmeleri yönlendir</string>
+    <string name="provider_group_hint">Bu listeyle eşleşen trafiğin nereye yönlendirileceği.</string>
+    <string name="provider_group_existing">Mevcut grup</string>
+    <string name="provider_group_new">Yeni grup</string>
+    <string name="provider_new_group_name">Yeni grup adı</string>
+    <string name="provider_new_group_hint">Yönlendirici bu proxy grubunu oluşturacak</string>
+    <string name="provider_new_group_taken">Yönlendiricide bu adda bir grup zaten var — mevcut grup olarak seçin</string>
+    <string name="provider_new_group_note">Yeni grup yönlendiricide oluşturulur. Kural setini daha sonra kaldırmak grubu kaldırmaz — bu, yönlendiricinin kendisinde yapılır.</string>
+    <string name="provider_no_groups">Yönlendirici hiç proxy grubu döndürmedi</string>
+    <string name="provider_add_slow_note">Yönlendirici listeyi indirir ve ortaya çıkan yapılandırmayı doğrular, bu biraz sürebilir.</string>
+
+    <!-- Live source catalog -->
+    <string name="catalog_search">Katalogda ara</string>
+    <string name="catalog_refresh">Kataloğu yenile</string>
+    <string name="catalog_loading">Katalog yükleniyor…</string>
+    <string name="catalog_count">%2$d dosyadan %1$d</string>
+    <string name="catalog_no_results">Aramayla eşleşen bir şey yok. Bu katalog dışındaki bir kaynak için “Özel URL” kullanın.</string>
+    <string name="catalog_not_updated">Katalog güncellenmedi</string>
+
+    <!-- mihomo subscriptions -->
+    <string name="section_subscriptions">Abonelikler</string>
+    <string name="subscriptions_title">Abonelikler</string>
+    <string name="subscriptions_entry_desc">Tüm proxy gruplarının seçim yaptığı düğüm listeleri</string>
+    <string name="subscriptions_hint">Tüm abonelikler tek bir ortak düğüm havuzunda birleşir; eklediğiniz her şey her proxy grubunda seçilebilir olur.</string>
+    <plurals name="n_pending_changes">
+        <item quantity="one">%d değişiklik henüz uygulanmadı</item>
+        <item quantity="other">%d değişiklik henüz uygulanmadı</item>
+    </plurals>
+    <plurals name="n_proxy_groups">
+        <item quantity="one">%d grup</item>
+        <item quantity="other">%d grup</item>
+    </plurals>
+    <plurals name="n_routers">
+        <item quantity="one">%d yönlendirici</item>
+        <item quantity="other">%d yönlendirici</item>
+    </plurals>
+    <plurals name="n_subscriptions">
+        <item quantity="one">%d abonelik</item>
+        <item quantity="other">%d abonelik</item>
+    </plurals>
+    <string name="subscription_add_title">Yeni abonelik</string>
+    <string name="subscription_edit_title">URL’yi değiştir</string>
+    <string name="subscription_edit">URL’yi değiştir</string>
+    <string name="subscription_name">Ad</string>
+    <string name="subscription_name_placeholder">work-vpn</string>
+    <string name="subscription_name_fixed">Ad değiştirilemez — yeniden adlandırmak için kaldırıp tekrar ekleyin</string>
+    <string name="subscription_url">Abonelik URL’si</string>
+    <string name="subscription_slow_note">Yönlendirici yapılandırmayı doğrular ve düğüm listesini yeniden indirir, bu biraz sürebilir.</string>
+    <string name="subscription_saved">“%1$s” kaydedildi</string>
+    <string name="subscription_removed">“%1$s” kaldırıldı</string>
+    <string name="subscription_not_found">Yönlendiricide “%1$s” yoktu</string>
+    <string name="subscription_base_badge">Temel</string>
+    <string name="subscription_base_protected">Yönlendiricinin yapılandırmasında yerleşik — buradan değiştirilemez</string>
+    <string name="subscription_delete_title">Abonelik kaldırılsın mı?</string>
+    <string name="subscription_delete_text">“%1$s” ve düğümleri yönlendiriciden kaldırılacak. Proxy gruplarının kendisi kalır.</string>
+
+    <!-- Tor -->
+    <string name="tor_title">Tor</string>
+    <string name="tor_not_installed">Tor yüklü değil</string>
+    <string name="tor_not_installed_hint">Yönlendiricide Tor paketi yok, bu yüzden burada yapılandırılacak bir şey yok.</string>
+    <string name="tor_bootstrap">Önyükleme</string>
+    <string name="tor_bootstrap_progress">%%%1$d</string>
+    <string name="tor_bridges_label">Köprüler</string>
+    <plurals name="n_tor_bridges">
+        <item quantity="one">%d köprü</item>
+        <item quantity="other">%d köprü</item>
+    </plurals>
+    <string name="tor_uptime">Çalışma süresi</string>
+    <string name="tor_socks_port">SOCKS</string>
+    <string name="tor_pac_url">PAC</string>
+    <string name="tor_new_identity">Yeni kimlik</string>
+    <string name="tor_new_identity_hint">Yeni bağlantılar için yeni devreler. Yeniden başlatmaktan hızlıdır ve bağlantınızı kesmez.</string>
+    <string name="tor_new_identity_sent">Yeni devreler istendi</string>
+    <string name="tor_new_identity_failed">Denetim bağlantı noktası henüz hazır değil — birkaç saniye sonra tekrar deneyin</string>
+    <string name="tor_test_title">Bağlantı testi</string>
+    <string name="tor_test_hint">Yönlendirici Tor üzerinden gerçek bir istek yapar — bu birkaç saniye sürer.</string>
+    <string name="tor_test_connection">Bağlantıyı test et</string>
+    <string name="tor_testing">Test ediliyor…</string>
+    <string name="tor_test_ok">Tor üzerinden bağlandı</string>
+    <string name="tor_test_failed">Bağlı değil</string>
+    <string name="tor_test_failed_hint">Tor önyüklemeyi bitirmedi veya köprülere erişilemiyor.</string>
+    <string name="tor_bridges_title">Köprüler</string>
+    <string name="tor_bridges_hint">Köprüler, Tor’un kendisinin engellendiği yerlerde yardımcı olur. Bunları Tor Project’ten alın ve her satırı olduğu gibi yapıştırın. Kaydetmek Tor’u yeniden başlatır.</string>
+    <string name="tor_bridges_saving">Kaydediliyor ve Tor yeniden başlatılıyor…</string>
+    <string name="tor_no_bridges">Doğrudan bağlantı, köprü yok</string>
+    <string name="tor_add_bridge">Köprü ekle</string>
+    <string name="tor_bridge_line">Köprü satırı</string>
+    <string name="tor_bridge_placeholder">obfs4 1.2.3.4:443 FINGERPRINT cert=… iat-mode=0</string>
+    <string name="tor_bridge_hint">Satırın tamamını aldığınız gibi yapıştırın.</string>
+    <string name="tor_bridge_added">Köprü eklendi, Tor yeniden başlatıldı</string>
+    <string name="tor_bridge_removed">Köprü kaldırıldı, Tor yeniden başlatıldı</string>
+    <string name="tor_bridge_delete_title">Köprü kaldırılsın mı?</string>
+    <string name="tor_bridge_delete_text">Köprü yönlendiriciden kaldırılacak ve Tor yeniden başlatılacak.</string>
+
+    <!-- API / network errors -->
+    <string name="err_bad_token">Token hatalı — Ayarlar’ı kontrol edin</string>
+    <string name="err_token_not_configured">Yönlendiricide token ayarlı değil</string>
+    <string name="err_bad_domain">Geçersiz alan adı biçimi</string>
+    <string name="err_empty_domain">Alan adı boş</string>
+    <string name="err_bad_service">Bilinmeyen hizmet</string>
+    <string name="err_bad_host">Geçersiz ana bilgisayar</string>
+    <string name="err_bad_mac">Geçersiz MAC adresi</string>
+    <string name="err_etherwake_missing">Yönlendiricide etherwake yüklü değil</string>
+    <string name="err_bad_engine">Bilinmeyen motor</string>
+    <string name="err_bad_strategy">Strateji numarası aralık dışında</string>
+    <string name="err_strategy_unconfirmed">Yönlendirici strateji değişikliğini onaylamadı</string>
+    <string name="err_bad_provider_name">Geçersiz kural seti adı</string>
+    <string name="err_bad_url">Yönlendirici bu URL’yi reddetti</string>
+    <string name="err_bad_behavior">Geçersiz liste türü</string>
+    <string name="err_bad_format">Geçersiz biçim</string>
+    <string name="err_bad_interval">Yenileme süresi aralık dışında (60 sn – 7 gün)</string>
+    <string name="err_missing_group">Proxy grubu seçilmedi</string>
+    <string name="err_group_both_set">Mevcut bir grup veya yeni bir grup seçin, ikisini birden değil</string>
+    <string name="err_group_not_found">Yönlendiricide artık böyle bir proxy grubu yok — geri dönüp başka birini seçin</string>
+    <string name="err_bad_new_group">Geçersiz yeni grup adı</string>
+    <string name="err_provider_exists">Yönlendiricide bu adda bir kural seti zaten var</string>
+    <string name="err_group_exists">Yönlendiricide bu adda bir grup zaten var — mevcut grup olarak seçin</string>
+    <string name="err_mihomo_config_test_failed">Yönlendirici ortaya çıkan mihomo yapılandırmasını reddetti — kural seti eklenmedi. URL’yi, liste türünü ve biçimi kontrol edin.</string>
+    <string name="err_subscription_exists">Bu ada sahip bir abonelik zaten var</string>
+    <string name="err_subscription_not_found">Yönlendiricide artık böyle bir abonelik yok</string>
+    <string name="err_subscription_base_protected">Yerleşik abonelik kaldırılamaz</string>
+    <string name="err_tor_controlport_not_ready">Tor denetim bağlantı noktası henüz hazır değil — birkaç saniye sonra tekrar deneyin</string>
+    <string name="err_tor_controlport_failed">Tor, denetim bağlantı noktası komutunu reddetti</string>
+    <string name="err_catalog_rate_limited">GitHub istekleri sınırlıyor (token olmadan IP başına saatte 60). Daha sonra tekrar deneyin veya URL’yi elle girin.</string>
+    <string name="err_catalog_http">GitHub HTTP %1$d ile yanıt verdi</string>
+    <string name="err_generic">Hata %1$d: %2$s</string>
+    <string name="err_timeout">Yönlendirici yanıt vermedi. Telefonun yönlendiricinin Wi-Fi ağında olduğundan ve bağlantı noktasının doğru olduğundan emin olun.</string>
+    <string name="err_unreachable">Yönlendiriciye ulaşılamıyor — adresi ve bağlantı noktasını kontrol edin.</string>
+    <string name="err_unknown_host">Bilinmeyen ana bilgisayar — yönlendirici adresini kontrol edin.</string>
+    <string name="err_network">Ağ hatası</string>
+    <string name="err_invalid_router_address">Geçersiz yönlendirici adresi: %1$s</string>
+    <string name="err_empty_response">Yönlendiriciden boş yanıt</string>
+    <string name="err_tls">Yönlendirici Helm API yerine HTTPS ile yanıt verdi. Bu bağlantı noktasında genellikle yönlendiricinin web arayüzü (LuCI) çalışır — bağlantı noktasını kontrol edin: API kendi HTTP bağlantı noktasında çalışır.</string>
+    <string name="err_not_api">Adres yanıt veriyor ama bu Helm API değil — bunun yerine bir web sayfası döndü. Bağlantı noktasını ve API’nin yönlendiricide yüklü olduğunu kontrol edin.</string>
+    <string name="err_title_connection">Yönlendiriciyle bağlantı yok</string>
+    <string name="err_title_config">Yönlendirici adresini kontrol edin</string>
+    <string name="err_title_access">Erişim reddedildi</string>
+    <string name="err_title_other">Bir şeyler ters gitti</string>
+    <string name="err_details">Ayrıntılar</string>
+    <string name="err_open_settings">Yönlendirici ayarları</string>
+    <string name="err_raw">%1$s</string>
+
+    <!-- Accessibility labels -->
+    <string name="strategy_previous">Önceki strateji</string>
+    <string name="strategy_next">Sonraki strateji</string>
+    <string name="theme_previous">Önceki tema</string>
+    <string name="theme_next">Sonraki tema</string>
+    <string name="a11y_target_added">%1$s: eklendi</string>
+    <string name="a11y_target_not_added">%1$s: eklenmedi</string>
+    <string name="a11y_autostart_on">Otomatik başlatma açık</string>
+    <string name="a11y_autostart_off">Otomatik başlatma kapalı</string>
+    <string name="a11y_device_online">Çevrimiçi</string>
+    <string name="a11y_device_offline">Çevrimdışı</string>
+    <string name="a11y_check_ok">Erişilebilir</string>
+    <string name="a11y_check_failed">Erişilemez</string>
+    <string name="copy_ip">IP adresini kopyala</string>
+    <string name="copy_mac">MAC adresini kopyala</string>
+    <string name="open_release_notes">Sürüm notlarını aç</string>
+</resources>

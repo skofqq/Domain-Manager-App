@@ -1,5 +1,47 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material3.toShape
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.material.icons.outlined.NetworkPing
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.QrCodeScanner
+import com.skofqq.domainmanager.ui.theme.Helm
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.NetworkCheck
+import androidx.compose.material.icons.outlined.QrCode2
+import androidx.compose.material.icons.outlined.AltRoute
+import androidx.compose.material.icons.outlined.Router
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.runtime.CompositionLocalProvider
+import com.skofqq.domainmanager.ui.theme.LocalHelmColors
+import com.skofqq.domainmanager.ui.theme.appPalette
+import androidx.compose.material.icons.outlined.Vibration
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.BlurOn
+import com.skofqq.domainmanager.ui.theme.Tints
+import com.skofqq.domainmanager.ui.components.*
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -163,12 +205,23 @@ private const val GITHUB_AVATAR_URL = "https://github.com/$GITHUB_USERNAME.png"
 private val TARGET_OPTIONS = listOf("both", "mihomo", "magitrickle")
 
 /** Language tag "" means "follow the system". Labels stay in their own language on purpose. */
-private data class LanguageOption(val tag: String, val label: String?)
+/** [label] is the native name of the language (null = "System", from resources); [flag] an emoji. */
+private data class LanguageOption(val tag: String, val label: String?, val flag: String)
 
 private val LANGUAGE_OPTIONS = listOf(
-    LanguageOption("", null), // label resolved from R.string.language_system
-    LanguageOption("en", "English"),
-    LanguageOption("ru", "Русский"),
+    LanguageOption("", null, "🌐"), // label resolved from R.string.language_system
+    LanguageOption("en", "English", "🇬🇧"),
+    LanguageOption("ru", "Русский", "🇷🇺"),
+    LanguageOption("uk", "Українська", "🇺🇦"),
+    LanguageOption("de", "Deutsch", "🇩🇪"),
+    LanguageOption("es", "Español", "🇪🇸"),
+    LanguageOption("fr", "Français", "🇫🇷"),
+    LanguageOption("it", "Italiano", "🇮🇹"),
+    LanguageOption("tr", "Türkçe", "🇹🇷"),
+    LanguageOption("be", "Беларуская", "🇧🇾"),
+    LanguageOption("kk", "Қазақша", "🇰🇿"),
+    LanguageOption("zh-CN", "简体中文", "🇨🇳"),
+    LanguageOption("ja", "日本語", "🇯🇵"),
 )
 
 private data class ThemeOption(val mode: String, @StringRes val labelRes: Int)
@@ -270,102 +323,93 @@ fun SettingsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsRootScreen(onOpen: (String) -> Unit) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(R.string.settings)) },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        contentWindowInsets = WindowInsets(0),
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    ) { padding ->
+    HelmScaffold(title = stringResource(R.string.settings)) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(vertical = 8.dp),
+                .padding(top = padding.calculateTopPadding()),
+            contentPadding = PaddingValues(top = 4.dp, bottom = padding.calculateBottomPadding()),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             item {
-                SettingsItem(
-                    icon = Icons.Outlined.Palette,
-                    title = stringResource(R.string.section_appearance),
-                    subtitle = stringResource(R.string.settings_appearance_desc),
-                    onClick = { onOpen("appearance") },
-                )
+                SectionCard(title = null) {
+                    SettingsRow(
+                        Icons.Outlined.Palette,
+                        stringResource(R.string.section_appearance),
+                        stringResource(R.string.settings_appearance_desc),
+                        tint = Tints.purple,
+                    ) { onOpen("appearance") }
+                    SettingsRow(
+                        Icons.Outlined.Translate,
+                        stringResource(R.string.section_language),
+                        currentLanguageLabel(),
+                        tint = Tints.blue,
+                        showDivider = false,
+                    ) { onOpen("language") }
+                }
             }
             item {
-                SettingsItem(
-                    icon = Icons.Outlined.Translate,
-                    title = stringResource(R.string.section_language),
-                    subtitle = currentLanguageLabel(),
-                    onClick = { onOpen("language") },
-                )
+                SectionCard(title = null) {
+                    SettingsRow(
+                        Icons.Outlined.Key,
+                        stringResource(R.string.settings_auth_title),
+                        stringResource(R.string.settings_auth_desc),
+                        tint = Tints.amber,
+                    ) { onOpen("auth") }
+                    SettingsRow(
+                        Icons.Outlined.Fingerprint,
+                        stringResource(R.string.section_security),
+                        stringResource(R.string.settings_security_desc),
+                        tint = Tints.green,
+                    ) { onOpen("security") }
+                    SettingsRow(
+                        Icons.Outlined.CloudUpload,
+                        stringResource(R.string.section_backup),
+                        stringResource(R.string.settings_backup_desc),
+                        tint = Tints.teal,
+                    ) { onOpen("backup") }
+                    SettingsRow(
+                        Icons.Outlined.History,
+                        stringResource(R.string.section_history),
+                        stringResource(R.string.settings_history_desc),
+                        tint = Tints.gray,
+                        showDivider = false,
+                    ) { onOpen("history") }
+                }
             }
             item {
-                SettingsItem(
-                    icon = Icons.Outlined.Key,
-                    title = stringResource(R.string.settings_auth_title),
-                    subtitle = stringResource(R.string.settings_auth_desc),
-                    onClick = { onOpen("auth") },
-                )
+                SectionCard(title = null) {
+                    SettingsRow(
+                        Icons.Outlined.BugReport,
+                        stringResource(R.string.section_diagnostics),
+                        stringResource(R.string.settings_diagnostics_desc),
+                        tint = Tints.red,
+                    ) { onOpen("diagnostics") }
+                    SettingsRow(
+                        Icons.Outlined.NotificationsActive,
+                        stringResource(R.string.section_monitoring),
+                        stringResource(R.string.settings_monitoring_desc),
+                        tint = Tints.orange,
+                    ) { onOpen("monitoring") }
+                    SettingsRow(
+                        Icons.Outlined.Bolt,
+                        stringResource(R.string.section_shortcuts),
+                        stringResource(R.string.settings_shortcuts_desc),
+                        tint = Tints.amber,
+                        showDivider = false,
+                    ) { onOpen("shortcuts") }
+                }
             }
             item {
-                SettingsItem(
-                    icon = Icons.Outlined.Fingerprint,
-                    title = stringResource(R.string.section_security),
-                    subtitle = stringResource(R.string.settings_security_desc),
-                    onClick = { onOpen("security") },
-                )
-            }
-            item {
-                SettingsItem(
-                    icon = Icons.Outlined.CloudUpload,
-                    title = stringResource(R.string.section_backup),
-                    subtitle = stringResource(R.string.settings_backup_desc),
-                    onClick = { onOpen("backup") },
-                )
-            }
-            item {
-                SettingsItem(
-                    icon = Icons.Outlined.History,
-                    title = stringResource(R.string.section_history),
-                    subtitle = stringResource(R.string.settings_history_desc),
-                    onClick = { onOpen("history") },
-                )
-            }
-            item {
-                SettingsItem(
-                    icon = Icons.Outlined.BugReport,
-                    title = stringResource(R.string.section_diagnostics),
-                    subtitle = stringResource(R.string.settings_diagnostics_desc),
-                    onClick = { onOpen("diagnostics") },
-                )
-            }
-            item {
-                SettingsItem(
-                    icon = Icons.Outlined.NotificationsActive,
-                    title = stringResource(R.string.section_monitoring),
-                    subtitle = stringResource(R.string.settings_monitoring_desc),
-                    onClick = { onOpen("monitoring") },
-                )
-            }
-            item {
-                SettingsItem(
-                    icon = Icons.Outlined.Bolt,
-                    title = stringResource(R.string.section_shortcuts),
-                    subtitle = stringResource(R.string.settings_shortcuts_desc),
-                    onClick = { onOpen("shortcuts") },
-                )
-            }
-            item {
-                SettingsItem(
-                    icon = Icons.Outlined.Info,
-                    title = stringResource(R.string.settings_about_title),
-                    subtitle = stringResource(R.string.settings_about_desc),
-                    onClick = { onOpen("about") },
-                )
+                SectionCard(title = null) {
+                    SettingsRow(
+                        Icons.Outlined.Info,
+                        stringResource(R.string.settings_about_title),
+                        stringResource(R.string.settings_about_desc),
+                        tint = Tints.accent,
+                        showDivider = false,
+                    ) { onOpen("about") }
+                }
             }
         }
     }
@@ -374,42 +418,10 @@ private fun SettingsRootScreen(onOpen: (String) -> Unit) {
 @Composable
 private fun currentLanguageLabel(): String {
     val tag = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-    return when {
-        tag.isEmpty() -> stringResource(R.string.language_system)
-        tag.startsWith("ru") -> "Русский"
-        else -> "English"
-    }
-}
-
-@Composable
-private fun SettingsItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(26.dp),
-        )
-        Column(modifier = Modifier.padding(start = 20.dp)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+    if (tag.isEmpty()) return stringResource(R.string.language_system)
+    val option = LANGUAGE_OPTIONS.firstOrNull { it.tag.isNotEmpty() && tag.startsWith(it.tag) }
+        ?: LANGUAGE_OPTIONS.first { it.tag == "en" }
+    return "${option.flag}  ${option.label}"
 }
 
 // --- Shared child scaffold ------------------------------------------------------
@@ -421,25 +433,7 @@ private fun SettingsChildScaffold(
     onBack: () -> Unit,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(title) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        contentWindowInsets = WindowInsets(0),
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    ) { padding -> content(padding) }
+    HelmScaffold(title = title, onBack = onBack, content = content)
 }
 
 // --- Appearance -----------------------------------------------------------------
@@ -528,36 +522,47 @@ private fun AppearanceSettingsScreen(viewModel: SettingsViewModel, onBack: () ->
                     )
                 }
             }
-            Spacer(Modifier.height(20.dp))
-            HorizontalDivider()
-            Spacer(Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
-                    Text(
-                        stringResource(R.string.dynamic_color),
-                        style = MaterialTheme.typography.bodyLarge,
+            Spacer(Modifier.height(24.dp))
+            HelmCard(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(vertical = 6.dp)) {
+                    SwitchRow(
+                        icon = Icons.Outlined.Palette,
+                        title = stringResource(R.string.dynamic_color),
+                        subtitle = stringResource(R.string.dynamic_color_desc) + if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) "" else " " +
+                            stringResource(R.string.dynamic_color_hint),
+                        checked = viewModel.useDynamicColor,
+                        enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+                        onCheckedChange = { viewModel.setDynamicColor(it) },
                     )
-                    Text(
-                        stringResource(R.string.dynamic_color_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    SwitchRow(
+                        icon = Icons.Outlined.BlurOn,
+                        title = stringResource(R.string.liquid_glass),
+                        subtitle = stringResource(
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) R.string.liquid_glass_desc
+                            else R.string.liquid_glass_unsupported,
+                        ),
+                        checked = viewModel.liquidGlass && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+                        enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+                        onCheckedChange = { viewModel.updateLiquidGlass(it) },
                     )
-                    Text(
-                        stringResource(R.string.dynamic_color_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    SwitchRow(
+                        icon = Icons.Outlined.DarkMode,
+                        title = stringResource(R.string.true_black),
+                        subtitle = stringResource(R.string.true_black_desc),
+                        checked = viewModel.trueBlack,
+                        onCheckedChange = { viewModel.updateTrueBlack(it) },
+                    )
+                    SwitchRow(
+                        icon = Icons.Outlined.Vibration,
+                        title = stringResource(R.string.haptic_feedback),
+                        subtitle = stringResource(R.string.haptic_feedback_desc),
+                        checked = viewModel.hapticFeedback,
+                        showDivider = false,
+                        onCheckedChange = { viewModel.updateHapticFeedback(it) },
                     )
                 }
-                Switch(
-                    checked = viewModel.useDynamicColor,
-                    onCheckedChange = { viewModel.setDynamicColor(it) },
-                    enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
-                )
             }
+            Spacer(Modifier.height(8.dp))
         }
     }
 }
@@ -576,7 +581,7 @@ private fun ThemePreviewPage(option: ThemeOption, useDynamicColor: Boolean) {
         else -> isSystemInDarkTheme()
     }
     val scheme = appColorScheme(darkTheme = dark, useDynamicColor = useDynamicColor)
-    MaterialTheme(colorScheme = scheme) {
+    CompositionLocalProvider(LocalHelmColors provides appPalette(dark, useDynamicColor)) { MaterialTheme(colorScheme = scheme, typography = MaterialTheme.typography) {
         Column(
             modifier = Modifier
                 .width(228.dp)
@@ -601,6 +606,7 @@ private fun ThemePreviewPage(option: ThemeOption, useDynamicColor: Boolean) {
                     .padding(vertical = 11.dp),
             )
         }
+    }
     }
 }
 
@@ -679,8 +685,8 @@ private fun PagerDots(current: Int, count: Int) {
     }
 }
 
-private val CircleSwatchDark = Color(0xFF1D1D1F)
-private val CircleSwatchLight = Color(0xFFF4F4EC)
+private val CircleSwatchDark = Color(0xFF1C1F26)
+private val CircleSwatchLight = Color(0xFFF1F0F7)
 
 /**
  * Round theme selector (reference style): dark filled circle with an auto icon for
@@ -740,40 +746,19 @@ private fun LanguageSettingsScreen(onBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             LANGUAGE_OPTIONS.forEach { option ->
                 val selected = if (option.tag.isEmpty()) currentTag.isEmpty()
                 else currentTag.startsWith(option.tag)
-                // selectable, not clickable: the row announces "radio button,
-                // selected" and the whole row is one target, instead of a plain
-                // "button" next to a second, separate radio node.
-                //
-                // heightIn is not decoration. M3's RadioButton applies
-                // minimumInteractiveComponentSize() ONLY when its own onClick is
-                // non-null; handing the click to the row drops the control to its
-                // bare 24dp icon box and collapses the row with it. The row owns the
-                // interaction now, so the row carries the minimum — 56dp is M3's
-                // single-line list item, and it also sets the rhythm of the list.
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .selectable(
-                            selected = selected,
-                            role = Role.RadioButton,
-                            onClick = { applyLocale(activity, option.tag) },
-                        )
-                        .heightIn(min = 56.dp)
-                        .padding(horizontal = 20.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RadioButton(selected = selected, onClick = null)
-                    Text(
-                        option.label ?: stringResource(R.string.language_system),
-                        modifier = Modifier.padding(start = 12.dp),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                }
+                OptionRow(
+                    title = option.label ?: stringResource(R.string.language_system),
+                    subtitle = null,
+                    selected = selected,
+                    leading = option.flag,
+                    onClick = { applyLocale(activity, option.tag) },
+                )
             }
         }
     }
@@ -902,15 +887,9 @@ private fun ProfileListScreen(
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item {
-                Text(
-                    stringResource(R.string.settings_profiles_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            item { NoticeCard(title = null, body = stringResource(R.string.settings_profiles_hint)) }
             items(profiles.size, key = { profiles[it].id }) { index ->
                 val profile = profiles[index]
                 ProfileRow(
@@ -923,10 +902,17 @@ private fun ProfileListScreen(
             }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedButton(onClick = onAdd, modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.profile_add))
-                    }
-                    OutlinedButton(
+                    HelmButton(
+                        text = stringResource(R.string.profile_add),
+                        onClick = onAdd,
+                        icon = Icons.Filled.Add,
+                        style = ButtonStyle.Tonal,
+                        modifier = Modifier.weight(1f),
+                    )
+                    HelmButton(
+                        text = stringResource(R.string.qr_scan),
+                        icon = Icons.Outlined.QrCodeScanner,
+                        style = ButtonStyle.Tonal,
                         onClick = {
                             startQrScan(context) { raw ->
                                 val payload = raw?.let { parseSetupUri(it) }
@@ -964,14 +950,14 @@ private fun ProfileListScreen(
                             }
                         },
                         modifier = Modifier.weight(1f),
-                    ) { Text(stringResource(R.string.qr_scan)) }
+                    )
                 }
             }
         }
     }
 
     deleteCandidate?.let { profile ->
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { deleteCandidate = null },
             title = { Text(stringResource(R.string.profile_delete_title)) },
             text = {
@@ -1003,7 +989,7 @@ private fun ProfileListScreen(
     }
 
     updateCandidate?.let { (existing, payload) ->
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { updateCandidate = null },
             title = { Text(stringResource(R.string.qr_update_title)) },
             text = { Text(stringResource(R.string.qr_update_text, existing.name)) },
@@ -1038,7 +1024,7 @@ private fun ProfileRow(
     onClick: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+    HelmCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -1094,7 +1080,6 @@ private fun ProfileEditScreen(viewModel: SettingsViewModel, profileId: String, o
     var tokenVisible by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val savedMessage = stringResource(R.string.saved)
     val context = LocalContext.current
     val activity = LocalActivity.current as? FragmentActivity
@@ -1112,203 +1097,196 @@ private fun ProfileEditScreen(viewModel: SettingsViewModel, profileId: String, o
         }
     }
 
-    Scaffold(
-        topBar = {
-            LargeTopAppBar(
-                title = {
-                    val title = when {
-                        isNew -> stringResource(R.string.profile_new_title)
-                        existing != null -> existing.name.ifEmpty { existing.host }
-                        else -> stringResource(R.string.settings_auth_title)
-                    }
-                    Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
+    val pageTitle = when {
+        isNew -> stringResource(R.string.profile_new_title)
+        existing != null -> existing.name.ifEmpty { existing.host }
+        else -> stringResource(R.string.settings_auth_title)
+    }
+    HelmScaffold(
+        title = pageTitle,
+        onBack = onBack,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        contentWindowInsets = WindowInsets(0),
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item { SectionLabel(stringResource(R.string.section_router)) }
             item {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.profile_name)) },
-                    placeholder = { Text(stringResource(R.string.profile_name_placeholder)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            item {
-                OutlinedTextField(
-                    value = host,
-                    onValueChange = { host = it },
-                    label = { Text(stringResource(R.string.host)) },
-                    placeholder = { Text("192.168.1.1") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            item {
-                OutlinedTextField(
-                    value = port,
-                    onValueChange = { port = it },
-                    label = { Text(stringResource(R.string.port)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            item { HorizontalDivider() }
-            item { SectionLabel(stringResource(R.string.section_fallback)) }
-            item {
-                Text(
-                    stringResource(R.string.fallback_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            item {
-                OutlinedTextField(
-                    value = fallbackHost,
-                    onValueChange = { fallbackHost = it },
-                    label = { Text(stringResource(R.string.host)) },
-                    placeholder = { Text("100.64.0.1") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            item {
-                OutlinedTextField(
-                    value = fallbackPort,
-                    onValueChange = { fallbackPort = it },
-                    label = { Text(stringResource(R.string.port)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            item { HorizontalDivider() }
-            item { SectionLabel(stringResource(R.string.section_auth)) }
-            item {
-                OutlinedTextField(
-                    value = token,
-                    onValueChange = { token = it },
-                    label = { Text(stringResource(R.string.token)) },
-                    singleLine = true,
-                    visualTransformation = if (tokenVisible) VisualTransformation.None
-                    else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        TextButton(onClick = {
-                            when {
-                                tokenVisible -> tokenVisible = false
-                                // "token" lock mode: confirm with biometrics/PIN before revealing.
-                                viewModel.appLockMode == "token" && activity != null &&
-                                    deviceAuthAvailable(activity) ->
-                                    promptDeviceAuth(activity, authTitle) { tokenVisible = true }
-                                else -> tokenVisible = true
-                            }
-                        }) {
-                            Text(stringResource(if (tokenVisible) R.string.hide else R.string.show))
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            item { HorizontalDivider() }
-            item { SectionLabel(stringResource(R.string.section_qr)) }
-            item {
-                Text(
-                    stringResource(R.string.qr_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            item {
-                OutlinedButton(
-                    onClick = {
-                        // The QR carries the token in clear text — same secret,
-                        // different shape — so it sits behind the SAME device-auth
-                        // gate as the token "Show" button. Cancel/fail = no dialog,
-                        // no exposure at all.
-                        when {
-                            viewModel.appLockMode == "token" && activity != null &&
-                                deviceAuthAvailable(activity) ->
-                                promptDeviceAuth(activity, qrAuthTitle) { showQr = true }
-                            else -> showQr = true
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.qr_show)) }
-            }
-            item { HorizontalDivider() }
-            item { SectionLabel(stringResource(R.string.section_default_target)) }
-            item {
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    TARGET_OPTIONS.forEachIndexed { index, option ->
-                        SegmentedButton(
-                            selected = target == option,
-                            onClick = { target = option },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = TARGET_OPTIONS.size),
-                            icon = {},
-                        ) { Text(option, maxLines = 1) }
+                HelmSection(
+                    title = stringResource(R.string.section_router),
+                    icon = Icons.Outlined.Router,
+                    tint = Tints.accent,
+                    shape = MaterialShapes.Cookie12Sided,
+                ) {
+                    HelmTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text(stringResource(R.string.profile_name)) },
+                        placeholder = { Text(stringResource(R.string.profile_name_placeholder)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HelmTextField(
+                            value = host,
+                            onValueChange = { host = it },
+                            label = { Text(stringResource(R.string.host)) },
+                            placeholder = { Text("192.168.1.1") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                            modifier = Modifier.weight(2f),
+                        )
+                        HelmTextField(
+                            value = port,
+                            onValueChange = { port = it },
+                            label = { Text(stringResource(R.string.port)) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                 }
             }
-            item { HorizontalDivider() }
             item {
-                Button(
-                    onClick = {
-                        viewModel.saveProfile(
-                            RouterProfile(
-                                id = targetId,
-                                // An unnamed profile still needs a recognizable list
-                                // label — fall back to the host.
-                                name = name.trim().ifEmpty { host.trim() },
-                                host = host.trim(),
-                                port = port.toIntOrNull()?.coerceIn(1, 65535) ?: 80,
-                                fallbackHost = fallbackHost.trim(),
-                                fallbackPort = fallbackPort.toIntOrNull()?.coerceIn(1, 65535) ?: 80,
-                                token = token.trim(),
-                                defaultTarget = target,
-                            )
+                HelmSection(
+                    title = stringResource(R.string.section_fallback),
+                    subtitle = stringResource(R.string.fallback_hint),
+                    icon = Icons.Outlined.AltRoute,
+                    tint = Tints.purple,
+                    shape = MaterialShapes.Clover4Leaf,
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HelmTextField(
+                            value = fallbackHost,
+                            onValueChange = { fallbackHost = it },
+                            label = { Text(stringResource(R.string.host)) },
+                            placeholder = { Text("100.64.0.1") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                            modifier = Modifier.weight(2f),
                         )
-                        scope.launch { snackbarHostState.showSnackbar(savedMessage) }
-                    },
-                    enabled = host.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.save)) }
+                        HelmTextField(
+                            value = fallbackPort,
+                            onValueChange = { fallbackPort = it },
+                            label = { Text(stringResource(R.string.port)) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
             }
             item {
-                OutlinedButton(
-                    onClick = { viewModel.testConnection(host, port, token) },
-                    enabled = testState !is TestUiState.Testing,
-                    modifier = Modifier.fillMaxWidth(),
+                HelmSection(
+                    title = stringResource(R.string.section_auth),
+                    icon = Icons.Outlined.Key,
+                    tint = Tints.amber,
+                    shape = MaterialShapes.Sunny,
                 ) {
-                    Text(
-                        stringResource(
+                    HelmTextField(
+                        value = token,
+                        onValueChange = { token = it },
+                        label = { Text(stringResource(R.string.token)) },
+                        singleLine = true,
+                        visualTransformation = if (tokenVisible) VisualTransformation.None
+                        else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            TextButton(onClick = {
+                                when {
+                                    tokenVisible -> tokenVisible = false
+                                    // "token" lock mode: confirm with biometrics/PIN before revealing.
+                                    viewModel.appLockMode == "token" && activity != null &&
+                                        deviceAuthAvailable(activity) ->
+                                        promptDeviceAuth(activity, authTitle) { tokenVisible = true }
+                                    else -> tokenVisible = true
+                                }
+                            }) {
+                                Text(stringResource(if (tokenVisible) R.string.hide else R.string.show))
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            stringResource(R.string.section_default_target),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Helm.colors.text,
+                        )
+                        PillTabs(
+                            labels = TARGET_OPTIONS,
+                            selected = TARGET_OPTIONS.indexOf(target).coerceAtLeast(0).toFloat(),
+                            onSelect = { target = TARGET_OPTIONS[it] },
+                            container = Helm.colors.surface2,
+                        )
+                    }
+                }
+            }
+            item {
+                HelmSection(
+                    title = stringResource(R.string.section_qr),
+                    subtitle = stringResource(R.string.qr_hint),
+                    icon = Icons.Outlined.QrCode2,
+                    tint = Tints.teal,
+                    shape = MaterialShapes.Cookie6Sided,
+                ) {
+                    HelmButton(
+                        text = stringResource(R.string.qr_show),
+                        onClick = {
+                            // The QR carries the token in clear text (same secret,
+                            // different shape), so it sits behind the SAME device-auth
+                            // gate as the token "Show" button. Cancel/fail = no dialog,
+                            // no exposure at all.
+                            when {
+                                viewModel.appLockMode == "token" && activity != null &&
+                                    deviceAuthAvailable(activity) ->
+                                    promptDeviceAuth(activity, qrAuthTitle) { showQr = true }
+                                else -> showQr = true
+                            }
+                        },
+                        icon = Icons.Outlined.QrCode2,
+                        style = ButtonStyle.Tonal,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HelmButton(
+                        text = stringResource(R.string.save),
+                        onClick = {
+                            viewModel.saveProfile(
+                                RouterProfile(
+                                    id = targetId,
+                                    // An unnamed profile still needs a recognizable list
+                                    // label: fall back to the host.
+                                    name = name.trim().ifEmpty { host.trim() },
+                                    host = host.trim(),
+                                    port = port.toIntOrNull()?.coerceIn(1, 65535) ?: 80,
+                                    fallbackHost = fallbackHost.trim(),
+                                    fallbackPort = fallbackPort.toIntOrNull()?.coerceIn(1, 65535) ?: 80,
+                                    token = token.trim(),
+                                    defaultTarget = target,
+                                )
+                            )
+                            scope.launch { snackbarHostState.showSnackbar(savedMessage) }
+                        },
+                        enabled = host.isNotBlank(),
+                        icon = Icons.Filled.Check,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    HelmButton(
+                        text = stringResource(
                             if (testState is TestUiState.Testing) R.string.testing
                             else R.string.test_connection
-                        )
+                        ),
+                        onClick = { viewModel.testConnection(host, port, token) },
+                        loading = testState is TestUiState.Testing,
+                        icon = Icons.Outlined.NetworkCheck,
+                        style = ButtonStyle.Tonal,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
@@ -1338,7 +1316,8 @@ private fun ProfileEditScreen(viewModel: SettingsViewModel, profileId: String, o
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 12.dp, vertical = 20.dp),
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(30.dp),
+            color = com.skofqq.domainmanager.ui.theme.Helm.colors.page,
             ) {
                 Column(
                     modifier = Modifier
@@ -1438,17 +1417,14 @@ private fun SecuritySettingsScreen(viewModel: SettingsViewModel, onBack: () -> U
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 8.dp),
         ) {
-            Text(
-                stringResource(R.string.lock_explain),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            NoticeCard(title = null, body = stringResource(R.string.lock_explain))
             if (!authAvailable) {
                 Spacer(Modifier.height(12.dp))
-                Text(
-                    stringResource(R.string.lock_unavailable),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
+                NoticeCard(
+                    title = null,
+                    body = stringResource(R.string.lock_unavailable),
+                    tint = Tints.red,
+                    icon = Icons.Outlined.Fingerprint,
                 )
             }
             Spacer(Modifier.height(12.dp))
@@ -1456,41 +1432,14 @@ private fun SecuritySettingsScreen(viewModel: SettingsViewModel, onBack: () -> U
                 // With no biometrics AND no screen lock there is nothing to require —
                 // only "off" stays selectable.
                 val enabled = authAvailable || option.mode == "off"
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .selectable(
-                            selected = viewModel.appLockMode == option.mode,
-                            enabled = enabled,
-                            role = Role.RadioButton,
-                            onClick = { viewModel.setAppLock(option.mode) },
-                        )
-                        // Two-line rows (label + description): M3's two-line list
-                        // item. See the language list for why the row, not the
-                        // RadioButton, has to carry this minimum.
-                        .heightIn(min = 72.dp)
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RadioButton(
-                        selected = viewModel.appLockMode == option.mode,
-                        onClick = null,
-                        enabled = enabled,
-                    )
-                    Column(modifier = Modifier.padding(start = 12.dp)) {
-                        Text(
-                            stringResource(option.labelRes),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = if (enabled) MaterialTheme.colorScheme.onSurface
-                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                        )
-                        Text(
-                            stringResource(option.descRes),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+                OptionRow(
+                    title = stringResource(option.labelRes),
+                    subtitle = stringResource(option.descRes),
+                    selected = viewModel.appLockMode == option.mode,
+                    enabled = enabled,
+                    onClick = { viewModel.setAppLock(option.mode) },
+                )
+                Spacer(Modifier.height(10.dp))
             }
         }
     }
@@ -1513,103 +1462,113 @@ private fun BackupSettingsScreen(viewModel: BackupViewModel, onBack: () -> Unit)
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            SectionLabel(stringResource(R.string.backup_export_title))
-            Text(
-                stringResource(R.string.backup_export_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Button(
-                onClick = { viewModel.buildSnapshot() },
-                enabled = !state.building && !state.importing,
-                modifier = Modifier.fillMaxWidth(),
+            HelmSection(
+                title = stringResource(R.string.backup_export_title),
+                subtitle = stringResource(R.string.backup_export_note),
+                icon = Icons.Outlined.CloudUpload,
+                tint = Tints.teal,
+                shape = MaterialShapes.Cookie12Sided,
             ) {
-                Text(
-                    stringResource(
-                        if (state.building) R.string.backup_building else R.string.backup_build
-                    )
-                )
-            }
-            state.snapshot?.let { snapshot ->
-                state.snapshotCounts?.let { (routing, zapret2, zapret) ->
-                    Text(
-                        stringResource(R.string.backup_export_summary, routing, zapret2, zapret),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedButton(
-                        onClick = {
-                            clipboard.setText(AnnotatedString(snapshot))
-                            Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) { Text(stringResource(R.string.copy)) }
-                    OutlinedButton(
-                        onClick = {
-                            val send = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, snapshot)
-                            }
-                            context.startActivity(Intent.createChooser(send, null))
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) { Text(stringResource(R.string.share)) }
-                }
-            }
-
-            HorizontalDivider()
-            SectionLabel(stringResource(R.string.backup_import_title))
-            Text(
-                stringResource(R.string.backup_import_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            OutlinedTextField(
-                value = importText,
-                onValueChange = { importText = it },
-                minLines = 4,
-                maxLines = 10,
-                trailingIcon = {
-                    IconButton(onClick = {
-                        clipboard.getText()?.text?.trim()?.takeIf { it.isNotEmpty() }
-                            ?.let { importText = it }
-                    }) {
-                        Icon(
-                            Icons.Filled.ContentPaste,
-                            contentDescription = stringResource(R.string.paste_from_clipboard),
+                state.snapshot?.let { snapshot ->
+                    state.snapshotCounts?.let { (routing, zapret2, zapret) ->
+                        NoticeCard(
+                            title = null,
+                            body = stringResource(R.string.backup_export_summary, routing, zapret2, zapret),
+                            tint = Tints.green,
+                            icon = Icons.Filled.CheckCircle,
                         )
                     }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Text(
-                stringResource(R.string.backup_import_hint_restart),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Button(
-                onClick = { viewModel.runImport(importText) },
-                enabled = importText.isNotBlank() && !state.importing && !state.building,
-                modifier = Modifier.fillMaxWidth(),
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HelmButton(
+                            text = stringResource(R.string.copy),
+                            onClick = {
+                                clipboard.setText(AnnotatedString(snapshot))
+                                Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
+                            },
+                            icon = Icons.Outlined.ContentCopy,
+                            style = ButtonStyle.Tonal,
+                            modifier = Modifier.weight(1f),
+                        )
+                        HelmButton(
+                            text = stringResource(R.string.share),
+                            onClick = {
+                                val send = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, snapshot)
+                                }
+                                context.startActivity(Intent.createChooser(send, null))
+                            },
+                            icon = Icons.Outlined.Share,
+                            style = ButtonStyle.Tonal,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+                HelmButton(
+                    text = stringResource(
+                        if (state.building) R.string.backup_building else R.string.backup_build
+                    ),
+                    onClick = { viewModel.buildSnapshot() },
+                    enabled = !state.importing,
+                    loading = state.building,
+                    icon = Icons.Outlined.Inventory2,
+                    style = if (state.snapshot == null) ButtonStyle.Primary else ButtonStyle.Neutral,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            HelmSection(
+                title = stringResource(R.string.backup_import_title),
+                subtitle = stringResource(R.string.backup_import_note),
+                icon = Icons.Outlined.CloudDownload,
+                tint = Tints.blue,
+                shape = MaterialShapes.Cookie9Sided,
             ) {
+                HelmTextField(
+                    value = importText,
+                    onValueChange = { importText = it },
+                    minLines = 4,
+                    maxLines = 10,
+                    textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            clipboard.getText()?.text?.trim()?.takeIf { it.isNotEmpty() }
+                                ?.let { importText = it }
+                        }) {
+                            Icon(
+                                Icons.Filled.ContentPaste,
+                                contentDescription = stringResource(R.string.paste_from_clipboard),
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                SectionNote(stringResource(R.string.backup_import_hint_restart))
                 val progress = state.importProgress
-                Text(
-                    if (state.importing && progress != null) {
+                if (state.importing && progress != null && progress.second > 0) {
+                    LabeledProgress(
+                        label = stringResource(R.string.backup_run_import),
+                        valueText = stringResource(R.string.backup_progress, progress.first, progress.second),
+                        progress = progress.first.toFloat() / progress.second,
+                    )
+                }
+                HelmButton(
+                    text = if (state.importing && progress != null) {
                         stringResource(R.string.backup_progress, progress.first, progress.second)
-                    } else stringResource(R.string.backup_run_import)
+                    } else stringResource(R.string.backup_run_import),
+                    onClick = { viewModel.runImport(importText) },
+                    enabled = importText.isNotBlank() && !state.building,
+                    loading = state.importing,
+                    icon = Icons.Outlined.Download,
+                    modifier = Modifier.fillMaxWidth(),
                 )
+                state.importResult?.let {
+                    NoticeCard(title = null, body = it.resolve(), tint = Tints.green, icon = Icons.Filled.CheckCircle)
+                }
+                state.error?.let { ErrorCard(it) }
             }
-            state.importResult?.let {
-                Text(
-                    it.resolve(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-            state.error?.let { ErrorCard(it) }
         }
     }
 }
@@ -1638,50 +1597,63 @@ private fun HistorySettingsScreen(viewModel: SettingsViewModel, onBack: () -> Un
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                Text(
-                    stringResource(R.string.history_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                NoticeCard(title = null, body = stringResource(R.string.history_note))
+                Spacer(Modifier.height(14.dp))
             }
             val list = entries
             if (list != null && list.isEmpty()) {
                 item {
-                    Text(
-                        stringResource(R.string.history_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 16.dp),
+                    EmptyState(
+                        icon = Icons.Outlined.History,
+                        title = stringResource(R.string.history_empty),
+                        tint = Tints.gray,
                     )
                 }
             }
-            if (list != null) {
+            if (!list.isNullOrEmpty()) {
+                // One sliced card: the header, then a lazy item per entry.
+                item(key = "history-header") {
+                    HelmSectionHeader(
+                        title = stringResource(R.string.section_history),
+                        icon = Icons.Outlined.History,
+                        tint = Tints.blue,
+                        shape = MaterialShapes.Cookie9Sided,
+                        trailing = { ValuePill(list.size.toString(), Tints.blue) },
+                        modifier = Modifier
+                            .sectionSlice(first = true, last = false, color = Helm.colors.card)
+                            .padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 8.dp),
+                    )
+                }
                 items(list.size, key = { list[it].id }) { index ->
                     val entry = list[index]
-                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-                            Text(
-                                entry.domain,
-                                style = MaterialTheme.typography.titleSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Text(
-                                text = buildString {
-                                    append(dateFormat.format(Date(entry.timeMillis)))
-                                    entry.target?.let { append(" · ").append(it) }
-                                    entry.engine?.let { engine ->
-                                        append(" · ").append(engine)
-                                        entry.strategy?.let { append(" #").append(it) }
-                                    }
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                    val last = index == list.lastIndex
+                    Column(
+                        Modifier
+                            .sectionSlice(first = false, last = last, color = Helm.colors.card)
+                            .padding(start = 18.dp, end = 18.dp, bottom = if (last) 10.dp else 0.dp),
+                    ) {
+                        if (index > 0) SectionDivider()
+                        SectionRow(
+                            title = entry.domain,
+                            subtitle = buildString {
+                                append(dateFormat.format(Date(entry.timeMillis)))
+                                entry.target?.let { append(" · ").append(it) }
+                                entry.engine?.let { engine ->
+                                    append(" · ").append(engine)
+                                    entry.strategy?.let { append(" #").append(it) }
+                                }
+                            },
+                            leading = {
+                                ShapeIcon(
+                                    if (entry.engine != null) Icons.Outlined.Shield else Icons.Outlined.Public,
+                                    if (entry.engine != null) Tints.orange else Tints.accent,
+                                    shape = MaterialShapes.Circle,
+                                    size = 36.dp,
+                                )
+                            },
+                        )
                     }
                 }
             }
@@ -1709,12 +1681,14 @@ private fun DiagnosticsSettingsScreen(viewModel: SettingsViewModel, onBack: () -
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            SectionLabel(stringResource(R.string.diag_timeout_title))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            HelmSection(
+                title = stringResource(R.string.diag_timeout_title),
+                icon = Icons.Outlined.Timer,
+                tint = Tints.blue,
+                shape = MaterialShapes.Cookie9Sided,
+                trailing = { ValuePill(stringResource(R.string.diag_timeout_value, timeout.roundToInt()), Tints.blue) },
             ) {
                 Slider(
                     value = timeout,
@@ -1722,36 +1696,40 @@ private fun DiagnosticsSettingsScreen(viewModel: SettingsViewModel, onBack: () -
                     // Persisted once per released drag, not per tick.
                     onValueChangeFinished = { viewModel.setHttpTimeout(timeout.roundToInt()) },
                     valueRange = RouterApi.MIN_TIMEOUT_SECONDS.toFloat()..RouterApi.MAX_TIMEOUT_SECONDS.toFloat(),
-                    modifier = Modifier.weight(1f),
-                )
-                Text(
-                    stringResource(R.string.diag_timeout_value, timeout.roundToInt()),
-                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
 
-            HorizontalDivider()
-            SectionLabel(stringResource(R.string.section_router))
-            OutlinedButton(
-                onClick = { showRebootConfirm = true },
-                enabled = rebootState == null,
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error,
-                ),
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text(stringResource(R.string.reboot_router)) }
-            viewModel.rebootError?.let { ErrorCard(it) }
-
-            HorizontalDivider()
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+            HelmSection(
+                title = stringResource(R.string.section_router),
+                icon = Icons.Outlined.RestartAlt,
+                tint = Tints.red,
+                shape = MaterialShapes.Cookie4Sided,
             ) {
-                SectionLabel(stringResource(R.string.diag_log_title))
-                TextButton(
-                    enabled = entries.isNotEmpty(),
-                    onClick = {
+                HelmButton(
+                    text = stringResource(R.string.reboot_router),
+                    onClick = { showRebootConfirm = true },
+                    enabled = rebootState == null,
+                    icon = Icons.Outlined.RestartAlt,
+                    style = ButtonStyle.Danger,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                viewModel.rebootError?.let { ErrorCard(it) }
+            }
+
+            HelmSection(
+                title = stringResource(R.string.diag_log_title),
+                subtitle = stringResource(R.string.diag_log_note),
+                icon = Icons.AutoMirrored.Outlined.ReceiptLong,
+                tint = Tints.purple,
+                shape = MaterialShapes.Clover4Leaf,
+                trailing = {
+                    SectionIconButton(
+                        Icons.Outlined.ContentCopy,
+                        stringResource(R.string.copy),
+                        enabled = entries.isNotEmpty(),
+                        tint = Tints.purple,
+                    ) {
                         val text = entries.joinToString("\n\n") { e ->
                             buildString {
                                 append(timeFormat.format(Date(e.timeMillis)))
@@ -1767,31 +1745,22 @@ private fun DiagnosticsSettingsScreen(viewModel: SettingsViewModel, onBack: () -
                         }
                         clipboard.setText(AnnotatedString(text))
                         Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
-                    },
-                ) { Text(stringResource(R.string.copy)) }
-            }
-            Text(
-                stringResource(R.string.diag_log_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (entries.isEmpty()) {
-                Text(
-                    stringResource(R.string.diag_log_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 16.dp),
-                )
-            }
-            entries.forEach { entry ->
-                ApiLogEntryCard(entry, timeFormat)
+                    }
+                },
+            ) {
+                if (entries.isEmpty()) {
+                    SectionNote(stringResource(R.string.diag_log_empty))
+                }
+                entries.forEach { entry ->
+                    ApiLogEntryCard(entry, timeFormat)
+                }
             }
         }
 
         // Two-step confirmation: the server fires the reboot immediately with no
         // soft warning of its own, so the dialog carries the full consequences.
         if (showRebootConfirm) {
-            AlertDialog(
+            GlassAlertDialog(
                 onDismissRequest = { showRebootConfirm = false },
                 title = { Text(stringResource(R.string.reboot_confirm_title)) },
                 text = { Text(stringResource(R.string.reboot_confirm_text)) },
@@ -1844,7 +1813,19 @@ private fun RebootOverlay(
             dismissOnClickOutside = false,
         ),
     ) {
-        Surface(modifier = Modifier.fillMaxSize()) {
+        val still = reduceMotion()
+        val spin = rememberInfiniteTransition(label = "reboot")
+        val angle by spin.animateFloat(
+            0f, 360f,
+            infiniteRepeatable(tween(9000, easing = LinearEasing)),
+            label = "rebootAngle",
+        )
+        val (tint, shape) = when (state) {
+            is RebootUiState.CheckDone -> if (state.ok) Tints.green to MaterialShapes.Cookie9Sided
+            else Tints.red to MaterialShapes.Cookie4Sided
+            else -> Tints.accent to MaterialShapes.Cookie12Sided
+        }
+        Surface(modifier = Modifier.fillMaxSize(), color = Helm.colors.page) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1852,61 +1833,79 @@ private fun RebootOverlay(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Icon(
-                    Icons.Filled.RestartAlt,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(56.dp),
-                )
-                Spacer(Modifier.height(20.dp))
+                Box(Modifier.size(140.dp), contentAlignment = Alignment.Center) {
+                    Box(
+                        Modifier
+                            .size(140.dp)
+                            .graphicsLayer { rotationZ = if (still || state is RebootUiState.CheckDone) 0f else angle }
+                            .clip(shape.toShape())
+                            .background(tint.bg),
+                    )
+                    Icon(
+                        when {
+                            state is RebootUiState.CheckDone && state.ok -> Icons.Filled.Check
+                            state is RebootUiState.CheckDone -> Icons.Filled.Close
+                            else -> Icons.Filled.RestartAlt
+                        },
+                        contentDescription = null,
+                        tint = tint.fg,
+                        modifier = Modifier.size(56.dp),
+                    )
+                }
+                Spacer(Modifier.height(24.dp))
                 Text(
                     stringResource(R.string.rebooting_title),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Helm.colors.text,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     stringResource(R.string.rebooting_hint),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Helm.colors.text2,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(28.dp))
                 when (state) {
-                    is RebootUiState.Requesting -> CircularProgressIndicator()
+                    is RebootUiState.Requesting -> LoadingIndicator(Modifier.size(64.dp))
                     is RebootUiState.Waiting -> Text(
                         stringResource(R.string.reboot_countdown, state.secondsLeft),
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Helm.colors.accent,
                     )
                     is RebootUiState.CheckReady -> {
                         Text(
                             stringResource(R.string.reboot_check_ready),
                             style = MaterialTheme.typography.bodyMedium,
+                            color = Helm.colors.text,
                             textAlign = TextAlign.Center,
                         )
                         Spacer(Modifier.height(16.dp))
-                        Button(onClick = onCheck) {
-                            Text(stringResource(R.string.test_connection))
-                        }
+                        HelmButton(
+                            text = stringResource(R.string.test_connection),
+                            onClick = onCheck,
+                            icon = Icons.Outlined.NetworkCheck,
+                        )
                     }
                     is RebootUiState.Checking -> {
-                        CircularProgressIndicator()
+                        LoadingIndicator(Modifier.size(64.dp))
                         Spacer(Modifier.height(12.dp))
-                        Text(stringResource(R.string.testing))
+                        Text(stringResource(R.string.testing), color = Helm.colors.text2)
                     }
                     is RebootUiState.CheckDone -> {
                         Text(
                             state.message.resolve(),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = if (state.ok) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.error,
+                            color = tint.fg,
                             textAlign = TextAlign.Center,
                         )
                         Spacer(Modifier.height(16.dp))
                         if (state.ok) {
-                            Button(onClick = onDismiss) { Text(stringResource(R.string.done)) }
+                            HelmButton(text = stringResource(R.string.done), onClick = onDismiss, icon = Icons.Filled.Check)
                         } else {
-                            Button(onClick = onCheck) { Text(stringResource(R.string.retry)) }
+                            HelmButton(text = stringResource(R.string.retry), onClick = onCheck, icon = Icons.Filled.Refresh)
                         }
                     }
                 }
@@ -1945,25 +1944,15 @@ private fun MonitoringSettingsScreen(viewModel: SettingsViewModel, onBack: () ->
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                stringResource(R.string.monitoring_explain),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    stringResource(R.string.monitoring_enable),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f).padding(end = 16.dp),
-                )
-                Switch(
+            NoticeCard(title = null, body = stringResource(R.string.monitoring_explain))
+            HelmCard(modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(vertical = 6.dp)) {
+                SwitchRow(
+                    icon = Icons.Outlined.NotificationsActive,
+                    title = stringResource(R.string.monitoring_enable),
                     checked = viewModel.monitoringEnabled,
+                    showDivider = viewModel.monitoringEnabled,
                     onCheckedChange = { checked ->
                         val needsPermission = checked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
@@ -1975,14 +1964,34 @@ private fun MonitoringSettingsScreen(viewModel: SettingsViewModel, onBack: () ->
                         }
                     },
                 )
-            }
+                if (viewModel.monitoringEnabled) {
+                    SwitchRow(
+                        icon = Icons.Outlined.Public,
+                        title = stringResource(R.string.monitoring_wan_title),
+                        subtitle = stringResource(R.string.monitoring_wan_desc),
+                        checked = viewModel.monitorWanIp,
+                        onCheckedChange = { viewModel.setMonitorWanIp(it) },
+                    )
+                    SwitchRow(
+                        icon = Icons.Outlined.Storage,
+                        title = stringResource(R.string.monitoring_disk_title),
+                        subtitle = stringResource(R.string.monitoring_disk_desc),
+                        checked = viewModel.monitorDiskSpace,
+                        showDivider = false,
+                        onCheckedChange = { viewModel.setMonitorDiskSpace(it) },
+                    )
+                }
+            } }
 
             if (viewModel.monitoringEnabled) {
-                HorizontalDivider()
-                SectionLabel(stringResource(R.string.monitoring_interval_title))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                HelmSection(
+                    title = stringResource(R.string.monitoring_interval_title),
+                    icon = Icons.Outlined.Schedule,
+                    tint = Tints.blue,
+                    shape = MaterialShapes.Sunny,
+                    trailing = {
+                        ValuePill(stringResource(R.string.monitoring_interval_value, interval.roundToInt()), Tints.blue)
+                    },
                 ) {
                     Slider(
                         value = interval,
@@ -1990,97 +1999,44 @@ private fun MonitoringSettingsScreen(viewModel: SettingsViewModel, onBack: () ->
                         onValueChangeFinished = { viewModel.setMonitoringInterval(interval.roundToInt()) },
                         valueRange = 15f..180f,
                         steps = 10,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        stringResource(R.string.monitoring_interval_value, interval.roundToInt()),
-                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
 
-                HorizontalDivider()
-                MonitorToggleRow(
-                    title = stringResource(R.string.monitoring_wan_title),
-                    subtitle = stringResource(R.string.monitoring_wan_desc),
-                    checked = viewModel.monitorWanIp,
-                    onCheckedChange = { viewModel.setMonitorWanIp(it) },
-                )
-                MonitorToggleRow(
-                    title = stringResource(R.string.monitoring_disk_title),
-                    subtitle = stringResource(R.string.monitoring_disk_desc),
-                    checked = viewModel.monitorDiskSpace,
-                    onCheckedChange = { viewModel.setMonitorDiskSpace(it) },
-                )
-
-                HorizontalDivider()
-                SectionLabel(stringResource(R.string.monitoring_latency_title))
-                Text(
-                    stringResource(R.string.monitoring_latency_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .selectable(
-                                selected = selectedGroup == null,
-                                role = Role.RadioButton,
+                HelmSection(
+                    title = stringResource(R.string.monitoring_latency_title),
+                    subtitle = stringResource(R.string.monitoring_latency_desc),
+                    icon = Icons.Outlined.NetworkPing,
+                    tint = Tints.purple,
+                    shape = MaterialShapes.Flower,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OptionRow(
+                            title = stringResource(R.string.monitoring_latency_off),
+                            subtitle = null,
+                            selected = selectedGroup == null,
+                            container = Helm.colors.surface2,
+                            onClick = {
+                                selectedGroup = null
+                                viewModel.setLatencyMonitorGroup(null)
+                            },
+                        )
+                        groupNames?.forEach { name ->
+                            OptionRow(
+                                title = name,
+                                subtitle = null,
+                                selected = selectedGroup == name,
+                                container = Helm.colors.surface2,
                                 onClick = {
-                                    selectedGroup = null
-                                    viewModel.setLatencyMonitorGroup(null)
+                                    selectedGroup = name
+                                    viewModel.setLatencyMonitorGroup(name)
                                 },
-                            )
-                            .heightIn(min = 56.dp)
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = selectedGroup == null, onClick = null)
-                        Text(stringResource(R.string.monitoring_latency_off), modifier = Modifier.padding(start = 12.dp))
-                    }
-                    groupNames?.forEach { name ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .selectable(
-                                    selected = selectedGroup == name,
-                                    role = Role.RadioButton,
-                                    onClick = {
-                                        selectedGroup = name
-                                        viewModel.setLatencyMonitorGroup(name)
-                                    },
-                                )
-                                .heightIn(min = 56.dp)
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(selected = selectedGroup == name, onClick = null)
-                            Text(
-                                name,
-                                modifier = Modifier.padding(start = 12.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun MonitorToggleRow(title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 
@@ -2095,48 +2051,55 @@ private fun ShortcutsSettingsScreen(viewModel: SettingsViewModel, onBack: () -> 
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                stringResource(R.string.shortcuts_explain),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            SHORTCUT_CATALOG.forEach { spec ->
-                val checked = spec.id in selected
-                // 2-4 enabled at all times: block the tap that would break either edge.
-                val enabled = if (checked) selected.size > 2 else selected.size < 4
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .toggleable(
-                            value = checked,
-                            enabled = enabled,
-                            role = Role.Checkbox,
-                            onValueChange = {
-                                val next = if (checked) selected - spec.id else selected + spec.id
-                                selected = next
-                                viewModel.setEnabledShortcutIds(next.toList())
-                            },
-                        )
-                        // Checkbox has the same onCheckedChange-null caveat as
-                        // RadioButton, and this row already passed null before.
-                        .heightIn(min = 56.dp)
-                        .padding(vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(checked = checked, onCheckedChange = null, enabled = enabled)
-                    Text(stringResource(spec.labelRes), modifier = Modifier.padding(start = 12.dp))
+            NoticeCard(title = null, body = stringResource(R.string.shortcuts_explain))
+            HelmSection(
+                title = stringResource(R.string.section_shortcuts),
+                subtitle = stringResource(R.string.shortcuts_min_max_hint),
+                icon = Icons.Outlined.Bolt,
+                tint = Tints.amber,
+                shape = MaterialShapes.Sunny,
+                trailing = { ValuePill("${selected.size}/4", Tints.amber) },
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SHORTCUT_CATALOG.forEach { spec ->
+                        val checked = spec.id in selected
+                        // 2-4 enabled at all times: block the tap that would break either edge.
+                        val enabled = if (checked) selected.size > 2 else selected.size < 4
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(18.dp))
+                                .background(if (checked) Tints.accent.bg else Helm.colors.surface2)
+                                .toggleable(
+                                    value = checked,
+                                    enabled = enabled,
+                                    role = Role.Checkbox,
+                                    onValueChange = {
+                                        val next = if (checked) selected - spec.id else selected + spec.id
+                                        selected = next
+                                        viewModel.setEnabledShortcutIds(next.toList())
+                                    },
+                                )
+                                .heightIn(min = 56.dp)
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                stringResource(spec.labelRes),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Normal,
+                                color = (if (checked) Helm.colors.accent else Helm.colors.text)
+                                    .copy(alpha = if (enabled || checked) 1f else 0.45f),
+                                modifier = Modifier.weight(1f),
+                            )
+                            Checkbox(checked = checked, onCheckedChange = null, enabled = enabled)
+                        }
+                    }
                 }
             }
-            Spacer(Modifier.height(8.dp))
-            Text(
-                stringResource(R.string.shortcuts_min_max_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
@@ -2144,61 +2107,59 @@ private fun ShortcutsSettingsScreen(viewModel: SettingsViewModel, onBack: () -> 
 @Composable
 private fun ApiLogEntryCard(entry: ApiLog.Entry, timeFormat: SimpleDateFormat) {
     var expanded by remember { mutableStateOf(false) }
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+    val ok = entry.code != null && entry.code < 400
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Helm.colors.surface2)
+            .clickable { expanded = !expanded }
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    timeFormat.format(Date(entry.timeMillis)),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    entry.code?.toString() ?: stringResource(R.string.diag_failed),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = when {
-                        entry.code == null -> MaterialTheme.colorScheme.error
-                        entry.code < 400 -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.error
-                    },
-                )
-                Text(
-                    "${entry.durationMs} ms",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            ValuePill(
+                entry.code?.toString() ?: stringResource(R.string.diag_failed),
+                if (ok) Tints.green else Tints.red,
+            )
             Text(
-                entry.url,
+                timeFormat.format(Date(entry.timeMillis)),
+                style = MaterialTheme.typography.labelMedium,
+                color = Helm.colors.text2,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                "${entry.durationMs} ms",
+                style = MaterialTheme.typography.labelMedium,
+                color = Helm.colors.text2,
+            )
+        }
+        Text(
+            entry.url,
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+            color = Helm.colors.text,
+            maxLines = if (expanded) Int.MAX_VALUE else 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        entry.error?.let {
+            Text(
+                it,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = if (expanded) Int.MAX_VALUE else 2,
+                color = Tints.red.fg,
+            )
+        }
+        entry.body?.let { body ->
+            Text(
+                body,
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                color = Helm.colors.text2,
+                maxLines = if (expanded) Int.MAX_VALUE else 3,
                 overflow = TextOverflow.Ellipsis,
             )
-            entry.error?.let {
-                Text(
-                    it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-            entry.body?.let { body ->
-                Text(
-                    body,
-                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                    maxLines = if (expanded) Int.MAX_VALUE else 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
         }
     }
 }
@@ -2214,110 +2175,129 @@ private fun AboutSettingsScreen(onBack: () -> Unit) {
                 context.packageManager.getPackageInfo(context.packageName, 0).versionName
             }.getOrNull() ?: "?"
         }
+        val still = reduceMotion()
+        val spin = rememberInfiniteTransition(label = "about")
+        val angle by spin.animateFloat(
+            0f, 360f,
+            infiniteRepeatable(tween(24000, easing = LinearEasing)),
+            label = "aboutAngle",
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            // App header: name + version, GitHub mark links to the project repo.
-            ElevatedCard(
-                onClick = { context.openUrl(GITHUB_REPO_URL) },
-                modifier = Modifier.fillMaxWidth(),
+            // Hero: the app icon on a slowly turning expressive cookie.
+            Column(
+                Modifier.fillMaxWidth().clip(CardShape).background(Helm.colors.card).padding(vertical = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                Box(Modifier.size(132.dp), contentAlignment = Alignment.Center) {
+                    Box(
+                        Modifier
+                            .size(132.dp)
+                            .graphicsLayer { rotationZ = if (still) 0f else angle }
+                            .clip(MaterialShapes.Cookie12Sided.toShape())
+                            .background(Tints.accent.bg),
+                    )
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(14.dp))
+                            .size(84.dp)
+                            .clip(RoundedCornerShape(24.dp))
                             .background(Color(0xFF1D1D1F)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Image(
                             painter = painterResource(R.drawable.ic_launcher_foreground),
                             contentDescription = null,
-                            modifier = Modifier.size(56.dp),
+                            modifier = Modifier.size(84.dp),
                         )
                     }
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 16.dp),
-                    ) {
-                        Text(
-                            stringResource(R.string.app_name),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Text(
-                            stringResource(R.string.about_version, version),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            stringResource(R.string.about_source_code),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                    Icon(
-                        painter = painterResource(R.drawable.ic_github),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(28.dp),
-                    )
                 }
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Helm.colors.text,
+                )
+                Spacer(Modifier.height(8.dp))
+                ValuePill(stringResource(R.string.about_version, version), Tints.accent)
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    stringResource(R.string.about_summary),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Helm.colors.text2,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                )
             }
+
+            // Source code: GitHub mark links to the project repo.
+            EntryCard(
+                icon = ImageVector.vectorResource(R.drawable.ic_github),
+                title = stringResource(R.string.about_source_code),
+                subtitle = GITHUB_REPO_URL.removePrefix("https://"),
+                onClick = { context.openUrl(GITHUB_REPO_URL) },
+                tint = Tints.gray,
+                shape = MaterialShapes.Cookie9Sided,
+                trailing = {
+                    Icon(
+                        Icons.AutoMirrored.Filled.OpenInNew,
+                        contentDescription = null,
+                        tint = Helm.colors.text2,
+                        modifier = Modifier.size(20.dp),
+                    )
+                },
+            )
 
             // Developer: GitHub avatar + nickname, opens the profile in a browser.
-            ElevatedCard(
-                onClick = { context.openUrl(GITHUB_PROFILE_URL) },
-                modifier = Modifier.fillMaxWidth(),
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(CardShape)
+                    .background(Helm.colors.card)
+                    .clickable { context.openUrl(GITHUB_PROFILE_URL) }
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    // Shimmer circle while the GitHub avatar loads.
-                    SubcomposeAsyncImage(
-                        model = GITHUB_AVATAR_URL,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        loading = {
-                            SkeletonBox(
-                                brush = shimmerBrush(),
-                                modifier = Modifier.size(48.dp),
-                                shape = CircleShape,
-                            )
-                        },
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape),
+                // Shimmer cookie while the GitHub avatar loads.
+                SubcomposeAsyncImage(
+                    model = GITHUB_AVATAR_URL,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        SkeletonBox(
+                            brush = shimmerBrush(),
+                            modifier = Modifier.size(48.dp),
+                            shape = CircleShape,
+                        )
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(MaterialShapes.Cookie9Sided.toShape()),
+                )
+                Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
+                    Text(
+                        GITHUB_USERNAME,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Helm.colors.text,
                     )
-                    Column(modifier = Modifier.padding(start = 16.dp)) {
-                        Text(
-                            GITHUB_USERNAME,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Text(
-                            stringResource(R.string.developer),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    Text(
+                        stringResource(R.string.developer),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Helm.colors.text2,
+                    )
                 }
+                Icon(
+                    Icons.AutoMirrored.Filled.OpenInNew,
+                    contentDescription = null,
+                    tint = Helm.colors.text2,
+                    modifier = Modifier.size(20.dp),
+                )
             }
-
-            Text(
-                stringResource(R.string.about_summary),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
-            )
         }
     }
 }

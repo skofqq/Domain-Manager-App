@@ -1,5 +1,12 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material3.MaterialShapes
+import com.skofqq.domainmanager.ui.theme.Tints
+import com.skofqq.domainmanager.ui.theme.Helm
+import androidx.compose.material3.LoadingIndicator
+import com.skofqq.domainmanager.ui.components.*
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -59,12 +66,12 @@ fun DomainStatusCard(
                 modifier = modifier.fillMaxWidth().padding(vertical = 32.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator()
+                LoadingIndicator()
             }
 
-            is StatusUiState.Error -> ElevatedCard(
+            is StatusUiState.Error -> HelmCard(
                 modifier = modifier.fillMaxWidth(),
-                colors = CardDefaults.elevatedCardColors(
+                colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                 ),
             ) {
@@ -76,16 +83,16 @@ fun DomainStatusCard(
                 )
             }
 
-            is StatusUiState.Loaded -> ElevatedCard(modifier = modifier.fillMaxWidth()) {
+            is StatusUiState.Loaded -> HelmCard(modifier = modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(
-                        text = stringResource(R.string.status),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
+                    HelmSectionHeader(
+                        title = stringResource(R.string.status),
+                        icon = Icons.Outlined.Public,
+                        tint = Tints.accent,
+                        shape = MaterialShapes.Cookie9Sided,
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         StatusChip(name = "mihomo", active = s.mihomo)
@@ -100,22 +107,20 @@ fun DomainStatusCard(
                         else -> s.mihomo && s.magitrickle
                     }
                     if (presentOnTarget) {
-                        OutlinedButton(
+                        HelmButton(
+                            text = stringResource(R.string.remove_from, defaultTarget),
                             onClick = onRemove,
+                            icon = Icons.Default.Close,
+                            style = ButtonStyle.Danger,
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error,
-                            ),
-                        ) {
-                            Text(stringResource(R.string.remove_from, defaultTarget))
-                        }
+                        )
                     } else {
-                        FilledTonalButton(
+                        HelmButton(
+                            text = stringResource(R.string.add_to, defaultTarget),
                             onClick = onAdd,
+                            icon = Icons.Default.Add,
                             modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.add_to, defaultTarget))
-                        }
+                        )
                     }
                 }
             }
@@ -131,33 +136,14 @@ fun DomainStatusCard(
  */
 @Composable
 private fun StatusChip(name: String, active: Boolean) {
-    val container = if (active) MaterialTheme.colorScheme.secondaryContainer
-    else MaterialTheme.colorScheme.surfaceContainerHighest
-    val content = if (active) MaterialTheme.colorScheme.onSecondaryContainer
-    else MaterialTheme.colorScheme.onSurfaceVariant
     val stateLabel = stringResource(
         if (active) R.string.a11y_target_added else R.string.a11y_target_not_added,
         name,
     )
-    Surface(
-        color = container,
-        contentColor = content,
-        shape = MaterialTheme.shapes.small,
-        modifier = Modifier.semantics(mergeDescendants = true) {
-            contentDescription = stateLabel
-        },
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Icon(
-                imageVector = if (active) Icons.Default.Check else Icons.Default.Close,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-            )
-            Text(name, style = MaterialTheme.typography.labelLarge)
-        }
-    }
+    StatusPill(
+        text = name,
+        color = if (active) Helm.colors.accent else Helm.colors.text2,
+        icon = if (active) Icons.Default.Check else Icons.Default.Close,
+        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = stateLabel },
+    )
 }

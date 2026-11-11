@@ -31,9 +31,26 @@ import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.blur
+import com.skofqq.domainmanager.ui.components.BarItem
+import com.skofqq.domainmanager.ui.components.BottomBar
+import com.skofqq.domainmanager.ui.components.GlassStyle
+import com.skofqq.domainmanager.ui.components.Haptics
+import com.skofqq.domainmanager.ui.components.LocalBackdrop
+import com.skofqq.domainmanager.ui.components.LocalBottomBarPadding
+import com.skofqq.domainmanager.ui.components.LocalGlass
+import com.skofqq.domainmanager.ui.components.LocalScreenBackdrop
+import com.skofqq.domainmanager.ui.components.SheetBlurState
+import com.skofqq.domainmanager.ui.components.TapMotion
+import com.skofqq.domainmanager.ui.components.backdropSource
+import com.skofqq.domainmanager.ui.components.rememberBackdrop
+import com.skofqq.domainmanager.ui.theme.Helm
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,7 +96,7 @@ class MainActivity : AppCompatActivity() {
         var skipSplashOnNextCreate = false
     }
 
-    private val prefs by lazy { PrefsStore(this) }
+    private val prefs by lazy { PrefsStore(this).also { Haptics.enabled = it.hapticFeedback } }
     private val api by lazy { RouterApi(prefs, applicationContext) }
     private val history by lazy { HistoryStore.get(this) }
     private val domainsViewModel by viewModels<DomainsViewModel> { DomainsViewModel.Factory(api, history) }
@@ -207,6 +224,14 @@ class MainActivity : AppCompatActivity() {
             DomainManagerTheme(
                 darkTheme = darkTheme,
                 useDynamicColor = settingsViewModel.useDynamicColor,
+                trueBlack = settingsViewModel.trueBlack,
+                glass = GlassStyle(
+                    enabled = settingsViewModel.liquidGlass && Build.VERSION.SDK_INT >= 31,
+                    translucent = true,
+                    blur = 0.5f,
+                    lens = 0.5f,
+                    sheetBlur = true,
+                ),
             ) {
                 // Keep the window background in exact sync with the composed theme,
                 // so any later recreation starts from the right color.
@@ -302,6 +327,7 @@ private data class TabSpec(
     @StringRes val labelRes: Int,
     val filledIcon: ImageVector,
     val outlinedIcon: ImageVector,
+    val motion: TapMotion,
 )
 
 private const val TAB_DOMAINS = 0
@@ -311,9 +337,9 @@ private const val TAB_SETTINGS = 2
 private val ZAPRET_ENGINES = setOf("zapret", "zapret2")
 
 private val TABS = listOf(
-    TabSpec(R.string.domains, Icons.Filled.Public, Icons.Outlined.Public),
-    TabSpec(R.string.status, Icons.Filled.Dns, Icons.Outlined.Dns),
-    TabSpec(R.string.settings, Icons.Filled.Settings, Icons.Outlined.Settings),
+    TabSpec(R.string.domains, Icons.Filled.Public, Icons.Outlined.Public, TapMotion.SPIN),
+    TabSpec(R.string.status, Icons.Filled.Dns, Icons.Outlined.Dns, TapMotion.JUMP),
+    TabSpec(R.string.settings, Icons.Filled.Settings, Icons.Outlined.Settings, TapMotion.GEAR),
 )
 
 @Composable
@@ -346,6 +372,8 @@ private fun MainNavigation(
     // is destructive, so both run immediately, no extra tap.
     var openDevicesFromShortcut by remember { mutableStateOf(false) }
     var openDiagnosticsFromShortcut by remember { mutableStateOf(false) }
+    // Error card "Router settings" button: Settings tab, straight into Authorization.
+    var openAuthFromError by remember { mutableStateOf(false) }
     var openMihomoUpdateFromShortcut by remember { mutableStateOf(false) }
     var openSpeedtestSubscreenFromShortcut by remember { mutableStateOf(false) }
     var autoRunSpeedtestFromShortcut by remember { mutableStateOf(false) }
@@ -387,34 +415,29 @@ private fun MainNavigation(
         }
     }
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                TABS.forEachIndexed { index, tab ->
-                    val selected = selectedTab == index
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = { selectedTab = index },
-                        icon = {
-                            Icon(
-                                if (selected) tab.filledIcon else tab.outlinedIcon,
-                                contentDescription = null,
-                            )
-                        },
-                        label = { Text(stringResource(tab.labelRes)) },
-                    )
-                }
-            }
-        },
-        // Status-bar inset is handled by each tab's own TopAppBar; padding it here
-        // too would double the gap above the title.
-        contentWindowInsets = WindowInsets(0),
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
+    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val glass = LocalGlass.current
+    val sheetBlur by animateDpAsState(
+        if (glass.enabled && glass.sheetBlur && SheetBlurState.open > 0) glass.blurRadius / 2 else 0.dp,
+        tween(250),
+        label = "sheetBlur",
+    )
+    val backdrop = rememberBackdrop()
+    val barItems = TABS.map { BarItem(stringResource(it.labelRes), it.filledIcon, it.motion) }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Helm.colors.page)
+            .blur(sheetBlur),
+    ) {
+        Box(Modifier.fillMaxSize().backdropSource(backdrop)) {
+          CompositionLocalProvider(
+              LocalScreenBackdrop provides backdrop,
+              // Room for the floating bar: 68 dp bar + 16 dp margin + breathing space.
+              LocalBottomBarPadding provides bottomInset + 100.dp,
+              LocalOpenRouterSettings provides { selectedTab = TAB_SETTINGS; openAuthFromError = true },
+          ) {
             // Peeks Domains behind the leaving tab while the gesture is in
             // progress, same as the system draws for cross-activity predictive
             // back. Only mounted during an active swipe, so switching tabs
@@ -483,12 +506,30 @@ private fun MainNavigation(
                         TAB_SETTINGS -> SettingsScreen(
                             settingsViewModel,
                             backupViewModel,
-                            initialSubScreen = if (openDiagnosticsFromShortcut) "diagnostics" else null,
-                            onInitialSubScreenConsumed = { openDiagnosticsFromShortcut = false },
+                            initialSubScreen = when {
+                                openDiagnosticsFromShortcut -> "diagnostics"
+                                openAuthFromError -> "auth"
+                                else -> null
+                            },
+                            onInitialSubScreenConsumed = {
+                                openDiagnosticsFromShortcut = false
+                                openAuthFromError = false
+                            },
                         )
                     }
                 }
             }
+          }
+        }
+        CompositionLocalProvider(LocalBackdrop provides backdrop) {
+            BottomBar(
+                items = barItems,
+                selected = selectedTab.toFloat(),
+                onSelect = { selectedTab = it },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = bottomInset + 16.dp),
+            )
         }
     }
 }

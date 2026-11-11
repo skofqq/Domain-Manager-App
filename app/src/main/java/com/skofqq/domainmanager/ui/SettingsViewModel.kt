@@ -165,6 +165,31 @@ class SettingsViewModel(
         prefs.useDynamicColor = value
     }
 
+    var liquidGlass by mutableStateOf(prefs.liquidGlass)
+        private set
+
+    fun updateLiquidGlass(value: Boolean) {
+        liquidGlass = value
+        prefs.liquidGlass = value
+    }
+
+    var trueBlack by mutableStateOf(prefs.trueBlack)
+        private set
+
+    fun updateTrueBlack(value: Boolean) {
+        trueBlack = value
+        prefs.trueBlack = value
+    }
+
+    var hapticFeedback by mutableStateOf(prefs.hapticFeedback)
+        private set
+
+    fun updateHapticFeedback(value: Boolean) {
+        hapticFeedback = value
+        prefs.hapticFeedback = value
+        com.skofqq.domainmanager.ui.components.Haptics.enabled = value
+    }
+
     var themeMode by mutableStateOf(prefs.themeMode)
         private set
 

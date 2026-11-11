@@ -1,5 +1,12 @@
 package com.skofqq.domainmanager.ui
 
+import com.skofqq.domainmanager.ui.theme.Helm
+import com.skofqq.domainmanager.ui.theme.Tints
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.outlined.FolderOff
+import androidx.compose.material.icons.outlined.Folder
+import com.skofqq.domainmanager.ui.components.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -59,16 +66,11 @@ fun MagitrickleGroupsScreen(viewModel: MagitrickleGroupsViewModel, onBack: () ->
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             state.error?.let { message ->
                 item {
-                    Column {
-                        ErrorCard(message)
-                        TextButton(onClick = { viewModel.refresh() }) {
-                            Text(stringResource(R.string.retry))
-                        }
-                    }
+                    ErrorCard(message, onRetry = { viewModel.refresh() })
                 }
             }
             if (skeletonBrush != null) {
@@ -77,17 +79,17 @@ fun MagitrickleGroupsScreen(viewModel: MagitrickleGroupsViewModel, onBack: () ->
             state.groups?.let { groups ->
                 if (groups.isEmpty()) {
                     item {
-                        Text(
-                            stringResource(R.string.magitrickle_groups_empty),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 16.dp),
+                        EmptyState(
+                            icon = Icons.Outlined.FolderOff,
+                            title = stringResource(R.string.magitrickle_groups_empty),
+                            tint = Tints.gray,
                         )
                     }
                 }
-                items(groups, key = { it.id }) { group ->
+                itemsIndexed(groups, key = { _, group -> group.id }) { index, group ->
                     MagitrickleGroupRow(
                         group = group,
+                        index = index,
                         expanded = expandedId == group.id,
                         onToggle = { expandedId = if (expandedId == group.id) null else group.id },
                     )
@@ -98,57 +100,34 @@ fun MagitrickleGroupsScreen(viewModel: MagitrickleGroupsViewModel, onBack: () ->
 }
 
 @Composable
-private fun MagitrickleGroupRow(group: MagitrickleGroup, expanded: Boolean, onToggle: () -> Unit) {
-    ElevatedCard(onClick = onToggle, modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
+private fun MagitrickleGroupRow(group: MagitrickleGroup, index: Int, expanded: Boolean, onToggle: () -> Unit) {
+    val enabledRules = group.rules.count { it.enable }
+    ExpandableCard(
+        title = group.name,
+        subtitle = pluralStringResource(R.plurals.n_rules, group.rules.size, group.rules.size),
+        expanded = expanded,
+        onToggle = onToggle,
+        icon = Icons.Outlined.Folder,
+        tint = cycleTint(index),
+        shape = cycleShape(index),
+        trailing = { ValuePill(enabledRules.toString(), cycleTint(index)) },
+    ) {
+        if (group.rules.isEmpty()) {
+            SectionNote(stringResource(R.string.magitrickle_group_no_rules))
+        } else {
+            MonoBlock {
+                group.rules.forEach { rule ->
                     Text(
-                        group.name,
-                        style = MaterialTheme.typography.titleMedium,
+                        text = rule.rule,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                        // Disabled rules stay visible (they are real router state)
+                        // but visually de-emphasized.
+                        color = if (rule.enable) Helm.colors.text else Helm.colors.text2,
+                        textDecoration = if (rule.enable) null else TextDecoration.LineThrough,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(vertical = 2.dp),
                     )
-                    Text(
-                        pluralStringResource(R.plurals.n_rules, group.rules.size, group.rules.size),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.rotate(if (expanded) 90f else 0f),
-                )
-            }
-            if (expanded) {
-                if (group.rules.isEmpty()) {
-                    Text(
-                        stringResource(R.string.magitrickle_group_no_rules),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 10.dp),
-                    )
-                } else {
-                    Column(
-                        modifier = Modifier.padding(top = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        group.rules.forEach { rule ->
-                            Text(
-                                text = rule.rule,
-                                style = MaterialTheme.typography.bodyMedium,
-                                // Disabled rules stay visible (they're real router
-                                // state) but visually de-emphasized.
-                                color = if (rule.enable) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurfaceVariant,
-                                textDecoration = if (rule.enable) null else TextDecoration.LineThrough,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -157,7 +136,7 @@ private fun MagitrickleGroupRow(group: MagitrickleGroup, expanded: Boolean, onTo
 
 @Composable
 private fun SkeletonMagitrickleGroupRow(brush: androidx.compose.ui.graphics.Brush) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    HelmCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),

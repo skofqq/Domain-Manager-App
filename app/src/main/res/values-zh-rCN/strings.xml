@@ -1,0 +1,596 @@
+<resources>
+    <string name="app_name">Helm</string>
+
+    <!-- Navigation -->
+    <string name="settings">设置</string>
+    <string name="domains">域名</string>
+
+    <!-- Domain fields / status card -->
+    <string name="domain">域名</string>
+    <string name="domain_placeholder">example.com</string>
+    <string name="status">状态</string>
+    <string name="add_to">添加到 %1$s</string>
+    <string name="remove_from">从 %1$s 移除</string>
+
+    <!-- Domains screen -->
+    <string name="tab_routing">路由</string>
+    <string name="tab_strategies">策略</string>
+    <string name="add_domain">添加域名</string>
+    <string name="add">添加</string>
+    <string name="apply">应用</string>
+    <string name="remove_domain">移除域名</string>
+    <string name="no_domains">还没有受管理的域名。下拉刷新。</string>
+    <string name="domain_partial">此域名仅在 %1$s 中。</string>
+    <string name="edit_domain">编辑域名</string>
+    <string name="paste_from_clipboard">从剪贴板粘贴</string>
+    <string name="cancel">取消</string>
+    <string name="back">返回</string>
+
+    <!-- Strategies -->
+    <string name="strategy">策略</string>
+    <string name="strategy_n">策略 %1$d</string>
+    <string name="strategy_pool">无专属绑定 — 共享池</string>
+    <string name="strategy_range_loading">正在从路由器加载策略范围…</string>
+    <string name="strat_showing_active">运行中 — 更改立即生效</string>
+    <string name="strat_showing_inactive">已停止 — 更改仅会保存</string>
+    <string name="engine_running">运行中</string>
+    <string name="engine_stopped">已停止</string>
+    <string name="strat_no_engine">没有正在运行的 DPI 引擎</string>
+    <string name="strat_no_engine_hint">在“状态”标签页启动 zapret 或 zapret2，即可按域名管理策略。</string>
+    <string name="open_status">打开“状态”</string>
+    <string name="retry">重试</string>
+    <string name="no_strat_domains">还没有设置专属策略的域名。</string>
+    <string name="strategy_pool_short">共享池</string>
+    <string name="search_domains">搜索域名</string>
+    <string name="search_or_add_domain">搜索或添加域名</string>
+    <string name="clear_search">清除搜索</string>
+    <string name="search_no_results">没有匹配的域名。</string>
+    <string name="search_empty_title">未找到</string>
+    <string name="empty_domains_title">还没有域名</string>
+    <string name="empty_strat_title">还没有专属策略</string>
+    <string name="add_domain_named">添加 %1$s</string>
+    <string name="pick_strategy">选择策略</string>
+    <plurals name="n_domains">
+        <item quantity="other">%d 个域名</item>
+    </plurals>
+
+    <!-- zapret2 profiles -->
+    <string name="z2_profiles_title">zapret2 配置</string>
+    <string name="z2_proto_tls">TLS</string>
+    <string name="z2_proto_udp">QUIC / UDP</string>
+    <string name="z2_proto_http">HTTP</string>
+    <string name="z2_apply_hint">对运行中引擎的更改会通过短暂重启生效。</string>
+    <string name="z2_rollback">回滚</string>
+    <string name="z2_rollback_done">已回滚到上一组设置</string>
+    <string name="z2_rollback_nothing">没有可回滚的已保存设置</string>
+
+    <!-- zapret v1 profiles -->
+    <string name="z1_profiles_title">zapret 配置</string>
+
+    <!-- Shared by both zapret profile screens -->
+    <string name="profile_caption">键 %1$s · 当前：%2$d</string>
+    <string name="check_reachability">检查</string>
+    <string name="z_profiles_section">配置</string>
+    <string name="z_actions_section">更改</string>
+    <string name="voice_title">语音通话 — Discord/WhatsApp/Telegram</string>
+    <string name="voice_custom">自定义</string>
+    <string name="voice_bolvan">bol-van 脚本</string>
+
+    <!-- Status (services) screen -->
+    <string name="health_model">型号</string>
+    <string name="health_firmware">固件</string>
+    <string name="health_uptime">运行时间</string>
+    <string name="health_load">平均负载</string>
+    <string name="health_cpu_temp">CPU 温度</string>
+    <string name="health_memory">内存</string>
+    <string name="health_wan_ip">IPv4</string>
+    <string name="health_wan_ipv6">IPv6</string>
+    <string name="dur_days_hours">%1$d天 %2$d小时</string>
+    <string name="dur_hours_minutes">%1$d小时 %2$d分</string>
+    <string name="dur_minutes">%1$d分</string>
+    <string name="devices_title">设备</string>
+    <string name="devices_favorites">收藏</string>
+    <string name="devices_all">所有设备</string>
+    <string name="devices_online_of">%2$d 台中 %1$d 台在线</string>
+    <string name="device_scan_label">正在检查设备</string>
+    <string name="device_unknown">未知设备</string>
+    <string name="device_icon_title">设备图标</string>
+    <string name="device_icon_auto">自动</string>
+    <string name="device_type_speaker">音箱</string>
+    <string name="device_type_bulb">灯泡</string>
+    <string name="device_type_phone">手机</string>
+    <string name="device_type_pc">电脑</string>
+    <string name="device_type_laptop">笔记本</string>
+    <string name="device_type_router">路由器</string>
+    <string name="device_type_zigbee">ZigBee 网关</string>
+    <string name="device_type_printer">打印机</string>
+    <string name="device_type_socket">插座</string>
+    <string name="device_type_tv">电视</string>
+    <string name="device_type_storage">存储</string>
+    <string name="device_type_camera">摄像头</string>
+    <string name="device_type_generic">其他</string>
+    <plurals name="n_devices_online">
+        <item quantity="other">网络中有 %d 台设备</item>
+    </plurals>
+    <string name="device_scan_progress">%1$d/%2$d</string>
+    <string name="wake_device">唤醒</string>
+    <string name="wake_sent">已发送网络唤醒数据包</string>
+    <string name="favorite_device">加入收藏</string>
+    <string name="unfavorite_device">取消收藏</string>
+    <string name="health_disk">磁盘 (/overlay)</string>
+    <string name="svc_running">运行中</string>
+    <string name="svc_stopped">已停止</string>
+    <string name="svc_failed">出错</string>
+    <string name="svc_autostart">开机自启</string>
+    <string name="svc_start">启动</string>
+    <string name="svc_stop">停止</string>
+    <string name="svc_restart">重启</string>
+    <string name="service_log_button">日志</string>
+    <string name="service_log_title">%1$s 日志</string>
+    <string name="service_log_empty">没有日志记录</string>
+    <string name="refresh">刷新</string>
+
+    <!-- mihomo drill-down -->
+    <string name="section_proxy_groups">代理组</string>
+    <string name="groups_view_grid">网格视图</string>
+    <string name="groups_view_list">列表视图</string>
+    <string name="section_traffic">流量</string>
+    <string name="section_connections">活动连接</string>
+    <string name="traffic_download">下载</string>
+    <string name="traffic_upload">上传</string>
+    <string name="speed_value">%1$s/s</string>
+    <string name="traffic_total">共 %1$s</string>
+    <string name="no_connections">没有活动连接</string>
+    <string name="close_connection">关闭连接</string>
+    <string name="err_mihomo_unreachable">mihomo 无响应 — 请检查服务是否在运行</string>
+    <string name="err_mihomo_select_failed">mihomo 拒绝切换节点</string>
+    <string name="traffic_chart_caption">最近约 5 分钟，经由 mihomo</string>
+    <string name="mihomo_only_note">仅统计经由 mihomo 代理的流量，而非设备的总流量。</string>
+    <string name="source_all">全部</string>
+    <string name="source_traffic_summary">%1$s：↓ %2$s · ↑ %3$s（仅 mihomo）</string>
+
+    <!-- Network diagnostics -->
+    <string name="diag_net_title">网络诊断</string>
+    <string name="diag_entry_desc">Ping、路由追踪、测速和隧道检查</string>
+    <string name="diag_host_section">Ping / 路由追踪</string>
+    <string name="diag_ping">Ping</string>
+    <string name="diag_traceroute">路由追踪</string>
+    <string name="diag_preset_wan">WAN %1$s</string>
+    <string name="ping_result_ok">可访问 · 丢包 %1$d%% · 平均 %2$s ms</string>
+    <string name="ping_result_fail">无响应（100%% 丢包）</string>
+    <string name="trace_title">到 %1$s 的路由</string>
+    <string name="diag_speedtest_title">测速</string>
+    <string name="diag_speedtest_note">测量的是路由器 WAN 口的下载速度，而不是这部手机的 Wi-Fi。最多需要约 25 秒。</string>
+    <string name="diag_speedtest_run">开始测速</string>
+    <string name="diag_speedtest_running">测量中…</string>
+    <string name="diag_speedtest_result_label">路由器 WAN 下载</string>
+    <string name="speed_mbps">%1$s Mbit/s</string>
+    <string name="diag_tunnel_title">隧道检查</string>
+    <string name="diag_tunnel_note">使用 mihomo 内置的延迟测试，一次测试组内所有节点。5 秒内无应答的节点会被标记为无响应。</string>
+    <string name="diag_tunnel_run">测试节点</string>
+    <string name="diag_tunnel_running">测试中…</string>
+    <string name="ms_value">%1$d ms</string>
+    <string name="ms_value_frac">%1$s ms</string>
+    <string name="node_no_response">无响应</string>
+    <string name="delay_test">测试</string>
+    <string name="delay_timeout">超时</string>
+    <string name="delay_test_all">测试所有组</string>
+
+    <!-- MagiTrickle groups overview -->
+    <string name="magitrickle_groups_title">MagiTrickle 组</string>
+    <string name="magitrickle_groups_empty">路由器上没有配置任何组。</string>
+    <string name="magitrickle_group_no_rules">此组中没有规则。</string>
+    <plurals name="n_rules">
+        <item quantity="other">%d 条规则</item>
+    </plurals>
+    <string name="domain_in_group">已在“%1$s”组中</string>
+
+    <!-- Share screen -->
+    <string name="share_title">添加到路由器</string>
+    <string name="close">关闭</string>
+    <string name="reload_status">重新加载状态</string>
+    <string name="done">完成</string>
+
+    <!-- Settings screen -->
+    <string name="settings_appearance_desc">更改应用主题</string>
+    <string name="settings_auth_title">授权</string>
+    <string name="settings_auth_desc">路由器配置和令牌</string>
+
+    <!-- Router profiles -->
+    <string name="default_profile_name">我的路由器</string>
+    <string name="settings_profiles_hint">选中的配置处于活动状态，所有标签页都使用它。点按某行即可编辑。</string>
+    <string name="profile_add">添加路由器</string>
+    <string name="profile_new_title">新路由器</string>
+    <string name="profile_name">名称</string>
+    <string name="profile_name_placeholder">家</string>
+    <string name="profile_delete_title">删除配置？</string>
+    <string name="profile_delete_text">“%1$s”将从这部手机中移除。路由器本身不受影响。</string>
+    <string name="profile_delete_last_warning">这是唯一已配置的路由器，删除后将没有任何配置。</string>
+    <string name="delete">删除</string>
+    <string name="update">更新</string>
+    <string name="qr_profile_added">已添加配置“%1$s”</string>
+    <string name="qr_update_title">更新配置？</string>
+    <string name="qr_update_text">此二维码包含现有配置“%1$s”的地址。要更新它的数据而不是创建重复项吗？</string>
+    <string name="auth_to_show_qr">确认以显示二维码</string>
+    <string name="settings_about_title">关于</string>
+    <string name="settings_about_desc">版本和应用信息</string>
+
+    <!-- Security -->
+    <string name="section_security">安全</string>
+    <string name="settings_security_desc">生物识别和 PIN 码</string>
+    <string name="lock_explain">使用指纹或面部识别；生物识别不可用时，改用设备的 PIN 码、图案或密码。</string>
+    <string name="lock_unavailable">此设备既没有设置生物识别，也没有设置屏幕锁定，因此无法启用保护。</string>
+    <string name="lock_mode_off">关闭</string>
+    <string name="lock_mode_off_desc">无额外保护</string>
+    <string name="lock_mode_token">仅显示令牌时</string>
+    <string name="lock_mode_token_desc">在“授权”中显示令牌前需要确认</string>
+    <string name="lock_mode_app">整个应用</string>
+    <string name="lock_mode_app_desc">每次启动时使用生物识别或 PIN 码</string>
+    <string name="unlock_title">解锁 Helm</string>
+    <string name="unlock">解锁</string>
+    <string name="auth_to_show_token">确认以显示令牌</string>
+
+    <!-- Backup -->
+    <string name="section_backup">备份</string>
+    <string name="settings_backup_desc">导出和导入列表</string>
+    <string name="backup_export_title">导出</string>
+    <string name="backup_export_note">路由器当前列表的快照，可供参考或手动恢复。实际状态始终保存在路由器上，本应用只通过 API 读取和写入。</string>
+    <string name="backup_build">生成快照</string>
+    <string name="backup_building">生成中…</string>
+    <string name="backup_export_summary">路由：%1$d · zapret2：%2$d · zapret：%3$d</string>
+    <string name="copy">复制</string>
+    <string name="copied">已复制</string>
+    <string name="share">分享</string>
+    <string name="backup_import_title">导入</string>
+    <string name="backup_import_note">粘贴快照 JSON，或纯文本域名列表（每行一个，将以默认目标添加到路由）。</string>
+    <string name="backup_import_hint_restart">如果 zapret 引擎正在运行，每导入一个策略都会重启其守护进程，大量导入可能需要一段时间。</string>
+    <string name="backup_run_import">导入</string>
+    <string name="backup_progress">%1$d / %2$d…</string>
+    <string name="backup_result">已添加：%1$d · 已存在：%2$d · 失败：%3$d</string>
+    <string name="backup_parse_error">无法解析输入内容，需要快照 JSON 或域名列表</string>
+    <string name="backup_empty">没有可导入的内容</string>
+
+    <!-- QR setup -->
+    <string name="section_qr">二维码</string>
+    <string name="qr_hint">将这些设置转移到另一部手机：在这里显示二维码，在那里扫描。</string>
+    <string name="qr_show">显示二维码</string>
+    <string name="qr_scan">扫描二维码</string>
+    <string name="qr_show_title">连接设置</string>
+    <string name="qr_show_warning">二维码以明文包含地址、端口和访问令牌，请只在可信设备上显示。</string>
+    <string name="qr_scanned">已扫描 — 请检查各字段并点按“保存”</string>
+    <string name="qr_plain_hint">长按二维码可切换为普通二维码（适用于挑剔的扫描器），再次长按可切换回来。</string>
+    <string name="qr_invalid">这不是 Helm 设置二维码</string>
+
+    <!-- History -->
+    <string name="section_history">历史记录</string>
+    <string name="settings_history_desc">本地记录的已添加域名</string>
+    <string name="history_note">仅保存在这部手机上：每次成功添加都会记录日期。路由器不保存时间戳，因此此列表不会与其同步。</string>
+    <string name="history_empty">暂无记录，添加的域名会显示在这里。</string>
+
+    <!-- Deep link / automation -->
+    <string name="deeplink_added">已将 %1$s 添加到路由器</string>
+
+    <!-- Widget -->
+    <string name="widget_label">服务状态</string>
+    <string name="widget_description">路由器服务的状态指示点</string>
+    <string name="widget_label_mihomo">mihomo</string>
+    <string name="widget_label_magitrickle">MT</string>
+    <string name="widget_label_zapret">zapret</string>
+    <string name="widget_label_zapret2">zapret2</string>
+
+    <!-- Diagnostics -->
+    <string name="section_diagnostics">诊断</string>
+    <string name="settings_diagnostics_desc">超时和请求调试</string>
+    <string name="diag_timeout_title">HTTP 请求超时</string>
+    <string name="diag_timeout_value">%1$d 秒</string>
+    <string name="diag_log_title">最近的 API 请求</string>
+    <string name="diag_log_note">URL 中的令牌已被遮盖，可放心复制并用于错误报告。</string>
+    <string name="diag_log_empty">还没有请求。</string>
+    <string name="diag_failed">失败</string>
+
+    <!-- Background monitoring -->
+    <string name="section_monitoring">监控</string>
+    <string name="settings_monitoring_desc">后台检查 WAN IP、磁盘和延迟</string>
+    <string name="monitoring_explain">在后台定期检查路由器，并在 WAN IP 变化、磁盘空间不足或代理延迟变差时通知你。使用 WorkManager，仅在有网络连接时运行。</string>
+    <string name="monitoring_enable">启用后台监控</string>
+    <string name="monitoring_interval_title">检查间隔</string>
+    <string name="monitoring_interval_value">%1$d 分钟</string>
+    <string name="monitoring_wan_title">WAN IP 变化</string>
+    <string name="monitoring_wan_desc">路由器 WAN IPv4/IPv6 变化时通知</string>
+    <string name="monitoring_disk_title">磁盘空间</string>
+    <string name="monitoring_disk_desc">/overlay 使用率达到 90% 时通知</string>
+    <string name="monitoring_latency_title">延迟变差</string>
+    <string name="monitoring_latency_desc">选择要监控的代理组。当前节点延迟约翻倍或无响应时通知。</string>
+    <string name="monitoring_latency_off">关闭</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_name">路由器监控</string>
+    <string name="notif_channel_desc">WAN IP 变化、磁盘空间不足和延迟变差提醒</string>
+    <string name="notif_wan_changed_title">路由器 IP 已变化</string>
+    <string name="notif_wan_changed_text">%1$s → %2$s</string>
+    <string name="notif_disk_title">磁盘空间不足</string>
+    <string name="notif_disk_text">/overlay 已使用 %1$d%%</string>
+    <string name="notif_latency_title">连接变差</string>
+    <string name="notif_latency_down_text">%1$s 无响应</string>
+    <string name="notif_latency_degraded_text">%1$s：之前 %2$d ms，现在 %3$d ms</string>
+
+    <!-- App Shortcuts -->
+    <string name="section_shortcuts">应用快捷方式</string>
+    <string name="settings_shortcuts_desc">为启动器快捷菜单选择 2–4 个操作</string>
+    <string name="shortcuts_explain">长按应用图标即可直接跳转到其中之一。需要确认的操作（重启、更新 mihomo）仍须在应用内明确点按，快捷方式不会自行触发它们。</string>
+    <string name="shortcuts_min_max_hint">请选择 2 到 4 个快捷方式。</string>
+    <string name="shortcut_status">状态</string>
+    <string name="shortcut_devices">设备列表</string>
+    <string name="shortcut_reboot">重启</string>
+    <string name="shortcut_mihomo_update">更新 mihomo</string>
+    <string name="shortcut_speedtest">测速</string>
+    <string name="shortcut_zapret_restart">重启 zapret/zapret2</string>
+    <string name="shortcut_zapret_restart_named">重启 %1$s</string>
+
+    <!-- Router info sheet -->
+    <string name="router_sheet_routers">路由器</string>
+    <string name="router_sheet_versions">服务版本</string>
+    <string name="loading">加载中…</string>
+    <string name="svc_name_mihomo">mihomo</string>
+    <string name="svc_name_magitrickle">MagiTrickle</string>
+    <string name="svc_name_zapret">zapret</string>
+    <string name="svc_name_zapret2">zapret2</string>
+    <string name="version_unknown">版本未知</string>
+    <string name="check_for_updates">检查更新</string>
+    <string name="update_to_version">更新到 %1$s</string>
+    <string name="whats_new_in">%1$s 新功能</string>
+    <string name="mihomo_up_to_date">%1$s — 最新版本</string>
+    <string name="mihomo_updating">正在更新 mihomo…</string>
+    <string name="mihomo_update_confirm_title">更新 mihomo？</string>
+    <string name="mihomo_update_confirm_text">mihomo 将被停止、替换为新版本并重新启动。这可能需要一些时间，并会短暂中断经路由的流量。</string>
+
+    <!-- Router reboot -->
+    <string name="reboot_router">重启</string>
+    <string name="reboot_confirm_title">重启路由器？</string>
+    <string name="reboot_confirm_text">路由器及其上的所有服务将在 1–2 分钟内不可用，活动连接会被断开。</string>
+    <string name="reboot_confirm_button">重启</string>
+    <string name="rebooting_title">路由器正在重启…</string>
+    <string name="rebooting_hint">通常需要 1–2 分钟。</string>
+    <string name="reboot_countdown">约 %1$d 秒</string>
+    <string name="reboot_check_ready">路由器应该已经恢复，请检查连接。</string>
+    <string name="hide_overlay">隐藏</string>
+    <string name="about_version">版本 %1$s</string>
+    <string name="about_source_code">GitHub 上的源代码</string>
+    <string name="developer">开发者</string>
+    <string name="about_summary">管理 OpenWrt 路由器上的域名路由列表和服务（mihomo、MagiTrickle、zapret）。</string>
+    <string name="dynamic_color_hint">适用于 Android 12 及更高版本</string>
+    <string name="liquid_glass">液态玻璃</string>
+    <string name="liquid_glass_desc">底栏、标题按钮、菜单、面板和对话框的模糊与折射效果</string>
+    <string name="liquid_glass_unsupported">需要 Android 12 或更高版本</string>
+    <string name="true_black">纯黑</string>
+    <string name="true_black_desc">深色主题使用纯黑背景</string>
+    <string name="haptic_feedback">触感反馈</string>
+    <string name="haptic_feedback_desc">点按时短暂振动</string>
+    <string name="section_router">路由器</string>
+    <string name="host">主机</string>
+    <string name="port">端口</string>
+    <string name="section_auth">认证</string>
+    <string name="token">令牌</string>
+    <string name="show">显示</string>
+    <string name="hide">隐藏</string>
+    <string name="section_fallback">备用地址</string>
+    <string name="fallback_hint">可选：主地址无响应时会自动尝试（例如 Tailscale 地址）。主机留空即可禁用。</string>
+    <string name="section_default_target">默认目标</string>
+    <string name="section_appearance">外观</string>
+    <string name="theme_system">跟随系统</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="dynamic_color">动态取色</string>
+    <string name="dynamic_color_desc">根据壁纸取色（Material You）</string>
+    <string name="section_language">语言</string>
+    <string name="language_system">跟随系统</string>
+    <string name="save">保存</string>
+    <string name="saved">已保存</string>
+    <string name="test_connection">测试连接</string>
+    <string name="testing">测试中…</string>
+    <string name="test_connected">已连接</string>
+    <string name="test_connected_bad_token">已连接（令牌错误）</string>
+    <string name="test_connected_no_token">已连接（路由器未配置令牌）</string>
+    <string name="test_http_error">错误：HTTP %1$d</string>
+
+    <!-- Rule providers -->
+    <string name="section_rule_providers">规则集</string>
+    <string name="rule_providers_title">规则集</string>
+    <string name="rule_providers_entry_desc">绑定到代理组的外部列表</string>
+    <string name="rule_providers_hint">规则集由路由器自行下载和更新。匹配的流量会发往该列表绑定的代理组。</string>
+    <string name="rule_providers_empty">还没有添加规则集。点按“添加”将列表绑定到代理组。</string>
+    <plurals name="n_rule_providers">
+        <item quantity="other">已添加 %d 个规则集</item>
+    </plurals>
+    <plurals name="n_hours">
+        <item quantity="other">每 %d 小时</item>
+    </plurals>
+    <string name="provider_routed_to">→ %1$s</string>
+    <string name="provider_delete_title">移除规则集？</string>
+    <string name="provider_delete_text">“%1$s”及其路由规则将从路由器中移除。代理组“%2$s”会保留，代理组需在路由器上自行管理。</string>
+    <string name="provider_removed">已移除“%1$s”</string>
+    <string name="provider_not_found">路由器上没有“%1$s”</string>
+    <string name="provider_added">已添加“%1$s”并绑定到 %2$s</string>
+
+    <string name="provider_add_title">新规则集</string>
+    <string name="provider_step">第 %1$d 步，共 %2$d 步</string>
+    <string name="next">下一步</string>
+    <string name="provider_custom_url">自定义 URL</string>
+    <string name="provider_custom_url_desc">任意 https 来源，不限于下列来源</string>
+    <string name="provider_url">规则集 URL</string>
+    <string name="provider_url_hint">必须以 https:// 开头</string>
+    <string name="provider_url_invalid">请输入完整的 https:// 链接</string>
+    <string name="provider_behavior">列表类型</string>
+    <string name="provider_behavior_hint">列表包含的内容：域名、IP 段或经典混合规则。</string>
+    <string name="behavior_domain">域名</string>
+    <string name="behavior_ipcidr">IP 地址</string>
+    <string name="behavior_classical">经典</string>
+    <string name="provider_format">格式</string>
+    <string name="provider_format_hint">MRS 是紧凑的二进制格式，比 YAML 或纯文本更小、更快。</string>
+    <string name="provider_name">名称</string>
+    <string name="provider_name_hint">小写拉丁字母、数字和“-”，以字母开头</string>
+    <string name="provider_name_invalid">只能使用小写拉丁字母、数字和“-”，并以字母开头</string>
+    <string name="provider_name_taken">已存在同名规则集</string>
+    <string name="provider_interval">更新周期</string>
+    <string name="interval_hour">每小时</string>
+    <string name="interval_6h">每 6 小时</string>
+    <string name="interval_day">每天</string>
+    <string name="interval_week">每周</string>
+    <string name="provider_fetch_proxy">通过代理下载</string>
+    <string name="provider_fetch_proxy_hint">路由器下载此列表时使用的代理组。适用于无法直接访问来源（例如 GitHub）的情况。与匹配流量的去向无关。</string>
+    <string name="provider_fetch_proxy_none">直连</string>
+    <string name="provider_group_title">匹配流量发往</string>
+    <string name="provider_group_hint">与此列表匹配的流量的去向。</string>
+    <string name="provider_group_existing">现有组</string>
+    <string name="provider_group_new">新组</string>
+    <string name="provider_new_group_name">新组名称</string>
+    <string name="provider_new_group_hint">路由器将创建此代理组</string>
+    <string name="provider_new_group_taken">路由器上已有同名组，请将其作为现有组选择</string>
+    <string name="provider_new_group_note">新组将在路由器上创建。之后移除规则集不会移除该组，需在路由器上自行删除。</string>
+    <string name="provider_no_groups">路由器没有返回任何代理组</string>
+    <string name="provider_add_slow_note">路由器会下载列表并校验生成的配置，可能需要一些时间。</string>
+
+
+    <!-- Live source catalog -->
+    <string name="catalog_search">搜索目录</string>
+    <string name="catalog_refresh">刷新目录</string>
+    <string name="catalog_loading">正在加载目录…</string>
+    <string name="catalog_count">%2$d 个文件中的 %1$d 个</string>
+    <string name="catalog_no_results">没有匹配的结果。目录以外的来源请使用“自定义 URL”。</string>
+    <string name="catalog_not_updated">目录未更新</string>
+
+    <!-- mihomo subscriptions -->
+    <string name="section_subscriptions">订阅</string>
+    <string name="subscriptions_title">订阅</string>
+    <string name="subscriptions_entry_desc">所有代理组共用的节点列表</string>
+    <string name="subscriptions_hint">所有订阅都会合并成一个共享节点池，因此新添加的节点可在每个代理组中选择。</string>
+    <plurals name="n_pending_changes">
+        <item quantity="other">%d 项更改尚未应用</item>
+    </plurals>
+    <plurals name="n_proxy_groups">
+        <item quantity="other">%d 个组</item>
+    </plurals>
+    <plurals name="n_routers">
+        <item quantity="other">%d 台路由器</item>
+    </plurals>
+    <plurals name="n_subscriptions">
+        <item quantity="other">%d 个订阅</item>
+    </plurals>
+    <string name="subscription_add_title">新订阅</string>
+    <string name="subscription_edit_title">更改 URL</string>
+    <string name="subscription_edit">更改 URL</string>
+    <string name="subscription_name">名称</string>
+    <string name="subscription_name_placeholder">work-vpn</string>
+    <string name="subscription_name_fixed">名称无法更改。如需重命名，请移除后重新添加</string>
+    <string name="subscription_url">订阅 URL</string>
+    <string name="subscription_slow_note">路由器会校验配置并重新获取节点列表，可能需要一些时间。</string>
+    <string name="subscription_saved">已保存“%1$s”</string>
+    <string name="subscription_removed">已移除“%1$s”</string>
+    <string name="subscription_not_found">路由器上没有“%1$s”</string>
+    <string name="subscription_base_badge">基础</string>
+    <string name="subscription_base_protected">内置于路由器配置中，无法在此更改</string>
+    <string name="subscription_delete_title">移除订阅？</string>
+    <string name="subscription_delete_text">“%1$s”及其节点将从路由器中移除。代理组本身会保留。</string>
+
+    <!-- Tor -->
+    <string name="tor_title">Tor</string>
+    <string name="tor_not_installed">未安装 Tor</string>
+    <string name="tor_not_installed_hint">路由器上没有 Tor 软件包，因此这里没有可配置的内容。</string>
+    <string name="tor_bootstrap">引导</string>
+    <string name="tor_bootstrap_progress">%1$d%%</string>
+    <string name="tor_bridges_label">网桥</string>
+    <plurals name="n_tor_bridges">
+        <item quantity="other">%d 个网桥</item>
+    </plurals>
+    <string name="tor_uptime">运行时间</string>
+    <string name="tor_socks_port">SOCKS</string>
+    <string name="tor_pac_url">PAC</string>
+    <string name="tor_new_identity">新身份</string>
+    <string name="tor_new_identity_hint">为新连接建立新线路。比重启更快，且不会中断现有连接。</string>
+    <string name="tor_new_identity_sent">已请求新线路</string>
+    <string name="tor_new_identity_failed">控制端口尚未就绪，请几秒后重试</string>
+    <string name="tor_test_title">连接测试</string>
+    <string name="tor_test_hint">路由器会通过 Tor 发出真实请求，需要几秒钟。</string>
+    <string name="tor_test_connection">测试连接</string>
+    <string name="tor_testing">测试中…</string>
+    <string name="tor_test_ok">已通过 Tor 连接</string>
+    <string name="tor_test_failed">未连接</string>
+    <string name="tor_test_failed_hint">Tor 尚未完成引导，或网桥无法访问。</string>
+    <string name="tor_bridges_title">网桥</string>
+    <string name="tor_bridges_hint">在 Tor 本身被封锁的地方，网桥可以提供帮助。从 Tor Project 获取网桥，并原样粘贴每一行。保存会重启 Tor。</string>
+    <string name="tor_bridges_saving">正在保存并重启 Tor…</string>
+    <string name="tor_no_bridges">直连，无网桥</string>
+    <string name="tor_add_bridge">添加网桥</string>
+    <string name="tor_bridge_line">网桥行</string>
+    <string name="tor_bridge_placeholder">obfs4 1.2.3.4:443 FINGERPRINT cert=… iat-mode=0</string>
+    <string name="tor_bridge_hint">请完整粘贴收到的整行内容。</string>
+    <string name="tor_bridge_added">已添加网桥，Tor 已重启</string>
+    <string name="tor_bridge_removed">已移除网桥，Tor 已重启</string>
+    <string name="tor_bridge_delete_title">移除网桥？</string>
+    <string name="tor_bridge_delete_text">该网桥将从路由器中移除，Tor 会重新启动。</string>
+
+    <!-- API / network errors -->
+    <string name="err_bad_token">令牌错误 — 请检查设置</string>
+    <string name="err_token_not_configured">路由器未配置令牌</string>
+    <string name="err_bad_domain">域名格式无效</string>
+    <string name="err_empty_domain">域名为空</string>
+    <string name="err_bad_service">未知服务</string>
+    <string name="err_bad_host">主机无效</string>
+    <string name="err_bad_mac">MAC 地址无效</string>
+    <string name="err_etherwake_missing">路由器上未安装 etherwake</string>
+    <string name="err_bad_engine">未知引擎</string>
+    <string name="err_bad_strategy">策略编号超出范围</string>
+    <string name="err_strategy_unconfirmed">路由器未确认策略更改</string>
+    <string name="err_bad_provider_name">规则集名称无效</string>
+    <string name="err_bad_url">路由器拒绝了此 URL</string>
+    <string name="err_bad_behavior">列表类型无效</string>
+    <string name="err_bad_format">格式无效</string>
+    <string name="err_bad_interval">更新周期超出范围（60 秒 – 7 天）</string>
+    <string name="err_missing_group">未选择代理组</string>
+    <string name="err_group_both_set">请选择现有组或新组，不能同时选择</string>
+    <string name="err_group_not_found">路由器上已没有该代理组，请返回并选择其他组</string>
+    <string name="err_bad_new_group">新组名称无效</string>
+    <string name="err_provider_exists">路由器上已有同名规则集</string>
+    <string name="err_group_exists">路由器上已有同名组，请将其作为现有组选择</string>
+    <string name="err_mihomo_config_test_failed">路由器拒绝了生成的 mihomo 配置，规则集未添加。请检查 URL、列表类型和格式。</string>
+    <string name="err_subscription_exists">已存在同名订阅</string>
+    <string name="err_subscription_not_found">路由器上已没有该订阅</string>
+    <string name="err_subscription_base_protected">内置订阅无法移除</string>
+    <string name="err_tor_controlport_not_ready">Tor 控制端口尚未就绪，请几秒后重试</string>
+    <string name="err_tor_controlport_failed">Tor 拒绝了控制端口命令</string>
+    <string name="err_catalog_rate_limited">GitHub 正在限制请求频率（无令牌时每个 IP 每小时 60 次）。请稍后重试，或手动输入 URL。</string>
+    <string name="err_catalog_http">GitHub 返回 HTTP %1$d</string>
+    <string name="err_generic">错误 %1$d：%2$s</string>
+    <string name="err_timeout">路由器没有响应。请确认手机已连接到路由器的 Wi-Fi，且端口正确。</string>
+    <string name="err_unreachable">无法连接路由器，请检查地址和端口。</string>
+    <string name="err_unknown_host">未知主机，请检查路由器地址。</string>
+    <string name="err_network">网络错误</string>
+    <string name="err_invalid_router_address">路由器地址无效：%1$s</string>
+    <string name="err_empty_response">路由器返回空响应</string>
+    <string name="err_tls">路由器在该端口以 HTTPS 应答，而不是 Helm API。这通常是路由器的网页管理界面（LuCI）。请检查端口：API 运行在单独的 HTTP 端口上。</string>
+    <string name="err_not_api">该地址有响应，但不是 Helm API，返回的是网页。请检查端口，并确认路由器上已安装 API。</string>
+    <string name="err_title_connection">无法连接到路由器</string>
+    <string name="err_title_config">请检查路由器地址</string>
+    <string name="err_title_access">访问被拒绝</string>
+    <string name="err_title_other">出了点问题</string>
+    <string name="err_details">详细信息</string>
+    <string name="err_open_settings">路由器设置</string>
+    <string name="err_raw">%1$s</string>
+
+    <!-- Accessibility labels -->
+    <string name="strategy_previous">上一个策略</string>
+    <string name="strategy_next">下一个策略</string>
+    <string name="theme_previous">上一个主题</string>
+    <string name="theme_next">下一个主题</string>
+    <string name="a11y_target_added">%1$s：已添加</string>
+    <string name="a11y_target_not_added">%1$s：未添加</string>
+    <string name="a11y_autostart_on">开机自启已开启</string>
+    <string name="a11y_autostart_off">开机自启已关闭</string>
+    <string name="a11y_device_online">在线</string>
+    <string name="a11y_device_offline">离线</string>
+    <string name="a11y_check_ok">可访问</string>
+    <string name="a11y_check_failed">不可访问</string>
+    <string name="copy_ip">复制 IP 地址</string>
+    <string name="copy_mac">复制 MAC 地址</string>
+    <string name="open_release_notes">打开更新说明</string>
+</resources>

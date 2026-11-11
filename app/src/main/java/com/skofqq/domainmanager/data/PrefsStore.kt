@@ -197,8 +197,24 @@ class PrefsStore(context: Context) {
     // ---------------------------------------------------------------------------
 
     var useDynamicColor: Boolean
-        get() = uiPrefs.getBoolean(KEY_DYNAMIC_COLOR, true)
+        // Boxy palette by default; wallpaper colors are opt-in.
+        get() = uiPrefs.getBoolean(KEY_DYNAMIC_COLOR, false)
         set(value) { uiPrefs.edit().putBoolean(KEY_DYNAMIC_COLOR, value).apply() }
+
+    /** Liquid glass (blur + refraction) on the bottom bar, header buttons, sheets and dialogs. Android 12+. */
+    var liquidGlass: Boolean
+        get() = uiPrefs.getBoolean(KEY_LIQUID_GLASS, true)
+        set(value) { uiPrefs.edit().putBoolean(KEY_LIQUID_GLASS, value).apply() }
+
+    /** Pure black page background in the dark theme (OLED). */
+    var trueBlack: Boolean
+        get() = uiPrefs.getBoolean(KEY_TRUE_BLACK, false)
+        set(value) { uiPrefs.edit().putBoolean(KEY_TRUE_BLACK, value).apply() }
+
+    /** Tap vibration on buttons, rows and the bottom bar. */
+    var hapticFeedback: Boolean
+        get() = uiPrefs.getBoolean(KEY_HAPTICS, true)
+        set(value) { uiPrefs.edit().putBoolean(KEY_HAPTICS, value).apply() }
 
     /** "system" | "light" | "dark" */
     var themeMode: String
@@ -375,6 +391,9 @@ class PrefsStore(context: Context) {
         private const val KEY_LEGACY_TOKEN = "token"
         private const val KEY_LEGACY_TARGET = "default_target"
         private const val KEY_DYNAMIC_COLOR = "use_dynamic_color"
+        private const val KEY_LIQUID_GLASS = "liquid_glass"
+        private const val KEY_TRUE_BLACK = "true_black"
+        private const val KEY_HAPTICS = "haptic_feedback"
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_APP_LOCK_MODE = "app_lock_mode"
         private const val KEY_HTTP_TIMEOUT = "http_timeout_seconds"

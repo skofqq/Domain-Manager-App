@@ -1,5 +1,12 @@
 package com.skofqq.domainmanager.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material3.MaterialShapes
+import com.skofqq.domainmanager.ui.theme.Tints
+import com.skofqq.domainmanager.ui.theme.Helm
+import com.skofqq.domainmanager.ui.components.HelmButton
+import com.skofqq.domainmanager.ui.components.EmptyState
 import android.content.Context
 import androidx.activity.compose.LocalActivity
 import androidx.biometric.BiometricManager
@@ -82,30 +89,22 @@ fun AppLockScreen(onUnlocked: () -> Unit) {
 
     LaunchedEffect(Unit) { ask() }
 
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
-        ) {
-            Icon(
-                Icons.Outlined.Lock,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp),
+    Surface(modifier = Modifier.fillMaxSize(), color = Helm.colors.page) {
+        Box(Modifier.fillMaxSize().padding(horizontal = 24.dp), contentAlignment = Alignment.Center) {
+            EmptyState(
+                icon = Icons.Outlined.Lock,
+                title = stringResource(R.string.app_name),
+                body = stringResource(R.string.unlock_title),
+                tint = Tints.accent,
+                shape = MaterialShapes.Cookie12Sided,
+                action = {
+                    HelmButton(
+                        text = stringResource(R.string.unlock),
+                        onClick = { ask() },
+                        icon = Icons.Outlined.Fingerprint,
+                    )
+                },
             )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(24.dp))
-            FilledTonalButton(onClick = { ask() }) {
-                Text(stringResource(R.string.unlock))
-            }
         }
     }
 }

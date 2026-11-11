@@ -45,6 +45,10 @@
     <string name="search_or_add_domain">Поиск или добавление домена</string>
     <string name="clear_search">Очистить поиск</string>
     <string name="search_no_results">Ничего не найдено.</string>
+    <string name="search_empty_title">Ничего не найдено</string>
+    <string name="empty_domains_title">Доменов пока нет</string>
+    <string name="empty_strat_title">Личных стратегий пока нет</string>
+    <string name="add_domain_named">Добавить %1$s</string>
     <string name="pick_strategy">Выбрать стратегию</string>
     <plurals name="n_domains">
         <item quantity="one">%d домен</item>
@@ -71,6 +75,8 @@
     <!-- Коротко: на экране zapret2 кнопка занимает половину ширины рядом с
          «Откатить», и полная фраза переносила подпись на две строки. -->
     <string name="check_reachability">Проверить</string>
+    <string name="z_profiles_section">Профили</string>
+    <string name="z_actions_section">Изменения</string>
     <string name="voice_title">Голосовая связь — Discord/WhatsApp/Telegram</string>
     <string name="voice_custom">Кастомные</string>
     <string name="voice_bolvan">Скрипты bol-van</string>
@@ -88,6 +94,10 @@
     <string name="dur_hours_minutes">%1$dч %2$dм</string>
     <string name="dur_minutes">%1$dм</string>
     <string name="devices_title">Устройства</string>
+    <string name="devices_favorites">Избранные</string>
+    <string name="devices_all">Все устройства</string>
+    <string name="devices_online_of">%1$d из %2$d в сети</string>
+    <string name="device_scan_label">Проверка устройств</string>
     <string name="device_unknown">Неизвестное устройство</string>
     <string name="device_icon_title">Значок устройства</string>
     <string name="device_icon_auto">Авто</string>
@@ -149,6 +159,7 @@
 
     <!-- Network diagnostics -->
     <string name="diag_net_title">Диагностика сети</string>
+    <string name="diag_entry_desc">Пинг, трассировка, скорость и проверка туннеля</string>
     <string name="diag_host_section">Ping / traceroute</string>
     <string name="diag_ping">Ping</string>
     <string name="diag_traceroute">Traceroute</string>
@@ -169,6 +180,9 @@
     <string name="ms_value">%1$d мс</string>
     <string name="ms_value_frac">%1$s мс</string>
     <string name="node_no_response">Не отвечает</string>
+    <string name="delay_test">Проверить</string>
+    <string name="delay_timeout">Таймаут</string>
+    <string name="delay_test_all">Проверить все группы</string>
 
     <!-- MagiTrickle groups overview -->
     <string name="magitrickle_groups_title">Группы MagiTrickle</string>
@@ -358,6 +372,13 @@
     <string name="developer">Разработчик</string>
     <string name="about_summary">Управление списками доменной маршрутизации и службами на роутере OpenWrt (mihomo, MagiTrickle, zapret).</string>
     <string name="dynamic_color_hint">Доступно на Android 12 и новее</string>
+    <string name="liquid_glass">Liquid Glass</string>
+    <string name="liquid_glass_desc">Размытие и преломление у нижней панели, кнопок в заголовках, меню, шторок и диалогов</string>
+    <string name="liquid_glass_unsupported">Нужен Android 12 или новее</string>
+    <string name="true_black">Чёрный фон</string>
+    <string name="true_black_desc">Полностью чёрный фон в тёмной теме</string>
+    <string name="haptic_feedback">Вибрация</string>
+    <string name="haptic_feedback_desc">Короткий отклик при нажатиях</string>
     <string name="section_router">Роутер</string>
     <string name="host">Хост</string>
     <string name="port">Порт</string>
@@ -437,6 +458,7 @@
     <string name="provider_fetch_proxy">Скачивать через прокси</string>
     <string name="provider_fetch_proxy_hint">Через какую proxy-группу роутер скачивает этот список. Пригодится, когда источник (например, GitHub) не открывается напрямую. К маршрутизации совпавшего трафика отношения не имеет.</string>
     <string name="provider_fetch_proxy_none">Напрямую</string>
+    <string name="provider_group_title">Куда направлять совпадения</string>
     <string name="provider_group_hint">Куда маршрутизировать трафик, совпавший с этим списком.</string>
     <string name="provider_group_existing">Существующая</string>
     <string name="provider_group_new">Новая группа</string>
@@ -461,6 +483,24 @@
     <string name="subscriptions_title">Подписки</string>
     <string name="subscriptions_entry_desc">Списки узлов, из которых выбирает каждая proxy-группа</string>
     <string name="subscriptions_hint">Все подписки объединяются в один общий пул узлов, поэтому добавленная подписка становится доступна во всех proxy-группах.</string>
+    <plurals name="n_pending_changes">
+        <item quantity="one">%d изменение ещё не применено</item>
+        <item quantity="few">%d изменения ещё не применены</item>
+        <item quantity="many">%d изменений ещё не применено</item>
+        <item quantity="other">%d изменения ещё не применено</item>
+    </plurals>
+    <plurals name="n_proxy_groups">
+        <item quantity="one">%d группа</item>
+        <item quantity="few">%d группы</item>
+        <item quantity="many">%d групп</item>
+        <item quantity="other">%d группы</item>
+    </plurals>
+    <plurals name="n_routers">
+        <item quantity="one">%d роутер</item>
+        <item quantity="few">%d роутера</item>
+        <item quantity="many">%d роутеров</item>
+        <item quantity="other">%d роутера</item>
+    </plurals>
     <plurals name="n_subscriptions">
         <item quantity="one">%d подписка</item>
         <item quantity="few">%d подписки</item>
@@ -478,6 +518,7 @@
     <string name="subscription_saved">«%1$s» сохранена</string>
     <string name="subscription_removed">«%1$s» удалена</string>
     <string name="subscription_not_found">На роутере не было «%1$s»</string>
+    <string name="subscription_base_badge">Базовая</string>
     <string name="subscription_base_protected">Встроена в конфиг роутера — отсюда не меняется</string>
     <string name="subscription_delete_title">Удалить подписку?</string>
     <string name="subscription_delete_text">«%1$s» и её узлы будут удалены с роутера. Сами proxy-группы останутся.</string>
@@ -560,6 +601,14 @@
     <string name="err_network">Ошибка сети</string>
     <string name="err_invalid_router_address">Неверный адрес роутера: %1$s</string>
     <string name="err_empty_response">Пустой ответ от роутера</string>
+    <string name="err_tls">Роутер ответил по HTTPS вместо Helm API. Обычно это веб-интерфейс роутера (LuCI) на этом порту — проверьте порт: API работает на своём HTTP-порту.</string>
+    <string name="err_not_api">По адресу кто-то отвечает, но это не Helm API — вернулась веб-страница. Проверьте порт и что API установлен на роутере.</string>
+    <string name="err_title_connection">Нет связи с роутером</string>
+    <string name="err_title_config">Проверьте адрес роутера</string>
+    <string name="err_title_access">Нет доступа</string>
+    <string name="err_title_other">Что-то пошло не так</string>
+    <string name="err_details">Подробнее</string>
+    <string name="err_open_settings">Настройки роутера</string>
 
     <!-- Метки для скринридера: имена для кнопок-иконок и состояния, которое иначе
          передаётся только формой значка или цветной точкой. -->

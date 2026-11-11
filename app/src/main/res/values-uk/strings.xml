@@ -1,0 +1,625 @@
+<resources>
+    <string name="app_name">Helm</string>
+
+    <!-- Navigation -->
+    <string name="settings">Налаштування</string>
+    <string name="domains">Домени</string>
+
+    <!-- Domain fields / status card -->
+    <string name="domain">Домен</string>
+    <string name="domain_placeholder">example.com</string>
+    <string name="status">Стан</string>
+    <string name="add_to">Додати в %1$s</string>
+    <string name="remove_from">Видалити з %1$s</string>
+
+    <!-- Domains screen -->
+    <string name="tab_routing">Маршрутизація</string>
+    <string name="tab_strategies">Стратегії</string>
+    <string name="add_domain">Додати домен</string>
+    <string name="add">Додати</string>
+    <string name="apply">Застосувати</string>
+    <string name="remove_domain">Видалити домен</string>
+    <string name="no_domains">Керованих доменів поки немає. Потягніть униз, щоб оновити.</string>
+    <string name="domain_partial">Цей домен є лише в %1$s.</string>
+    <string name="edit_domain">Змінити домен</string>
+    <string name="paste_from_clipboard">Вставити з буфера обміну</string>
+    <string name="cancel">Скасувати</string>
+    <string name="back">Назад</string>
+
+    <!-- Strategies -->
+    <string name="strategy">Стратегія</string>
+    <string name="strategy_n">Стратегія %1$d</string>
+    <string name="strategy_pool">Без особистої прив’язки — спільний пул</string>
+    <string name="strategy_range_loading">Завантаження діапазону стратегій з роутера…</string>
+    <string name="strat_showing_active">Працює — зміни застосовуються одразу</string>
+    <string name="strat_showing_inactive">Зупинено — зміни лише зберігаються</string>
+    <string name="engine_running">Працює</string>
+    <string name="engine_stopped">Зупинено</string>
+    <string name="strat_no_engine">Жоден DPI-рушій не запущено</string>
+    <string name="strat_no_engine_hint">Запустіть zapret або zapret2 на вкладці «Стан», щоб керувати стратегіями доменів.</string>
+    <string name="open_status">Відкрити «Стан»</string>
+    <string name="retry">Повторити</string>
+    <string name="no_strat_domains">Доменів з особистою стратегією поки немає.</string>
+    <string name="strategy_pool_short">Спільний пул</string>
+    <string name="search_domains">Пошук доменів</string>
+    <string name="search_or_add_domain">Знайти або додати домен</string>
+    <string name="clear_search">Очистити пошук</string>
+    <string name="search_no_results">Жоден домен не відповідає пошуку.</string>
+    <string name="search_empty_title">Нічого не знайдено</string>
+    <string name="empty_domains_title">Доменів поки немає</string>
+    <string name="empty_strat_title">Особистих стратегій поки немає</string>
+    <string name="add_domain_named">Додати %1$s</string>
+    <string name="pick_strategy">Виберіть стратегію</string>
+    <plurals name="n_domains">
+        <item quantity="one">%d домен</item>
+        <item quantity="few">%d домени</item>
+        <item quantity="many">%d доменів</item>
+        <item quantity="other">%d домену</item>
+    </plurals>
+
+    <!-- zapret2 profiles -->
+    <string name="z2_profiles_title">Профілі zapret2</string>
+    <string name="z2_proto_tls">TLS</string>
+    <string name="z2_proto_udp">QUIC / UDP</string>
+    <string name="z2_proto_http">HTTP</string>
+    <string name="z2_apply_hint">Зміни активного рушія застосовуються з коротким перезапуском.</string>
+    <string name="z2_rollback">Відкотити</string>
+    <string name="z2_rollback_done">Повернуто попередній набір</string>
+    <string name="z2_rollback_nothing">Немає збереженого набору для відкату</string>
+
+    <!-- zapret v1 profiles -->
+    <string name="z1_profiles_title">Профілі zapret</string>
+
+    <!-- Shared by both zapret profile screens -->
+    <string name="profile_caption">ключ %1$s · зараз: %2$d</string>
+    <string name="check_reachability">Перевірити</string>
+    <string name="z_profiles_section">Профілі</string>
+    <string name="z_actions_section">Зміни</string>
+    <string name="voice_title">Голосові дзвінки — Discord/WhatsApp/Telegram</string>
+    <string name="voice_custom">Власні</string>
+    <string name="voice_bolvan">Скрипти bol-van</string>
+
+    <!-- Status (services) screen -->
+    <string name="health_model">Модель</string>
+    <string name="health_firmware">Прошивка</string>
+    <string name="health_uptime">Час роботи</string>
+    <string name="health_load">Середнє навантаження</string>
+    <string name="health_cpu_temp">Температура CPU</string>
+    <string name="health_memory">Пам’ять</string>
+    <string name="health_wan_ip">IPv4</string>
+    <string name="health_wan_ipv6">IPv6</string>
+    <string name="dur_days_hours">%1$d дн %2$d год</string>
+    <string name="dur_hours_minutes">%1$d год %2$d хв</string>
+    <string name="dur_minutes">%1$d хв</string>
+    <string name="devices_title">Пристрої</string>
+    <string name="devices_favorites">Обрані</string>
+    <string name="devices_all">Усі пристрої</string>
+    <string name="devices_online_of">%1$d з %2$d у мережі</string>
+    <string name="device_scan_label">Перевірка пристроїв</string>
+    <string name="device_unknown">Невідомий пристрій</string>
+    <string name="device_icon_title">Значок пристрою</string>
+    <string name="device_icon_auto">Авто</string>
+    <string name="device_type_speaker">Колонка</string>
+    <string name="device_type_bulb">Лампа</string>
+    <string name="device_type_phone">Телефон</string>
+    <string name="device_type_pc">ПК</string>
+    <string name="device_type_laptop">Ноутбук</string>
+    <string name="device_type_router">Роутер</string>
+    <string name="device_type_zigbee">Шлюз ZigBee</string>
+    <string name="device_type_printer">Принтер</string>
+    <string name="device_type_socket">Розетка</string>
+    <string name="device_type_tv">Телевізор</string>
+    <string name="device_type_storage">Сховище</string>
+    <string name="device_type_camera">Камера</string>
+    <string name="device_type_generic">Інше</string>
+    <plurals name="n_devices_online">
+        <item quantity="one">%d пристрій у мережі</item>
+        <item quantity="few">%d пристрої у мережі</item>
+        <item quantity="many">%d пристроїв у мережі</item>
+        <item quantity="other">%d пристрою у мережі</item>
+    </plurals>
+    <string name="device_scan_progress">%1$d/%2$d</string>
+    <string name="wake_device">Розбудити</string>
+    <string name="wake_sent">Пакет Wake-on-LAN надіслано</string>
+    <string name="favorite_device">Додати в обрані</string>
+    <string name="unfavorite_device">Прибрати з обраних</string>
+    <string name="health_disk">Диск (/overlay)</string>
+    <string name="svc_running">Працює</string>
+    <string name="svc_stopped">Зупинено</string>
+    <string name="svc_failed">Збій</string>
+    <string name="svc_autostart">Автозапуск</string>
+    <string name="svc_start">Запустити</string>
+    <string name="svc_stop">Зупинити</string>
+    <string name="svc_restart">Перезапустити</string>
+    <string name="service_log_button">Журнал</string>
+    <string name="service_log_title">Журнал %1$s</string>
+    <string name="service_log_empty">Записів у журналі не знайдено</string>
+    <string name="refresh">Оновити</string>
+
+    <!-- mihomo drill-down -->
+    <string name="section_proxy_groups">Проксі-групи</string>
+    <string name="groups_view_grid">Сіткою</string>
+    <string name="groups_view_list">Списком</string>
+    <string name="section_traffic">Трафік</string>
+    <string name="section_connections">Активні з’єднання</string>
+    <string name="traffic_download">Завантаження</string>
+    <string name="traffic_upload">Віддача</string>
+    <string name="speed_value">%1$s/с</string>
+    <string name="traffic_total">Усього %1$s</string>
+    <string name="no_connections">Немає активних з’єднань</string>
+    <string name="close_connection">Закрити з’єднання</string>
+    <string name="err_mihomo_unreachable">mihomo не відповідає — перевірте, що служба запущена</string>
+    <string name="err_mihomo_select_failed">mihomo відхилив перемикання вузла</string>
+    <string name="traffic_chart_caption">Останні ~5 хвилин, через mihomo</string>
+    <string name="mihomo_only_note">Лише трафік через проксі mihomo — не весь трафік пристрою.</string>
+    <string name="source_all">Усі</string>
+    <string name="source_traffic_summary">%1$s: ↓ %2$s · ↑ %3$s (лише через mihomo)</string>
+
+    <!-- Network diagnostics -->
+    <string name="diag_net_title">Діагностика мережі</string>
+    <string name="diag_entry_desc">Пінг, трасування, швидкість і перевірка тунелю</string>
+    <string name="diag_host_section">Пінг / трасування</string>
+    <string name="diag_ping">Пінг</string>
+    <string name="diag_traceroute">Трасування</string>
+    <string name="diag_preset_wan">WAN %1$s</string>
+    <string name="ping_result_ok">Доступний · втрати %1$d%% · у середньому %2$s мс</string>
+    <string name="ping_result_fail">Немає відповіді (100%% втрат)</string>
+    <string name="trace_title">Маршрут до %1$s</string>
+    <string name="diag_speedtest_title">Тест швидкості</string>
+    <string name="diag_speedtest_note">Вимірює швидкість завантаження WAN РОУТЕРА, а не Wi-Fi цього телефона. Триває до ~25 секунд.</string>
+    <string name="diag_speedtest_run">Почати тест</string>
+    <string name="diag_speedtest_running">Вимірювання…</string>
+    <string name="diag_speedtest_result_label">Завантаження WAN роутера</string>
+    <string name="speed_mbps">%1$s Мбіт/с</string>
+    <string name="diag_tunnel_title">Перевірка тунелю</string>
+    <string name="diag_tunnel_note">Вбудований тест затримки mihomo для всіх вузлів групи одразу. Вузол без відповіді протягом 5 с позначається як такий, що не відповідає.</string>
+    <string name="diag_tunnel_run">Перевірити вузли</string>
+    <string name="diag_tunnel_running">Перевірка…</string>
+    <string name="ms_value">%1$d мс</string>
+    <string name="ms_value_frac">%1$s мс</string>
+    <string name="node_no_response">Не відповідає</string>
+    <string name="delay_test">Перевірити</string>
+    <string name="delay_timeout">Тайм-аут</string>
+    <string name="delay_test_all">Перевірити всі групи</string>
+
+    <!-- MagiTrickle groups overview -->
+    <string name="magitrickle_groups_title">Групи MagiTrickle</string>
+    <string name="magitrickle_groups_empty">На роутері не налаштовано жодної групи.</string>
+    <string name="magitrickle_group_no_rules">У цій групі немає правил.</string>
+    <plurals name="n_rules">
+        <item quantity="one">%d правило</item>
+        <item quantity="few">%d правила</item>
+        <item quantity="many">%d правил</item>
+        <item quantity="other">%d правила</item>
+    </plurals>
+    <string name="domain_in_group">Уже в групі «%1$s»</string>
+
+    <!-- Share screen -->
+    <string name="share_title">Додати на роутер</string>
+    <string name="close">Закрити</string>
+    <string name="reload_status">Оновити стан</string>
+    <string name="done">Готово</string>
+
+    <!-- Settings screen -->
+    <string name="settings_appearance_desc">Тема застосунку</string>
+    <string name="settings_auth_title">Авторизація</string>
+    <string name="settings_auth_desc">Профілі роутерів і токени</string>
+
+    <!-- Router profiles -->
+    <string name="default_profile_name">Мій роутер</string>
+    <string name="settings_profiles_hint">Вибраний профіль активний — з ним працюють усі вкладки. Торкніться рядка, щоб змінити.</string>
+    <string name="profile_add">Додати роутер</string>
+    <string name="profile_new_title">Новий роутер</string>
+    <string name="profile_name">Назва</string>
+    <string name="profile_name_placeholder">Дім</string>
+    <string name="profile_delete_title">Видалити профіль?</string>
+    <string name="profile_delete_text">«%1$s» буде видалено з цього телефона. Сам роутер не зміниться.</string>
+    <string name="profile_delete_last_warning">Це єдиний налаштований роутер — профілів не залишиться зовсім.</string>
+    <string name="delete">Видалити</string>
+    <string name="update">Оновити</string>
+    <string name="qr_profile_added">Профіль «%1$s» додано</string>
+    <string name="qr_update_title">Оновити профіль?</string>
+    <string name="qr_update_text">QR містить адресу наявного профілю «%1$s» — оновити його дані замість створення дубліката?</string>
+    <string name="auth_to_show_qr">Підтвердьте, щоб показати QR-код</string>
+    <string name="settings_about_title">Про застосунок</string>
+    <string name="settings_about_desc">Версія та відомості</string>
+
+    <!-- Security -->
+    <string name="section_security">Безпека</string>
+    <string name="settings_security_desc">Біометрія та PIN</string>
+    <string name="lock_explain">Використовує відбиток пальця або обличчя, а якщо біометрія недоступна — PIN, графічний ключ чи пароль пристрою.</string>
+    <string name="lock_unavailable">На пристрої не налаштовано ні біометрії, ні блокування екрана — вимагати нічого.</string>
+    <string name="lock_mode_off">Вимкнено</string>
+    <string name="lock_mode_off_desc">Без додаткового захисту</string>
+    <string name="lock_mode_token">Лише показ токена</string>
+    <string name="lock_mode_token_desc">Підтвердження перед показом токена в «Авторизації»</string>
+    <string name="lock_mode_app">Увесь застосунок</string>
+    <string name="lock_mode_app_desc">Біометрія або PIN під час кожного запуску</string>
+    <string name="unlock_title">Розблокувати Helm</string>
+    <string name="unlock">Розблокувати</string>
+    <string name="auth_to_show_token">Підтвердьте, щоб показати токен</string>
+
+    <!-- Backup -->
+    <string name="section_backup">Резервна копія</string>
+    <string name="settings_backup_desc">Експорт та імпорт списків</string>
+    <string name="backup_export_title">Експорт</string>
+    <string name="backup_export_note">Знімок поточних списків роутера для довідки чи ручного відновлення. Актуальний стан завжди зберігається на роутері — застосунок лише читає й записує його через API.</string>
+    <string name="backup_build">Створити знімок</string>
+    <string name="backup_building">Створення…</string>
+    <string name="backup_export_summary">Маршрутизація: %1$d · zapret2: %2$d · zapret: %3$d</string>
+    <string name="copy">Копіювати</string>
+    <string name="copied">Скопійовано</string>
+    <string name="share">Поділитися</string>
+    <string name="backup_import_title">Імпорт</string>
+    <string name="backup_import_note">Вставте JSON знімка або простий список доменів (по одному в рядку — їх буде додано в маршрутизацію з типовою ціллю).</string>
+    <string name="backup_import_hint_restart">Якщо запущено рушій zapret, кожна імпортована стратегія перезапускає його демон — великий імпорт може тривати довго.</string>
+    <string name="backup_run_import">Імпортувати</string>
+    <string name="backup_progress">%1$d / %2$d…</string>
+    <string name="backup_result">Додано: %1$d · Уже були: %2$d · Помилок: %3$d</string>
+    <string name="backup_parse_error">Не вдалося розібрати введене — очікується JSON знімка або список доменів</string>
+    <string name="backup_empty">Нічого імпортувати</string>
+
+    <!-- QR setup -->
+    <string name="section_qr">QR-код</string>
+    <string name="qr_hint">Перенесіть ці налаштування на інший телефон: покажіть QR тут і відскануйте його там.</string>
+    <string name="qr_show">Показати QR</string>
+    <string name="qr_scan">Сканувати QR</string>
+    <string name="qr_show_title">Налаштування підключення</string>
+    <string name="qr_show_warning">Код містить адресу, порт і токен доступу відкритим текстом — показуйте його лише на довірених пристроях.</string>
+    <string name="qr_scanned">Відскановано — перевірте поля й натисніть «Зберегти»</string>
+    <string name="qr_plain_hint">Довге натискання на код перемикає звичайний QR (для вибагливих сканерів) і назад.</string>
+    <string name="qr_invalid">Цей QR не є кодом налаштування Helm</string>
+
+    <!-- History -->
+    <string name="section_history">Історія</string>
+    <string name="settings_history_desc">Локальний журнал доданих доменів</string>
+    <string name="history_note">Зберігається лише на цьому телефоні: кожне успішне додавання записується з датою. Роутер не веде часових міток, тому список із ним не синхронізується.</string>
+    <string name="history_empty">Поки порожньо — тут з’являться додані вами домени.</string>
+
+    <!-- Deep link / automation -->
+    <string name="deeplink_added">%1$s додано на роутер</string>
+
+    <!-- Widget -->
+    <string name="widget_label">Стан служб</string>
+    <string name="widget_description">Індикатори стану служб роутера</string>
+    <string name="widget_label_mihomo">mihomo</string>
+    <string name="widget_label_magitrickle">MT</string>
+    <string name="widget_label_zapret">zapret</string>
+    <string name="widget_label_zapret2">zapret2</string>
+
+    <!-- Diagnostics -->
+    <string name="section_diagnostics">Діагностика</string>
+    <string name="settings_diagnostics_desc">Тайм-аути та налагодження запитів</string>
+    <string name="diag_timeout_title">Тайм-аут HTTP-запиту</string>
+    <string name="diag_timeout_value">%1$d с</string>
+    <string name="diag_log_title">Останні запити API</string>
+    <string name="diag_log_note">Токен у URL замасковано — можна безпечно копіювати для звіту про помилку.</string>
+    <string name="diag_log_empty">Запитів поки немає.</string>
+    <string name="diag_failed">ЗБІЙ</string>
+
+    <!-- Background monitoring -->
+    <string name="section_monitoring">Моніторинг</string>
+    <string name="settings_monitoring_desc">Фонові перевірки WAN IP, диска та затримки</string>
+    <string name="monitoring_explain">Періодично перевіряє роутер у фоні й повідомляє про зміну WAN IP, нестачу місця на диску або зростання затримки проксі. Використовує WorkManager і працює лише за наявності мережі.</string>
+    <string name="monitoring_enable">Увімкнути фоновий моніторинг</string>
+    <string name="monitoring_interval_title">Інтервал перевірки</string>
+    <string name="monitoring_interval_value">%1$d хв</string>
+    <string name="monitoring_wan_title">Зміна WAN IP</string>
+    <string name="monitoring_wan_desc">Повідомляти, коли змінюється WAN IPv4/IPv6 роутера</string>
+    <string name="monitoring_disk_title">Місце на диску</string>
+    <string name="monitoring_disk_desc">Повідомляти, коли /overlay заповнено на 90%</string>
+    <string name="monitoring_latency_title">Погіршення затримки</string>
+    <string name="monitoring_latency_desc">Виберіть проксі-групу для стеження — сповіщення, коли затримка активного вузла приблизно подвоюється або він перестає відповідати.</string>
+    <string name="monitoring_latency_off">Вимкнено</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_name">Моніторинг роутера</string>
+    <string name="notif_channel_desc">Сповіщення про зміну WAN IP, нестачу місця та погіршення затримки</string>
+    <string name="notif_wan_changed_title">IP роутера змінився</string>
+    <string name="notif_wan_changed_text">%1$s → %2$s</string>
+    <string name="notif_disk_title">Мало місця на диску</string>
+    <string name="notif_disk_text">/overlay заповнено на %1$d%%</string>
+    <string name="notif_latency_title">З’єднання погіршилося</string>
+    <string name="notif_latency_down_text">%1$s не відповідає</string>
+    <string name="notif_latency_degraded_text">%1$s: було %2$d мс, тепер %3$d мс</string>
+
+    <!-- App Shortcuts -->
+    <string name="section_shortcuts">Ярлики застосунку</string>
+    <string name="settings_shortcuts_desc">Виберіть 2–4 дії для меню ярликів лаунчера</string>
+    <string name="shortcuts_explain">Довге натискання на значок застосунку веде прямо до однієї з цих дій. Дії, що потребують підтвердження (перезавантаження, оновлення mihomo), все одно вимагають явного натискання в застосунку — ярлик ніколи не запускає їх сам.</string>
+    <string name="shortcuts_min_max_hint">Виберіть від 2 до 4 ярликів.</string>
+    <string name="shortcut_status">Стан</string>
+    <string name="shortcut_devices">Список пристроїв</string>
+    <string name="shortcut_reboot">Перезавантаження</string>
+    <string name="shortcut_mihomo_update">Оновити mihomo</string>
+    <string name="shortcut_speedtest">Тест швидкості</string>
+    <string name="shortcut_zapret_restart">Перезапустити zapret/zapret2</string>
+    <string name="shortcut_zapret_restart_named">Перезапустити %1$s</string>
+
+    <!-- Router info sheet -->
+    <string name="router_sheet_routers">Роутери</string>
+    <string name="router_sheet_versions">Версії служб</string>
+    <string name="loading">Завантаження…</string>
+    <string name="svc_name_mihomo">mihomo</string>
+    <string name="svc_name_magitrickle">MagiTrickle</string>
+    <string name="svc_name_zapret">zapret</string>
+    <string name="svc_name_zapret2">zapret2</string>
+    <string name="version_unknown">версія невідома</string>
+    <string name="check_for_updates">Перевірити оновлення</string>
+    <string name="update_to_version">Оновити до %1$s</string>
+    <string name="whats_new_in">Що нового в %1$s</string>
+    <string name="mihomo_up_to_date">%1$s — остання</string>
+    <string name="mihomo_updating">Оновлення mihomo…</string>
+    <string name="mihomo_update_confirm_title">Оновити mihomo?</string>
+    <string name="mihomo_update_confirm_text">mihomo буде зупинено, замінено новою версією й перезапущено. Це може зайняти час і ненадовго перерве маршрутизований трафік.</string>
+
+    <!-- Router reboot -->
+    <string name="reboot_router">Перезавантажити</string>
+    <string name="reboot_confirm_title">Перезавантажити роутер?</string>
+    <string name="reboot_confirm_text">Роутер і всі служби за ним будуть недоступні 1–2 хвилини. Активні з’єднання буде розірвано.</string>
+    <string name="reboot_confirm_button">Перезавантажити</string>
+    <string name="rebooting_title">Роутер перезавантажується…</string>
+    <string name="rebooting_hint">Зазвичай це займає 1–2 хвилини.</string>
+    <string name="reboot_countdown">~%1$d с</string>
+    <string name="reboot_check_ready">Роутер мав уже запуститися — перевірте підключення.</string>
+    <string name="hide_overlay">Сховати</string>
+    <string name="about_version">Версія %1$s</string>
+    <string name="about_source_code">Вихідний код на GitHub</string>
+    <string name="developer">Розробник</string>
+    <string name="about_summary">Керує списками маршрутизації доменів і службами на роутері OpenWrt (mihomo, MagiTrickle, zapret).</string>
+    <string name="dynamic_color_hint">Доступно на Android 12 і новіших</string>
+    <string name="liquid_glass">Liquid Glass</string>
+    <string name="liquid_glass_desc">Розмиття й заломлення на нижній панелі, кнопках заголовків, меню, шторках і діалогах</string>
+    <string name="liquid_glass_unsupported">Потрібен Android 12 або новіший</string>
+    <string name="true_black">Чорне тло</string>
+    <string name="true_black_desc">Повністю чорне тло в темній темі</string>
+    <string name="haptic_feedback">Вібрація</string>
+    <string name="haptic_feedback_desc">Короткий відгук під час натискань</string>
+    <string name="section_router">Роутер</string>
+    <string name="host">Хост</string>
+    <string name="port">Порт</string>
+    <string name="section_auth">Доступ</string>
+    <string name="token">Токен</string>
+    <string name="show">Показати</string>
+    <string name="hide">Сховати</string>
+    <string name="section_fallback">Резервна адреса</string>
+    <string name="fallback_hint">Необов’язково — використовується автоматично, коли основна адреса не відповідає (наприклад, адреса Tailscale). Залиште хост порожнім, щоб вимкнути.</string>
+    <string name="section_default_target">Типова ціль</string>
+    <string name="section_appearance">Оформлення</string>
+    <string name="theme_system">Системна</string>
+    <string name="theme_light">Світла</string>
+    <string name="theme_dark">Темна</string>
+    <string name="dynamic_color">Динамічні кольори</string>
+    <string name="dynamic_color_desc">Кольори з шпалер (Material You)</string>
+    <string name="section_language">Мова</string>
+    <string name="language_system">Системна</string>
+    <string name="save">Зберегти</string>
+    <string name="saved">Збережено</string>
+    <string name="test_connection">Перевірити підключення</string>
+    <string name="testing">Перевірка…</string>
+    <string name="test_connected">Підключено</string>
+    <string name="test_connected_bad_token">Підключено (невірний токен)</string>
+    <string name="test_connected_no_token">Підключено (токен не налаштовано на роутері)</string>
+    <string name="test_http_error">Помилка: HTTP %1$d</string>
+
+    <!-- Rule providers -->
+    <string name="section_rule_providers">Набори правил</string>
+    <string name="rule_providers_title">Набори правил</string>
+    <string name="rule_providers_entry_desc">Зовнішні списки, прив’язані до проксі-групи</string>
+    <string name="rule_providers_hint">Набори правил завантажує й оновлює сам роутер. Відповідний трафік іде в проксі-групу, до якої прив’язано кожен список.</string>
+    <string name="rule_providers_empty">Наборів правил поки немає. Натисніть «Додати», щоб прив’язати список до проксі-групи.</string>
+    <plurals name="n_rule_providers">
+        <item quantity="one">%d набір правил</item>
+        <item quantity="few">%d набори правил</item>
+        <item quantity="many">%d наборів правил</item>
+        <item quantity="other">%d набору правил</item>
+    </plurals>
+    <plurals name="n_hours">
+        <item quantity="one">Кожну %d годину</item>
+        <item quantity="few">Кожні %d години</item>
+        <item quantity="many">Кожні %d годин</item>
+        <item quantity="other">Кожні %d години</item>
+    </plurals>
+    <string name="provider_routed_to">→ %1$s</string>
+    <string name="provider_delete_title">Видалити набір правил?</string>
+    <string name="provider_delete_text">«%1$s» і його правило маршрутизації буде видалено з роутера. Проксі-група «%2$s» залишиться — групами керують на самому роутері.</string>
+    <string name="provider_removed">«%1$s» видалено</string>
+    <string name="provider_not_found">На роутері не було «%1$s»</string>
+    <string name="provider_added">«%1$s» додано й прив’язано до %2$s</string>
+
+    <string name="provider_add_title">Новий набір правил</string>
+    <string name="provider_step">Крок %1$d з %2$d</string>
+    <string name="next">Далі</string>
+    <string name="provider_custom_url">Свій URL</string>
+    <string name="provider_custom_url_desc">Будь-яке джерело https, не лише наведені нижче</string>
+    <string name="provider_url">URL набору правил</string>
+    <string name="provider_url_hint">Має починатися з https://</string>
+    <string name="provider_url_invalid">Введіть повне посилання https://</string>
+    <string name="provider_behavior">Тип списку</string>
+    <string name="provider_behavior_hint">Що містить список: домени, діапазони IP або класичні змішані правила.</string>
+    <string name="behavior_domain">Домени</string>
+    <string name="behavior_ipcidr">IP-адреси</string>
+    <string name="behavior_classical">Класичний</string>
+    <string name="provider_format">Формат</string>
+    <string name="provider_format_hint">MRS — компактний двійковий формат, менший і швидший за YAML чи текст.</string>
+    <string name="provider_name">Назва</string>
+    <string name="provider_name_hint">Малі латинські літери, цифри та «-», починається з літери</string>
+    <string name="provider_name_invalid">Лише малі латинські літери, цифри та «-», починається з літери</string>
+    <string name="provider_name_taken">Набір правил з такою назвою вже існує</string>
+    <string name="provider_interval">Період оновлення</string>
+    <string name="interval_hour">Щогодини</string>
+    <string name="interval_6h">Кожні 6 годин</string>
+    <string name="interval_day">Щодня</string>
+    <string name="interval_week">Щотижня</string>
+    <string name="provider_fetch_proxy">Завантажувати через проксі</string>
+    <string name="provider_fetch_proxy_hint">Через яку проксі-групу роутер завантажує цей список. Корисно, коли джерело (наприклад, GitHub) недоступне напряму. Не пов’язано з тим, куди йде відповідний трафік.</string>
+    <string name="provider_fetch_proxy_none">Напряму</string>
+    <string name="provider_group_title">Куди спрямовувати збіги</string>
+    <string name="provider_group_hint">Куди маршрутизується трафік, що відповідає цьому списку.</string>
+    <string name="provider_group_existing">Наявна група</string>
+    <string name="provider_group_new">Нова група</string>
+    <string name="provider_new_group_name">Назва нової групи</string>
+    <string name="provider_new_group_hint">Роутер створить цю проксі-групу</string>
+    <string name="provider_new_group_taken">На роутері вже є група з такою назвою — виберіть її як наявну</string>
+    <string name="provider_new_group_note">Нову групу буде створено на роутері. Видалення набору правил згодом не видаляє групу — це робиться на самому роутері.</string>
+    <string name="provider_no_groups">Роутер не повернув жодної проксі-групи</string>
+    <string name="provider_add_slow_note">Роутер завантажує список і перевіряє отриману конфігурацію, тож це може зайняти час.</string>
+
+    <!-- Live source catalog -->
+    <string name="catalog_search">Пошук у каталозі</string>
+    <string name="catalog_refresh">Оновити каталог</string>
+    <string name="catalog_loading">Завантаження каталогу…</string>
+    <string name="catalog_count">%1$d з %2$d файлів</string>
+    <string name="catalog_no_results">Нічого не знайдено. Для джерела поза каталогом використайте «Свій URL».</string>
+    <string name="catalog_not_updated">Каталог не оновлено</string>
+
+    <!-- mihomo subscriptions -->
+    <string name="section_subscriptions">Підписки</string>
+    <string name="subscriptions_title">Підписки</string>
+    <string name="subscriptions_entry_desc">Списки вузлів, з яких вибирають усі проксі-групи</string>
+    <string name="subscriptions_hint">Усі підписки об’єднуються в один спільний пул вузлів, тож усе додане стає доступним у кожній проксі-групі.</string>
+    <plurals name="n_pending_changes">
+        <item quantity="one">%d зміну ще не застосовано</item>
+        <item quantity="few">%d зміни ще не застосовано</item>
+        <item quantity="many">%d змін ще не застосовано</item>
+        <item quantity="other">%d зміни ще не застосовано</item>
+    </plurals>
+    <plurals name="n_proxy_groups">
+        <item quantity="one">%d група</item>
+        <item quantity="few">%d групи</item>
+        <item quantity="many">%d груп</item>
+        <item quantity="other">%d групи</item>
+    </plurals>
+    <plurals name="n_routers">
+        <item quantity="one">%d роутер</item>
+        <item quantity="few">%d роутери</item>
+        <item quantity="many">%d роутерів</item>
+        <item quantity="other">%d роутера</item>
+    </plurals>
+    <plurals name="n_subscriptions">
+        <item quantity="one">%d підписка</item>
+        <item quantity="few">%d підписки</item>
+        <item quantity="many">%d підписок</item>
+        <item quantity="other">%d підписки</item>
+    </plurals>
+    <string name="subscription_add_title">Нова підписка</string>
+    <string name="subscription_edit_title">Змінити URL</string>
+    <string name="subscription_edit">Змінити URL</string>
+    <string name="subscription_name">Назва</string>
+    <string name="subscription_name_placeholder">work-vpn</string>
+    <string name="subscription_name_fixed">Назву змінити не можна — видаліть і додайте знову, щоб перейменувати</string>
+    <string name="subscription_url">URL підписки</string>
+    <string name="subscription_slow_note">Роутер перевіряє конфігурацію й заново завантажує список вузлів, тож це може зайняти час.</string>
+    <string name="subscription_saved">«%1$s» збережено</string>
+    <string name="subscription_removed">«%1$s» видалено</string>
+    <string name="subscription_not_found">На роутері не було «%1$s»</string>
+    <string name="subscription_base_badge">Базова</string>
+    <string name="subscription_base_protected">Вбудована в конфігурацію роутера — змінити тут не можна</string>
+    <string name="subscription_delete_title">Видалити підписку?</string>
+    <string name="subscription_delete_text">«%1$s» і її вузли буде видалено з роутера. Самі проксі-групи залишаться.</string>
+
+    <!-- Tor -->
+    <string name="tor_title">Tor</string>
+    <string name="tor_not_installed">Tor не встановлено</string>
+    <string name="tor_not_installed_hint">На роутері немає пакета Tor, тож налаштовувати тут нічого.</string>
+    <string name="tor_bootstrap">Підключення</string>
+    <string name="tor_bootstrap_progress">%1$d%%</string>
+    <string name="tor_bridges_label">Мости</string>
+    <plurals name="n_tor_bridges">
+        <item quantity="one">%d міст</item>
+        <item quantity="few">%d мости</item>
+        <item quantity="many">%d мостів</item>
+        <item quantity="other">%d моста</item>
+    </plurals>
+    <string name="tor_uptime">Час роботи</string>
+    <string name="tor_socks_port">SOCKS</string>
+    <string name="tor_pac_url">PAC</string>
+    <string name="tor_new_identity">Нова особистість</string>
+    <string name="tor_new_identity_hint">Нові ланцюжки для нових з’єднань. Швидше за перезапуск і не обриває поточне з’єднання.</string>
+    <string name="tor_new_identity_sent">Нові ланцюжки запитано</string>
+    <string name="tor_new_identity_failed">Керувальний порт ще не готовий — спробуйте за кілька секунд</string>
+    <string name="tor_test_title">Перевірка з’єднання</string>
+    <string name="tor_test_hint">Роутер робить справжній запит через Tor — це займає кілька секунд.</string>
+    <string name="tor_test_connection">Перевірити підключення</string>
+    <string name="tor_testing">Перевірка…</string>
+    <string name="tor_test_ok">Підключено через Tor</string>
+    <string name="tor_test_failed">Не підключено</string>
+    <string name="tor_test_failed_hint">Tor ще не завершив підключення або мости недоступні.</string>
+    <string name="tor_bridges_title">Мости</string>
+    <string name="tor_bridges_hint">Мости допомагають там, де блокують сам Tor. Отримайте їх у Tor Project і вставте кожен рядок як є. Збереження перезапускає Tor.</string>
+    <string name="tor_bridges_saving">Збереження й перезапуск Tor…</string>
+    <string name="tor_no_bridges">Пряме підключення, без мостів</string>
+    <string name="tor_add_bridge">Додати міст</string>
+    <string name="tor_bridge_line">Рядок моста</string>
+    <string name="tor_bridge_placeholder">obfs4 1.2.3.4:443 FINGERPRINT cert=… iat-mode=0</string>
+    <string name="tor_bridge_hint">Вставте рядок повністю, як отримали.</string>
+    <string name="tor_bridge_added">Міст додано, Tor перезапущено</string>
+    <string name="tor_bridge_removed">Міст видалено, Tor перезапущено</string>
+    <string name="tor_bridge_delete_title">Видалити міст?</string>
+    <string name="tor_bridge_delete_text">Міст буде видалено з роутера, а Tor перезапуститься.</string>
+
+    <!-- API / network errors -->
+    <string name="err_bad_token">Невірний токен — перевірте налаштування</string>
+    <string name="err_token_not_configured">Токен не налаштовано на роутері</string>
+    <string name="err_bad_domain">Невірний формат домену</string>
+    <string name="err_empty_domain">Домен порожній</string>
+    <string name="err_bad_service">Невідома служба</string>
+    <string name="err_bad_host">Невірний хост</string>
+    <string name="err_bad_mac">Невірна MAC-адреса</string>
+    <string name="err_etherwake_missing">На роутері не встановлено etherwake</string>
+    <string name="err_bad_engine">Невідомий рушій</string>
+    <string name="err_bad_strategy">Номер стратегії поза діапазоном</string>
+    <string name="err_strategy_unconfirmed">Роутер не підтвердив зміну стратегії</string>
+    <string name="err_bad_provider_name">Невірна назва набору правил</string>
+    <string name="err_bad_url">Роутер відхилив цей URL</string>
+    <string name="err_bad_behavior">Невірний тип списку</string>
+    <string name="err_bad_format">Невірний формат</string>
+    <string name="err_bad_interval">Період оновлення поза діапазоном (60 с – 7 днів)</string>
+    <string name="err_missing_group">Проксі-групу не вибрано</string>
+    <string name="err_group_both_set">Виберіть або наявну групу, або нову, але не обидві</string>
+    <string name="err_group_not_found">Такої проксі-групи на роутері вже немає — поверніться й виберіть іншу</string>
+    <string name="err_bad_new_group">Невірна назва нової групи</string>
+    <string name="err_provider_exists">На роутері вже є набір правил з такою назвою</string>
+    <string name="err_group_exists">На роутері вже є група з такою назвою — виберіть її як наявну</string>
+    <string name="err_mihomo_config_test_failed">Роутер відхилив отриману конфігурацію mihomo — набір правил не додано. Перевірте URL, тип списку й формат.</string>
+    <string name="err_subscription_exists">Підписка з такою назвою вже існує</string>
+    <string name="err_subscription_not_found">Такої підписки на роутері вже немає</string>
+    <string name="err_subscription_base_protected">Вбудовану підписку видалити не можна</string>
+    <string name="err_tor_controlport_not_ready">Керувальний порт Tor ще не готовий — спробуйте за кілька секунд</string>
+    <string name="err_tor_controlport_failed">Tor відхилив команду керувального порту</string>
+    <string name="err_catalog_rate_limited">GitHub обмежує кількість запитів (60 на годину з IP без токена). Спробуйте пізніше або введіть URL вручну.</string>
+    <string name="err_catalog_http">GitHub відповів HTTP %1$d</string>
+    <string name="err_generic">Помилка %1$d: %2$s</string>
+    <string name="err_timeout">Роутер не відповів. Переконайтеся, що телефон підключено до Wi-Fi роутера і порт вказано правильно.</string>
+    <string name="err_unreachable">Не вдається дістатися роутера — перевірте адресу й порт.</string>
+    <string name="err_unknown_host">Невідомий хост — перевірте адресу роутера.</string>
+    <string name="err_network">Помилка мережі</string>
+    <string name="err_invalid_router_address">Невірна адреса роутера: %1$s</string>
+    <string name="err_empty_response">Порожня відповідь від роутера</string>
+    <string name="err_tls">Роутер відповів через HTTPS замість Helm API. Зазвичай на цьому порту працює веб-інтерфейс роутера (LuCI) — перевірте порт: API працює на власному HTTP-порту.</string>
+    <string name="err_not_api">За адресою щось відповідає, але це не Helm API — повернулася веб-сторінка. Перевірте порт і чи встановлено API на роутері.</string>
+    <string name="err_title_connection">Немає зв’язку з роутером</string>
+    <string name="err_title_config">Перевірте адресу роутера</string>
+    <string name="err_title_access">Немає доступу</string>
+    <string name="err_title_other">Щось пішло не так</string>
+    <string name="err_details">Докладніше</string>
+    <string name="err_open_settings">Налаштування роутера</string>
+    <string name="err_raw">%1$s</string>
+
+    <!-- Accessibility labels -->
+    <string name="strategy_previous">Попередня стратегія</string>
+    <string name="strategy_next">Наступна стратегія</string>
+    <string name="theme_previous">Попередня тема</string>
+    <string name="theme_next">Наступна тема</string>
+    <string name="a11y_target_added">%1$s: додано</string>
+    <string name="a11y_target_not_added">%1$s: не додано</string>
+    <string name="a11y_autostart_on">Автозапуск увімкнено</string>
+    <string name="a11y_autostart_off">Автозапуск вимкнено</string>
+    <string name="a11y_device_online">У мережі</string>
+    <string name="a11y_device_offline">Не в мережі</string>
+    <string name="a11y_check_ok">Доступний</string>
+    <string name="a11y_check_failed">Недоступний</string>
+    <string name="copy_ip">Копіювати IP-адресу</string>
+    <string name="copy_mac">Копіювати MAC-адресу</string>
+    <string name="open_release_notes">Відкрити примітки до випуску</string>
+</resources>

@@ -1,5 +1,21 @@
 package com.skofqq.domainmanager.ui
 
+import com.skofqq.domainmanager.ui.theme.Helm
+import com.skofqq.domainmanager.ui.theme.Tints
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.outlined.TravelExplore
+import androidx.compose.material.icons.outlined.RecordVoiceOver
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.Tune
+import com.skofqq.domainmanager.ui.components.*
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -83,7 +99,7 @@ fun Z2ProfilesScreen(viewModel: Z2ProfilesViewModel, onBack: () -> Unit) {
         val firstLoad = state.profiles == null && state.error == null
         val skeletonBrush = if (firstLoad) shimmerBrush() else null
 
-        PullToRefreshBox(
+        HelmPullToRefreshBox(
             isRefreshing = state.isRefreshing && !firstLoad,
             onRefresh = { viewModel.refresh() },
             modifier = Modifier
@@ -93,28 +109,32 @@ fun Z2ProfilesScreen(viewModel: Z2ProfilesViewModel, onBack: () -> Unit) {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 state.error?.let { message ->
                     item { ErrorCard(message) }
                 }
 
                 if (skeletonBrush != null) {
-                    items(9) { SkeletonProfileRow(skeletonBrush) }
+                    item { SkeletonBox(skeletonBrush, Modifier.fillMaxWidth().height(420.dp), CardShape) }
                 }
 
                 state.profiles?.let { profiles ->
-                    items(profiles, key = { it.key }) { profile ->
-                        ProfileRow(
-                            profile = profile,
-                            value = state.shownValue(profile),
-                            changed = state.pending.containsKey(profile.key),
-                            enabled = !state.applying,
-                            onChange = { viewModel.setPending(profile.key, it) },
-                        )
+                    item {
+                        ProfilesSection(pendingCount = state.pending.size) {
+                            profiles.forEachIndexed { index, profile ->
+                                if (index > 0) SectionDivider()
+                                ProfileRow(
+                                    profile = profile,
+                                    value = state.shownValue(profile),
+                                    changed = state.pending.containsKey(profile.key),
+                                    enabled = !state.applying,
+                                    onChange = { viewModel.setPending(profile.key, it) },
+                                )
+                            }
+                        }
                     }
 
-                    item { Spacer(Modifier.height(4.dp)) }
                     item {
                         VoiceCard(
                             voice = voice,
@@ -122,108 +142,128 @@ fun Z2ProfilesScreen(viewModel: Z2ProfilesViewModel, onBack: () -> Unit) {
                         )
                     }
 
-                    item { Spacer(Modifier.height(4.dp)) }
                     item {
-                        FilledTonalButton(
-                            onClick = { viewModel.apply() },
-                            enabled = state.hasChanges && !state.applying,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            if (state.applying) {
-                                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                            } else {
-                                Text(stringResource(R.string.apply))
-                            }
-                        }
-                    }
-                    item {
-                        Text(
-                            text = stringResource(R.string.z2_apply_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(),
+                        ProfileActionsSection(
+                            hint = stringResource(R.string.z2_apply_hint),
+                            canApply = state.hasChanges,
+                            applying = state.applying,
+                            onApply = { viewModel.apply() },
+                            rollingBack = state.rollingBack,
+                            onRollback = { viewModel.rollback() },
+                            checking = state.checking,
+                            onCheck = { viewModel.check() },
+                            checks = state.checkResults,
                         )
                     }
-                    item {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            OutlinedButton(
-                                onClick = { viewModel.rollback() },
-                                enabled = !state.rollingBack,
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                if (state.rollingBack) {
-                                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                                } else {
-                                    Text(stringResource(R.string.z2_rollback))
-                                }
-                            }
-                            OutlinedButton(
-                                onClick = { viewModel.check() },
-                                enabled = !state.checking,
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                if (state.checking) {
-                                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                                } else {
-                                    Text(stringResource(R.string.check_reachability))
-                                }
-                            }
-                        }
-                    }
-
-                    state.checkResults?.let { checks ->
-                        item { CheckResultsCard(checks) }
-                    }
                 }
             }
         }
     }
 }
 
-/** Shared by both zapret profile screens (identical look — only the wired engine differs). */
+/** Card holding every profile row; the subtitle counts the edits not yet applied. */
+@Composable
+internal fun ProfilesSection(pendingCount: Int, content: @Composable () -> Unit) {
+    HelmSection(
+        title = stringResource(R.string.z_profiles_section),
+        subtitle = if (pendingCount > 0) {
+            pluralStringResource(R.plurals.n_pending_changes, pendingCount, pendingCount)
+        } else null,
+        icon = Icons.Outlined.Tune,
+        tint = Tints.accent,
+        shape = MaterialShapes.Cookie9Sided,
+        trailing = if (pendingCount > 0) {
+            { ValuePill(pendingCount.toString(), Tints.accent) }
+        } else null,
+    ) {
+        Column { content() }
+    }
+}
+
+/**
+ * Apply / rollback / reachability check, shared by both zapret profile screens.
+ * [onRollback] null = the engine has no undo (zapret v1).
+ */
+@Composable
+internal fun ProfileActionsSection(
+    hint: String?,
+    canApply: Boolean,
+    applying: Boolean,
+    onApply: () -> Unit,
+    rollingBack: Boolean = false,
+    onRollback: (() -> Unit)? = null,
+    checking: Boolean,
+    onCheck: () -> Unit,
+    checks: List<CheckEntry>?,
+) {
+    HelmSection(
+        title = stringResource(R.string.z_actions_section),
+        subtitle = hint,
+        icon = Icons.Outlined.Bolt,
+        tint = Tints.orange,
+        shape = MaterialShapes.Sunny,
+    ) {
+        HelmButton(
+            text = stringResource(R.string.apply),
+            onClick = onApply,
+            enabled = canApply,
+            loading = applying,
+            icon = Icons.Filled.Check,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            if (onRollback != null) {
+                HelmButton(
+                    text = stringResource(R.string.z2_rollback),
+                    onClick = onRollback,
+                    loading = rollingBack,
+                    icon = Icons.AutoMirrored.Filled.Undo,
+                    style = ButtonStyle.Danger,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            HelmButton(
+                text = stringResource(R.string.check_reachability),
+                onClick = onCheck,
+                loading = checking,
+                icon = Icons.Outlined.TravelExplore,
+                style = ButtonStyle.Tonal,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        checks?.let { CheckResults(it) }
+    }
+}
+
+/** Shared by both zapret profile screens (identical look, only the wired engine differs). */
 @Composable
 internal fun VoiceCard(voice: VoiceModeUiState, onSelect: (String) -> Unit) {
-    Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f),
-        shape = MaterialTheme.shapes.large,
-        modifier = Modifier.fillMaxWidth(),
+    HelmSection(
+        title = stringResource(R.string.voice_title),
+        icon = Icons.Outlined.RecordVoiceOver,
+        tint = Tints.purple,
+        shape = MaterialShapes.Clover4Leaf,
+        trailing = if (voice.loading) {
+            { LoadingIndicator(Modifier.size(36.dp)) }
+        } else null,
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.voice_title),
-                style = MaterialTheme.typography.titleSmall,
+        val options = listOf(
+            VOICE_MODE_CUSTOM to R.string.voice_custom,
+            VOICE_MODE_BOLVAN to R.string.voice_bolvan,
+        )
+        if (voice.mode != null || !voice.loading) {
+            PillTabs(
+                labels = options.map { stringResource(it.second) },
+                selected = options.indexOfFirst { it.first == voice.mode }.coerceAtLeast(0).toFloat(),
+                onSelect = { onSelect(options[it].first) },
+                enabled = !voice.loading,
+                container = Helm.colors.surface2,
             )
-            if (voice.mode == null && voice.loading) {
-                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-            } else {
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    val options = listOf(
-                        VOICE_MODE_CUSTOM to R.string.voice_custom,
-                        VOICE_MODE_BOLVAN to R.string.voice_bolvan,
-                    )
-                    options.forEachIndexed { index, (mode, labelRes) ->
-                        SegmentedButton(
-                            selected = voice.mode == mode,
-                            onClick = { onSelect(mode) },
-                            enabled = !voice.loading,
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                        ) { Text(stringResource(labelRes)) }
-                    }
-                }
-            }
-            voice.error?.let { ErrorCard(it) }
         }
+        voice.error?.let { ErrorCard(it) }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ProfileRow(
     profile: Z2Profile,
@@ -232,68 +272,47 @@ private fun ProfileRow(
     enabled: Boolean,
     onChange: (Int) -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+            Text(
+                text = profile.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = Helm.colors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
+                ProtoBadge(profile.proto)
                 Text(
-                    text = profile.name,
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = stringResource(R.string.profile_caption, profile.key, profile.strategy),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Helm.colors.text2,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    ProtoBadge(profile.proto)
-                    Text(
-                        text = stringResource(R.string.profile_caption, profile.key, profile.strategy),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                FilledTonalIconButton(
-                    onClick = { onChange((value - 1).coerceAtLeast(1)) },
-                    shapes = IconButtonDefaults.shapes(),
-                    enabled = enabled && value > 1,
-                ) {
-                    Icon(
-                        Icons.Filled.Remove,
-                        contentDescription = stringResource(R.string.strategy_previous),
-                    )
-                }
-                Text(
-                    text = value.toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (changed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.widthIn(min = 28.dp),
-                )
-                FilledTonalIconButton(
-                    onClick = { onChange((value + 1).coerceAtMost(profile.max)) },
-                    shapes = IconButtonDefaults.shapes(),
-                    enabled = enabled && value < profile.max,
-                ) {
-                    Icon(
-                        Icons.Filled.Add,
-                        contentDescription = stringResource(R.string.strategy_next),
-                    )
-                }
             }
         }
+        Spacer(Modifier.width(8.dp))
+        Stepper(
+            value = value,
+            onChange = onChange,
+            min = 1,
+            max = profile.max,
+            enabled = enabled,
+            changed = changed,
+            decreaseLabel = stringResource(R.string.strategy_previous),
+            increaseLabel = stringResource(R.string.strategy_next),
+        )
     }
 }
 
@@ -305,61 +324,52 @@ private fun ProtoBadge(proto: String) {
         "http" -> stringResource(R.string.z2_proto_http)
         else -> proto.uppercase()
     }
-    Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        shape = MaterialTheme.shapes.extraSmall,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
-        )
+    val tint = when (proto) {
+        "tls" -> Tints.blue
+        "udp" -> Tints.purple
+        "http" -> Tints.teal
+        else -> Tints.gray
     }
+    ValuePill(label, tint)
 }
 
-/** Shared by both zapret profile screens — checkconn's response shape is engine-agnostic. */
+/** Reachability results: one row per probe with a pass/fail shape and the HTTP code. */
 @Composable
-internal fun CheckResultsCard(checks: List<CheckEntry>) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-            checks.forEach { check ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    // Pass/fail lives in this dot's color alone — the HTTP code next to
-                    // it is "200" or "—", which is not a verdict. Say it in words.
-                    val okLabel = stringResource(
-                        if (check.ok) R.string.a11y_check_ok else R.string.a11y_check_failed
-                    )
-                    Surface(
-                        color = if (check.ok) statusOk else MaterialTheme.colorScheme.error,
-                        shape = CircleShape,
-                        modifier = Modifier
-                            .size(8.dp)
-                            .semantics { contentDescription = okLabel },
-                    ) {}
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = check.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = check.code.ifEmpty { "—" },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (check.ok) {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        },
-                    )
-                }
+internal fun CheckResults(checks: List<CheckEntry>) {
+    MonoBlock {
+        checks.forEach { check ->
+            // Pass/fail lives in the colour and the glyph: the HTTP code next to it is
+            // "200" or "—", which is not a verdict. Say it in words for TalkBack.
+            val okLabel = stringResource(
+                if (check.ok) R.string.a11y_check_ok else R.string.a11y_check_failed
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp)
+                    .semantics(mergeDescendants = true) { contentDescription = okLabel },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    if (check.ok) Icons.Filled.CheckCircle else Icons.Filled.Cancel,
+                    contentDescription = null,
+                    tint = if (check.ok) Tints.green.fg else Tints.red.fg,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = check.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Helm.colors.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = check.code.ifEmpty { "—" },
+                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                    color = if (check.ok) Helm.colors.text2 else Tints.red.fg,
+                )
             }
         }
     }
