@@ -538,6 +538,32 @@
     <string name="tor_bridge_delete_title">Bridge entfernen?</string>
     <string name="tor_bridge_delete_text">Die Bridge wird vom Router entfernt und Tor neu gestartet.</string>
 
+    <!-- In-app updates (GitHub releases) -->
+    <string name="update_section">App-Update</string>
+    <string name="update_current_version">Installiert: %1$s</string>
+    <string name="update_checking">Wird geprüft…</string>
+    <string name="update_up_to_date">Du hast die neueste Version</string>
+    <string name="update_available_title">Version %1$s ist verfügbar</string>
+    <string name="update_available_short">Update verfügbar: %1$s</string>
+    <string name="update_available_hint">Tippen zum Herunterladen und Installieren</string>
+    <string name="update_download_install">Herunterladen und installieren · %1$s</string>
+    <string name="update_downloading">Wird heruntergeladen</string>
+    <string name="update_install">Installieren</string>
+    <string name="update_installing">Wird installiert…</string>
+    <string name="update_permission_title">Installation von Updates erlauben</string>
+    <string name="update_permission_body">Android braucht die Erlaubnis, dass Helm Apps installieren darf. Erlaube es in den sich öffnenden Einstellungen und kehre zurück — die Installation läuft dann von selbst weiter.</string>
+    <string name="update_permission_open">Einstellungen öffnen</string>
+    <string name="update_auto_check">Automatisch prüfen</string>
+    <string name="update_auto_check_desc">Einmal täglich beim Öffnen der App</string>
+    <string name="update_notes_more">Mehr anzeigen</string>
+    <string name="update_notes_less">Weniger anzeigen</string>
+    <string name="update_open_github">Auf GitHub öffnen</string>
+    <string name="update_err_check">Updates konnten nicht geprüft werden — GitHub ist nicht erreichbar</string>
+    <string name="update_err_download">Der Download ist fehlgeschlagen</string>
+    <string name="update_err_bad_apk">Die heruntergeladene Datei ist kein gültiges Helm-Update</string>
+    <string name="update_err_conflict">Android hat das Update abgelehnt: Es ist mit einem anderen Schlüssel signiert als die installierte App (z. B. ein Debug-Build). Deinstalliere Helm und installiere das Release von GitHub.</string>
+    <string name="update_err_install">Installation fehlgeschlagen</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Falsches Token — prüfe die Einstellungen</string>
     <string name="err_token_not_configured">Token auf dem Router nicht eingerichtet</string>

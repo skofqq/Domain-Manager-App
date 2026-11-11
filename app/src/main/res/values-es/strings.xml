@@ -548,6 +548,32 @@
     <string name="tor_bridge_delete_title">¿Quitar puente?</string>
     <string name="tor_bridge_delete_text">El puente se quitará del router y Tor se reiniciará.</string>
 
+    <!-- In-app updates (GitHub releases) -->
+    <string name="update_section">Actualización de la app</string>
+    <string name="update_current_version">Instalada: %1$s</string>
+    <string name="update_checking">Comprobando…</string>
+    <string name="update_up_to_date">Tienes la última versión</string>
+    <string name="update_available_title">La versión %1$s está disponible</string>
+    <string name="update_available_short">Actualización disponible: %1$s</string>
+    <string name="update_available_hint">Toca para descargar e instalar</string>
+    <string name="update_download_install">Descargar e instalar · %1$s</string>
+    <string name="update_downloading">Descargando</string>
+    <string name="update_install">Instalar</string>
+    <string name="update_installing">Instalando…</string>
+    <string name="update_permission_title">Permite instalar actualizaciones</string>
+    <string name="update_permission_body">Android necesita permiso para que Helm instale apps. Concédelo en los ajustes que se abren y vuelve: la instalación continuará sola.</string>
+    <string name="update_permission_open">Abrir ajustes</string>
+    <string name="update_auto_check">Comprobar automáticamente</string>
+    <string name="update_auto_check_desc">Una vez al día al abrir la app</string>
+    <string name="update_notes_more">Mostrar más</string>
+    <string name="update_notes_less">Mostrar menos</string>
+    <string name="update_open_github">Abrir en GitHub</string>
+    <string name="update_err_check">No se pudieron buscar actualizaciones: GitHub no está accesible</string>
+    <string name="update_err_download">La descarga falló</string>
+    <string name="update_err_bad_apk">El archivo descargado no es una actualización válida de Helm</string>
+    <string name="update_err_conflict">Android rechazó la actualización: está firmada con una clave distinta a la de la app instalada (por ejemplo, una compilación de depuración). Desinstala Helm e instala la versión de GitHub.</string>
+    <string name="update_err_install">La instalación falló</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Token incorrecto — revisa los ajustes</string>
     <string name="err_token_not_configured">Token no configurado en el router</string>

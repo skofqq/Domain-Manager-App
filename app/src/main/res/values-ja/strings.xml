@@ -529,6 +529,32 @@
     <string name="tor_bridge_delete_title">ブリッジを削除しますか？</string>
     <string name="tor_bridge_delete_text">ブリッジがルーターから削除され、Tor が再起動します。</string>
 
+    <!-- In-app updates (GitHub releases) -->
+    <string name="update_section">アプリのアップデート</string>
+    <string name="update_current_version">インストール済み: %1$s</string>
+    <string name="update_checking">確認中…</string>
+    <string name="update_up_to_date">最新バージョンです</string>
+    <string name="update_available_title">バージョン %1$s が利用できます</string>
+    <string name="update_available_short">アップデートがあります: %1$s</string>
+    <string name="update_available_hint">タップしてダウンロードとインストール</string>
+    <string name="update_download_install">ダウンロードしてインストール · %1$s</string>
+    <string name="update_downloading">ダウンロード中</string>
+    <string name="update_install">インストール</string>
+    <string name="update_installing">インストール中…</string>
+    <string name="update_permission_title">アップデートのインストールを許可</string>
+    <string name="update_permission_body">Android で Helm によるアプリのインストールを許可する必要があります。開いた設定で許可して戻ると、インストールが自動的に続行されます。</string>
+    <string name="update_permission_open">設定を開く</string>
+    <string name="update_auto_check">自動的に確認</string>
+    <string name="update_auto_check_desc">アプリを開いたときに 1 日 1 回</string>
+    <string name="update_notes_more">もっと見る</string>
+    <string name="update_notes_less">閉じる</string>
+    <string name="update_open_github">GitHub で開く</string>
+    <string name="update_err_check">アップデートを確認できませんでした — GitHub に接続できません</string>
+    <string name="update_err_download">ダウンロードに失敗しました</string>
+    <string name="update_err_bad_apk">ダウンロードしたファイルは有効な Helm のアップデートではありません</string>
+    <string name="update_err_conflict">Android がアップデートを拒否しました。インストール済みのアプリと異なる鍵で署名されています（デバッグビルドなど）。Helm をアンインストールして、GitHub のリリースをインストールしてください。</string>
+    <string name="update_err_install">インストールに失敗しました</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">トークンが無効です — 設定を確認してください</string>
     <string name="err_token_not_configured">ルーターにトークンが設定されていません</string>

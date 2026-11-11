@@ -563,6 +563,32 @@
     <string name="tor_bridge_delete_title">Удалить мост?</string>
     <string name="tor_bridge_delete_text">Мост будет удалён с роутера, Tor перезапустится.</string>
 
+    <!-- In-app updates (GitHub releases) -->
+    <string name="update_section">Обновление приложения</string>
+    <string name="update_current_version">Установлена: %1$s</string>
+    <string name="update_checking">Проверка…</string>
+    <string name="update_up_to_date">У вас последняя версия</string>
+    <string name="update_available_title">Доступна версия %1$s</string>
+    <string name="update_available_short">Доступно обновление: %1$s</string>
+    <string name="update_available_hint">Нажмите, чтобы скачать и установить</string>
+    <string name="update_download_install">Скачать и установить · %1$s</string>
+    <string name="update_downloading">Загрузка</string>
+    <string name="update_install">Установить</string>
+    <string name="update_installing">Установка…</string>
+    <string name="update_permission_title">Разрешите установку обновлений</string>
+    <string name="update_permission_body">Android требует разрешения на установку приложений из Helm. Разрешите его в открывшихся настройках и вернитесь — установка продолжится сама.</string>
+    <string name="update_permission_open">Открыть настройки</string>
+    <string name="update_auto_check">Проверять автоматически</string>
+    <string name="update_auto_check_desc">Раз в день при запуске приложения</string>
+    <string name="update_notes_more">Показать полностью</string>
+    <string name="update_notes_less">Свернуть</string>
+    <string name="update_open_github">Открыть на GitHub</string>
+    <string name="update_err_check">Не удалось проверить обновления — GitHub недоступен</string>
+    <string name="update_err_download">Не удалось скачать обновление</string>
+    <string name="update_err_bad_apk">Скачанный файл не является обновлением Helm</string>
+    <string name="update_err_conflict">Android отклонил обновление: оно подписано другим ключом, чем установленное приложение (например, отладочная сборка). Удалите Helm и установите релиз с GitHub.</string>
+    <string name="update_err_install">Не удалось установить обновление</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Неверный токен — проверьте настройки</string>
     <string name="err_token_not_configured">Токен не настроен на роутере</string>
@@ -609,6 +635,7 @@
     <string name="err_title_other">Что-то пошло не так</string>
     <string name="err_details">Подробнее</string>
     <string name="err_open_settings">Настройки роутера</string>
+    <string name="err_raw">%1$s</string>
 
     <!-- Метки для скринридера: имена для кнопок-иконок и состояния, которое иначе
          передаётся только формой значка или цветной точкой. -->

@@ -156,6 +156,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -331,6 +332,8 @@ private fun SettingsRootScreen(onOpen: (String) -> Unit) {
             contentPadding = PaddingValues(top = 4.dp, bottom = padding.calculateBottomPadding()),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            // Only composes something while an app update is pending.
+            item { UpdateAvailableCard(onOpen = { onOpen("about") }, modifier = Modifier.padding(horizontal = 16.dp)) }
             item {
                 SectionCard(title = null) {
                     SettingsRow(
@@ -417,7 +420,8 @@ private fun SettingsRootScreen(onOpen: (String) -> Unit) {
 
 @Composable
 private fun currentLanguageLabel(): String {
-    val tag = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+    // Keyed on the configuration: the activity is not recreated on a locale change.
+    val tag = remember(LocalConfiguration.current) { AppCompatDelegate.getApplicationLocales().toLanguageTags() }
     if (tag.isEmpty()) return stringResource(R.string.language_system)
     val option = LANGUAGE_OPTIONS.firstOrNull { it.tag.isNotEmpty() && tag.startsWith(it.tag) }
         ?: LANGUAGE_OPTIONS.first { it.tag == "en" }
@@ -740,8 +744,9 @@ private fun ThemeCircleSelector(option: ThemeOption, selected: Boolean, onClick:
 @Composable
 private fun LanguageSettingsScreen(onBack: () -> Unit) {
     SettingsChildScaffold(stringResource(R.string.section_language), onBack) { padding ->
-        val currentTag = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-        val activity = LocalActivity.current
+        val currentTag = remember(LocalConfiguration.current) {
+            AppCompatDelegate.getApplicationLocales().toLanguageTags()
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -757,45 +762,23 @@ private fun LanguageSettingsScreen(onBack: () -> Unit) {
                     subtitle = null,
                     selected = selected,
                     leading = option.flag,
-                    onClick = { applyLocale(activity, option.tag) },
+                    onClick = { applyLocale(option.tag) },
                 )
             }
         }
     }
 }
 
-private fun applyLocale(activity: Activity?, tag: String) {
-    // Set BEFORE triggering the change: whichever path AppCompat's
-    // ActivityRecreator takes (true recreate() or finish()+relaunch), this
-    // flag is what onCreate() checks to skip the splash screen — see its
-    // doc comment in MainActivity.kt for why savedInstanceState alone isn't
-    // reliable enough on its own.
-    MainActivity.skipSplashOnNextCreate = true
+/**
+ * MainActivity declares configChanges="locale|layoutDirection", so this does NOT
+ * recreate the activity: it gets onConfigurationChanged() and the UI recomposes
+ * in the new language in place (see MainActivity.localeConfiguration).
+ */
+private fun applyLocale(tag: String) {
     AppCompatDelegate.setApplicationLocales(
         if (tag.isEmpty()) LocaleListCompat.getEmptyLocaleList()
         else LocaleListCompat.forLanguageTags(tag)
     )
-    // setApplicationLocales() recreates the activity; the default relaunch has no
-    // transition, which reads as a flash. Crossfade it instead — a custom, longer,
-    // eased fade (R.anim.locale_fade_*) rather than the stock system fade_in/
-    // fade_out, which is short and linear enough to still read as a flash on its own.
-    when {
-        activity == null -> Unit
-        Build.VERSION.SDK_INT >= 34 -> {
-            activity.overrideActivityTransition(
-                Activity.OVERRIDE_TRANSITION_OPEN,
-                R.anim.locale_fade_in,
-                R.anim.locale_fade_out,
-            )
-            activity.overrideActivityTransition(
-                Activity.OVERRIDE_TRANSITION_CLOSE,
-                R.anim.locale_fade_in,
-                R.anim.locale_fade_out,
-            )
-        }
-        else -> @Suppress("DEPRECATION")
-        activity.overridePendingTransition(R.anim.locale_fade_in, R.anim.locale_fade_out)
-    }
 }
 
 // --- Authorization (router profiles) ----------------------------------------------
@@ -2234,6 +2217,8 @@ private fun AboutSettingsScreen(onBack: () -> Unit) {
                     modifier = Modifier.padding(horizontal = 24.dp),
                 )
             }
+
+            AppUpdateSection()
 
             // Source code: GitHub mark links to the project repo.
             EntryCard(

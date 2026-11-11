@@ -538,6 +538,32 @@
     <string name="tor_bridge_delete_title">Köprü kaldırılsın mı?</string>
     <string name="tor_bridge_delete_text">Köprü yönlendiriciden kaldırılacak ve Tor yeniden başlatılacak.</string>
 
+    <!-- In-app updates (GitHub releases) -->
+    <string name="update_section">Uygulama güncellemesi</string>
+    <string name="update_current_version">Yüklü: %1$s</string>
+    <string name="update_checking">Denetleniyor…</string>
+    <string name="update_up_to_date">En son sürümü kullanıyorsunuz</string>
+    <string name="update_available_title">%1$s sürümü kullanılabilir</string>
+    <string name="update_available_short">Güncelleme var: %1$s</string>
+    <string name="update_available_hint">İndirip yüklemek için dokunun</string>
+    <string name="update_download_install">İndir ve yükle · %1$s</string>
+    <string name="update_downloading">İndiriliyor</string>
+    <string name="update_install">Yükle</string>
+    <string name="update_installing">Yükleniyor…</string>
+    <string name="update_permission_title">Güncelleme yüklemeye izin verin</string>
+    <string name="update_permission_body">Android, Helm’in uygulama yüklemesi için izin istiyor. Açılan ayarlarda izin verip geri dönün; yükleme kendiliğinden devam eder.</string>
+    <string name="update_permission_open">Ayarları aç</string>
+    <string name="update_auto_check">Otomatik denetle</string>
+    <string name="update_auto_check_desc">Uygulama açıldığında günde bir kez</string>
+    <string name="update_notes_more">Daha fazla göster</string>
+    <string name="update_notes_less">Daha az göster</string>
+    <string name="update_open_github">GitHub’da aç</string>
+    <string name="update_err_check">Güncellemeler denetlenemedi — GitHub’a ulaşılamıyor</string>
+    <string name="update_err_download">İndirme başarısız oldu</string>
+    <string name="update_err_bad_apk">İndirilen dosya geçerli bir Helm güncellemesi değil</string>
+    <string name="update_err_conflict">Android güncellemeyi reddetti: yüklü uygulamadan farklı bir anahtarla imzalanmış (örneğin bir hata ayıklama derlemesi). Helm’i kaldırıp GitHub’daki sürümü yükleyin.</string>
+    <string name="update_err_install">Yükleme başarısız oldu</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Token hatalı — Ayarlar’ı kontrol edin</string>
     <string name="err_token_not_configured">Yönlendiricide token ayarlı değil</string>

@@ -529,6 +529,32 @@
     <string name="tor_bridge_delete_title">移除网桥？</string>
     <string name="tor_bridge_delete_text">该网桥将从路由器中移除，Tor 会重新启动。</string>
 
+    <!-- In-app updates (GitHub releases) -->
+    <string name="update_section">应用更新</string>
+    <string name="update_current_version">已安装：%1$s</string>
+    <string name="update_checking">正在检查…</string>
+    <string name="update_up_to_date">已是最新版本</string>
+    <string name="update_available_title">%1$s 版本可用</string>
+    <string name="update_available_short">有可用更新：%1$s</string>
+    <string name="update_available_hint">点按即可下载并安装</string>
+    <string name="update_download_install">下载并安装 · %1$s</string>
+    <string name="update_downloading">正在下载</string>
+    <string name="update_install">安装</string>
+    <string name="update_installing">正在安装…</string>
+    <string name="update_permission_title">允许安装更新</string>
+    <string name="update_permission_body">Android 需要允许 Helm 安装应用。请在打开的设置中授予权限后返回，安装会自动继续。</string>
+    <string name="update_permission_open">打开设置</string>
+    <string name="update_auto_check">自动检查</string>
+    <string name="update_auto_check_desc">每天打开应用时检查一次</string>
+    <string name="update_notes_more">显示更多</string>
+    <string name="update_notes_less">收起</string>
+    <string name="update_open_github">在 GitHub 上打开</string>
+    <string name="update_err_check">无法检查更新：无法访问 GitHub</string>
+    <string name="update_err_download">下载失败</string>
+    <string name="update_err_bad_apk">下载的文件不是有效的 Helm 更新</string>
+    <string name="update_err_conflict">Android 拒绝了此更新：它的签名密钥与已安装的应用不同（例如调试版本）。请卸载 Helm，然后从 GitHub 安装正式版本。</string>
+    <string name="update_err_install">安装失败</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">令牌错误 — 请检查设置</string>
     <string name="err_token_not_configured">路由器未配置令牌</string>

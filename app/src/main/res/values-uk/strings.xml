@@ -558,6 +558,32 @@
     <string name="tor_bridge_delete_title">Видалити міст?</string>
     <string name="tor_bridge_delete_text">Міст буде видалено з роутера, а Tor перезапуститься.</string>
 
+    <!-- In-app updates (GitHub releases) -->
+    <string name="update_section">Оновлення застосунку</string>
+    <string name="update_current_version">Встановлено: %1$s</string>
+    <string name="update_checking">Перевірка…</string>
+    <string name="update_up_to_date">У вас остання версія</string>
+    <string name="update_available_title">Доступна версія %1$s</string>
+    <string name="update_available_short">Доступне оновлення: %1$s</string>
+    <string name="update_available_hint">Натисніть, щоб завантажити й встановити</string>
+    <string name="update_download_install">Завантажити й встановити · %1$s</string>
+    <string name="update_downloading">Завантаження</string>
+    <string name="update_install">Встановити</string>
+    <string name="update_installing">Встановлення…</string>
+    <string name="update_permission_title">Дозвольте встановлення оновлень</string>
+    <string name="update_permission_body">Android потребує дозволу на встановлення застосунків із Helm. Надайте його в налаштуваннях, що відкриються, і поверніться — встановлення продовжиться саме.</string>
+    <string name="update_permission_open">Відкрити налаштування</string>
+    <string name="update_auto_check">Перевіряти автоматично</string>
+    <string name="update_auto_check_desc">Раз на день під час запуску застосунку</string>
+    <string name="update_notes_more">Показати повністю</string>
+    <string name="update_notes_less">Згорнути</string>
+    <string name="update_open_github">Відкрити на GitHub</string>
+    <string name="update_err_check">Не вдалося перевірити оновлення — GitHub недоступний</string>
+    <string name="update_err_download">Не вдалося завантажити оновлення</string>
+    <string name="update_err_bad_apk">Завантажений файл не є оновленням Helm</string>
+    <string name="update_err_conflict">Android відхилив оновлення: його підписано іншим ключем, ніж встановлений застосунок (наприклад, налагоджувальна збірка). Видаліть Helm і встановіть реліз із GitHub.</string>
+    <string name="update_err_install">Не вдалося встановити оновлення</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Невірний токен — перевірте налаштування</string>
     <string name="err_token_not_configured">Токен не налаштовано на роутері</string>

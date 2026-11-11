@@ -543,6 +543,32 @@
     <string name="tor_bridge_delete_title">Remove bridge?</string>
     <string name="tor_bridge_delete_text">The bridge will be removed from the router and Tor will restart.</string>
 
+    <!-- In-app updates (GitHub releases) -->
+    <string name="update_section">App update</string>
+    <string name="update_current_version">Installed: %1$s</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_up_to_date">You have the latest version</string>
+    <string name="update_available_title">Version %1$s is available</string>
+    <string name="update_available_short">Update available: %1$s</string>
+    <string name="update_available_hint">Tap to download and install</string>
+    <string name="update_download_install">Download and install · %1$s</string>
+    <string name="update_downloading">Downloading</string>
+    <string name="update_install">Install</string>
+    <string name="update_installing">Installing…</string>
+    <string name="update_permission_title">Allow installing updates</string>
+    <string name="update_permission_body">Android needs permission for Helm to install apps. Allow it in the settings that open, then come back — the install continues on its own.</string>
+    <string name="update_permission_open">Open settings</string>
+    <string name="update_auto_check">Check automatically</string>
+    <string name="update_auto_check_desc">Once a day when the app opens</string>
+    <string name="update_notes_more">Show more</string>
+    <string name="update_notes_less">Show less</string>
+    <string name="update_open_github">Open on GitHub</string>
+    <string name="update_err_check">Could not check for updates — GitHub is not reachable</string>
+    <string name="update_err_download">The download failed</string>
+    <string name="update_err_bad_apk">The downloaded file is not a valid Helm update</string>
+    <string name="update_err_conflict">Android rejected the update: it is signed with a different key than the installed app (for example, a debug build). Uninstall Helm and install the release from GitHub.</string>
+    <string name="update_err_install">Installation failed</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Bad token — check Settings</string>
     <string name="err_token_not_configured">Token not configured on router</string>

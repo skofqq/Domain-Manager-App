@@ -539,6 +539,32 @@
     <string name="tor_bridge_delete_title">Көпірді жою керек пе?</string>
     <string name="tor_bridge_delete_text">Көпір роутерден жойылып, Tor қайта іске қосылады.</string>
 
+    <!-- In-app updates (GitHub releases) -->
+    <string name="update_section">Қолданбаны жаңарту</string>
+    <string name="update_current_version">Орнатылған: %1$s</string>
+    <string name="update_checking">Тексерілуде…</string>
+    <string name="update_up_to_date">Сізде ең соңғы нұсқа</string>
+    <string name="update_available_title">%1$s нұсқасы қолжетімді</string>
+    <string name="update_available_short">Жаңарту бар: %1$s</string>
+    <string name="update_available_hint">Жүктеп алып, орнату үшін түртіңіз</string>
+    <string name="update_download_install">Жүктеп алу және орнату · %1$s</string>
+    <string name="update_downloading">Жүктелуде</string>
+    <string name="update_install">Орнату</string>
+    <string name="update_installing">Орнатылуда…</string>
+    <string name="update_permission_title">Жаңартуларды орнатуға рұқсат беріңіз</string>
+    <string name="update_permission_body">Android Helm-нен қолданба орнатуға рұқсат сұрайды. Ашылған баптауларда рұқсат беріп, оралыңыз — орнату өзі жалғасады.</string>
+    <string name="update_permission_open">Баптауларды ашу</string>
+    <string name="update_auto_check">Автоматты түрде тексеру</string>
+    <string name="update_auto_check_desc">Қолданба ашылғанда күніне бір рет</string>
+    <string name="update_notes_more">Толығырақ көрсету</string>
+    <string name="update_notes_less">Жасыру</string>
+    <string name="update_open_github">GitHub-та ашу</string>
+    <string name="update_err_check">Жаңартуларды тексеру мүмкін болмады — GitHub қолжетімсіз</string>
+    <string name="update_err_download">Жаңартуды жүктеп алу мүмкін болмады</string>
+    <string name="update_err_bad_apk">Жүктелген файл Helm жаңартуы емес</string>
+    <string name="update_err_conflict">Android жаңартуды қабылдамады: ол орнатылған қолданбадан басқа кілтпен қол қойылған (мысалы, жөндеу нұсқасы). Helm-ді жойып, GitHub-тан шығарылымды орнатыңыз.</string>
+    <string name="update_err_install">Жаңартуды орнату мүмкін болмады</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Токен қате — баптауларды тексеріңіз</string>
     <string name="err_token_not_configured">Роутерде токен бапталмаған</string>

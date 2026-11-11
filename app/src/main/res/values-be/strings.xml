@@ -559,6 +559,32 @@
     <string name="tor_bridge_delete_title">Выдаліць мост?</string>
     <string name="tor_bridge_delete_text">Мост будзе выдалены з роўтара, і Tor перазапусціцца.</string>
 
+    <!-- In-app updates (GitHub releases) -->
+    <string name="update_section">Абнаўленне праграмы</string>
+    <string name="update_current_version">Усталявана: %1$s</string>
+    <string name="update_checking">Праверка…</string>
+    <string name="update_up_to_date">У вас апошняя версія</string>
+    <string name="update_available_title">Даступна версія %1$s</string>
+    <string name="update_available_short">Ёсць абнаўленне: %1$s</string>
+    <string name="update_available_hint">Націсніце, каб спампаваць і ўсталяваць</string>
+    <string name="update_download_install">Спампаваць і ўсталяваць · %1$s</string>
+    <string name="update_downloading">Спампоўка</string>
+    <string name="update_install">Усталяваць</string>
+    <string name="update_installing">Усталёўка…</string>
+    <string name="update_permission_title">Дазвольце ўсталёўку абнаўленняў</string>
+    <string name="update_permission_body">Android патрабуе дазволу на ўсталёўку праграм з Helm. Дайце яго ў наладах, якія адкрыюцца, і вярніцеся — усталёўка працягнецца сама.</string>
+    <string name="update_permission_open">Адкрыць налады</string>
+    <string name="update_auto_check">Правяраць аўтаматычна</string>
+    <string name="update_auto_check_desc">Раз на дзень пры запуску праграмы</string>
+    <string name="update_notes_more">Паказаць цалкам</string>
+    <string name="update_notes_less">Згарнуць</string>
+    <string name="update_open_github">Адкрыць на GitHub</string>
+    <string name="update_err_check">Не ўдалося праверыць абнаўленні — GitHub недаступны</string>
+    <string name="update_err_download">Не ўдалося спампаваць абнаўленне</string>
+    <string name="update_err_bad_apk">Спампаваны файл не з’яўляецца абнаўленнем Helm</string>
+    <string name="update_err_conflict">Android адхіліў абнаўленне: яно падпісана іншым ключом, чым усталяваная праграма (напрыклад, адладачная зборка). Выдаліце Helm і ўсталюйце рэліз з GitHub.</string>
+    <string name="update_err_install">Не ўдалося ўсталяваць абнаўленне</string>
+
     <!-- API / network errors -->
     <string name="err_bad_token">Няправільны токен — праверце налады</string>
     <string name="err_token_not_configured">Токен не наладжаны на роўтары</string>

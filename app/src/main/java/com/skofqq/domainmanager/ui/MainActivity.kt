@@ -65,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
@@ -81,19 +82,25 @@ import com.skofqq.domainmanager.ui.theme.DomainManagerTheme
 import com.skofqq.domainmanager.worker.RouterMonitorWorker
 
 class MainActivity : AppCompatActivity() {
-    companion object {
-        /**
-         * Set right before AppCompatDelegate.setApplicationLocales() (see
-         * applyLocale() in SettingsActivity.kt), read once in onCreate below.
-         * savedInstanceState alone isn't a reliable "this is a locale-change
-         * recreate, not a cold start" signal — depending on API level,
-         * AppCompat's ActivityRecreator can relaunch via finish()+startActivity()
-         * with a fresh intent instead of a true Activity.recreate(), which
-         * doesn't guarantee a saved-instance bundle reaches the new onCreate.
-         * An explicit in-process flag works regardless of which path it takes.
-         */
-        @Volatile
-        var skipSplashOnNextCreate = false
+    /**
+     * The activity handles locale changes itself (configChanges="locale|layoutDirection"
+     * in the manifest) instead of being recreated — a recreate tore the window down and
+     * showed the bare window background for ~1 s while the whole UI was rebuilt.
+     * The new configuration is pushed into composition as [LocalConfiguration], so every
+     * stringResource() recomposes in place. Done explicitly because on API < 33 AppCompat
+     * applies per-app locales by updating resources itself and calling only the
+     * activity's onConfigurationChanged — the ComposeView never hears about it.
+     */
+    private var localeConfiguration by mutableStateOf<Configuration?>(null)
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        localeConfiguration = Configuration(resources.configuration)
+        // Launcher shortcut labels are resolved when published — re-publish them in
+        // the new language.
+        val activeZapret = servicesViewModel.state.value.services
+            ?.firstOrNull { it.service in ZAPRET_ENGINES && it.running }?.service
+        AppShortcuts.publish(applicationContext, prefs.enabledShortcutIds, activeZapret)
     }
 
     private val prefs by lazy { PrefsStore(this).also { Haptics.enabled = it.hapticFeedback } }
@@ -122,6 +129,7 @@ class MainActivity : AppCompatActivity() {
         SettingsViewModel.Factory(prefs, api, applicationContext)
     }
     private val backupViewModel by viewModels<BackupViewModel> { BackupViewModel.Factory(api) }
+    private val appUpdateViewModel by viewModels<AppUpdateViewModel>()
 
     /**
      * "shortcut_action" from a tapped App Shortcut's intent — read once in
@@ -147,14 +155,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // The manifest theme is Theme.DomainManager.Splash so a genuine cold
-        // start gets the native splash screen — but a locale change (Settings →
-        // Language) also re-enters onCreate on a fresh Activity instance, which
-        // would otherwise flash that splash theme's dark background before
-        // postSplashScreenTheme swaps it out. skipSplashOnNextCreate is the
-        // reliable signal for that (see its doc); savedInstanceState alone is
-        // kept only as a harmless extra fallback for ordinary config changes.
-        val skipSplash = skipSplashOnNextCreate || savedInstanceState != null
-        skipSplashOnNextCreate = false
+        // start gets the native splash screen. A recreate after an ordinary config
+        // change (rotation, dark mode) must not flash that splash theme's background
+        // before postSplashScreenTheme swaps it out. Locale changes no longer
+        // recreate at all (see [localeConfiguration]).
+        val skipSplash = savedInstanceState != null
         if (skipSplash) {
             setTheme(R.style.Theme_DomainManager)
             // Window/Resources are already available pre-super() (set up during
@@ -182,6 +187,8 @@ class MainActivity : AppCompatActivity() {
         if (prefs.monitoringEnabled) {
             RouterMonitorWorker.reschedule(applicationContext, prefs.monitoringIntervalMinutes)
         }
+        // At most once a day, silent unless a newer release exists (Settings → About).
+        if (savedInstanceState == null) appUpdateViewModel.checkIfDue()
         setContent {
             val darkTheme = isDarkTheme(settingsViewModel.themeMode)
             // Active router switched (title-bar chip or the Settings radio):
@@ -221,6 +228,9 @@ class MainActivity : AppCompatActivity() {
                     navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme },
                 )
             }
+            CompositionLocalProvider(
+                LocalConfiguration provides (localeConfiguration ?: LocalConfiguration.current),
+            ) {
             DomainManagerTheme(
                 darkTheme = darkTheme,
                 useDynamicColor = settingsViewModel.useDynamicColor,
@@ -285,13 +295,14 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+            }
         }
     }
 
     /**
      * The XML windowBackground follows the SYSTEM night mode, but the in-app theme
      * can be forced light/dark (and dynamic color shifts the real background) — on
-     * a recreation (language switch!) the first frame would flash the wrong color.
+     * a recreation (rotation, dark mode) the first frame would flash the wrong color.
      * Paint the window with the effective theme's background before the first draw;
      * the composed theme then refines it to the exact color.
      */
