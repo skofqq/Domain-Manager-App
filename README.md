@@ -20,6 +20,8 @@ browser and the domain lands on the router.
     automatically) or share a link from any browser
   - Remove with an explicit target choice when the two systems disagree
   - Long-press to rename a domain (keeps its system membership)
+  - The field floats as a glass pill above the bottom bar: "Paste" while it is empty,
+    "+" once something is typed; an empty search offers to add what you typed
 - **Strategies** — per-domain DPI-bypass strategy on the running zapret engine
   - The active engine is detected on every visit; a top-bar dropdown lets you peek at
     the other one without persisting the choice
@@ -33,13 +35,16 @@ changes made from the Share flow or another device show up without a manual refr
 ### Status
 
 - **Services** — mihomo, MagiTrickle, zapret, zapret2 and Tor with live *running* and
-  *autostart* flags, contextual Start / Stop / Restart, and per-service log viewing.
+  *autostart* flags, contextual Start / Stop / Restart, and per-service log viewing
+  with syntax highlighting (time, level, process, `key=`, strings, IPs, URLs, a level
+  stripe, tinted error lines; ANSI color codes from MagiTrickle become real colors).
   Color-coded state: green — running, red — should be running but isn't, grey — stopped.
   Handles the zapret ⇄ zapret2 mutual exclusivity (starting one disables the other)
 - **Router health** — model, firmware, uptime, load, CPU temperature, memory and
   `/overlay` usage. WAN IPv4/IPv6 are hidden behind placeholders and revealed by
   flipping the phone face-down
-- **mihomo** — proxy groups with node switching, live transfer speed, the connection
+- **mihomo** — proxy groups (with their icons from the router config and the active
+  node's latency on the card) with node switching, live transfer speed, the connection
   list grouped by source device, and per-node latency / protocol / IPv6 badges
   - **Subscriptions** — add, re-point and remove proxy providers. All subscriptions
     merge into one shared node pool, so anything you add becomes selectable in every
@@ -64,10 +69,12 @@ changes made from the Share flow or another device show up without a manual refr
 
 ### Settings
 
-- Appearance: swipeable live theme preview, System/Light/Dark, Material You dynamic
-  color (Android 12+) or a full Material 3 palette generated from the brand color
-  `#D2DA40`
-- Language: system / English / Русский, switchable at runtime
+- Appearance: swipeable live theme preview, System/Light/Dark, true black for the dark
+  theme, Liquid Glass (blur and refraction on bars, menus, sheets and dialogs, Android
+  12+), haptic feedback, and Material You dynamic color (Android 12+, off by default —
+  the brand lime `#D2DA40` is the accent otherwise)
+- Language: system, English, Русский, Українська, Беларуская, Қазақша, Deutsch,
+  Español, Français, Italiano, Türkçe, 简体中文, 日本語 — switchable at runtime
 - Routers: several router profiles with instant switching, QR pairing
   (`routerdomains://setup`), host, port and access token (stored in
   `EncryptedSharedPreferences`)
@@ -80,8 +87,14 @@ changes made from the Share flow or another device show up without a manual refr
 
 ### Elsewhere
 
+The design system is shared with the sibling app Boxy: stacked section cards with
+Material 3 Expressive shaped icons, shape-morphing buttons, a floating glass bottom bar
+and expressive empty and loading states. Connection errors get a card that names the
+likely cause (for example, the LuCI HTTPS port instead of the API port) with Retry and
+Router settings actions and expandable details.
+
 Animated splash (the two logo halves "dock" and flash on connection), predictive back
-throughout, Material 3 Expressive, a home-screen widget with service status, dynamic
+throughout, a home-screen widget with service status, dynamic
 app shortcuts and a Quick Settings tile.
 
 ## Requirements
@@ -163,8 +176,7 @@ RELEASE_KEY_PASSWORD=…
 ## Tech stack
 
 Kotlin · Jetpack Compose (Material 3 Expressive) · OkHttp · EncryptedSharedPreferences ·
-WorkManager · androidx.biometric · Coil ·
-[MaterialKolor](https://github.com/jordond/MaterialKolor) · core-splashscreen · ZXing +
+WorkManager · androidx.biometric · Coil (+ SVG) · core-splashscreen · ZXing +
 Play Services code scanner
 
 No Retrofit, no JSON-mapping library and no DI framework: raw OkHttp with `org.json`
