@@ -235,7 +235,7 @@
 
     <!-- Backup -->
     <string name="section_backup">Сақтық көшірме</string>
-    <string name="settings_backup_desc">Тізімдерді экспорттау және импорттау</string>
+    <string name="settings_backup_desc">Роутер тізімдері және қолданба баптаулары</string>
     <string name="backup_export_title">Экспорт</string>
     <string name="backup_export_note">Роутердің ағымдағы тізімдерінің анықтама немесе қолмен қалпына келтіру үшін суреті. Нақты күй әрқашан роутерде қалады — қолданба оны тек API арқылы оқиды және жазады.</string>
     <string name="backup_build">Сурет жасау</string>
@@ -539,6 +539,21 @@
     <string name="tor_bridge_delete_title">Көпірді жою керек пе?</string>
     <string name="tor_bridge_delete_text">Көпір роутерден жойылып, Tor қайта іске қосылады.</string>
 
+    <!-- App settings backup (Settings → Backup) -->
+    <string name="settings_backup_title">Қолданба баптаулары</string>
+    <string name="settings_backup_note">Тақырып, тіл, сыртқы түрі, қауіпсіздік, мониторинг, таңбашалар және белгішелері мен таңдаулы құрылғылары бар роутер профильдері. Роутердің өз тізімдері кірмейді — олар жоғарыдағы суретте.</string>
+    <string name="settings_backup_tokens">Кіру токендерін қосу</string>
+    <string name="settings_backup_tokens_desc">Оларсыз қалпына келтірілген роутерлер осы телефондағы токенді сақтайды</string>
+    <string name="settings_backup_tokens_warning">Файлда роутер мекенжайлары мен кіру токендері ашық мәтінмен болады. Оны сенімді жерде сақтап, ешкімге жібермеңіз.</string>
+    <string name="settings_backup_save">Файлға сақтау</string>
+    <string name="settings_backup_restore">Файлдан қалпына келтіру</string>
+    <string name="settings_backup_auth">Токендерді экспорттауды растаңыз</string>
+    <string name="settings_backup_saved">Баптаулар файлға сақталды</string>
+    <string name="settings_backup_write_failed">Файлды жазу мүмкін болмады</string>
+    <string name="settings_backup_read_failed">Файлды оқу мүмкін болмады</string>
+    <string name="settings_backup_invalid">Бұл Helm баптауларының сақтық көшірмесі емес</string>
+    <string name="settings_backup_restored">Баптаулар қалпына келтірілді · роутерлер қосылды: %1$d, жаңартылды: %2$d</string>
+
     <!-- In-app updates (GitHub releases) -->
     <string name="update_section">Қолданбаны жаңарту</string>
     <string name="update_current_version">Орнатылған: %1$s</string>
@@ -605,6 +620,9 @@
     <string name="err_empty_response">Роутерден бос жауап келді</string>
     <string name="err_tls">Роутер Helm API орнына HTTPS арқылы жауап берді. Әдетте бұл порттағы роутердің веб-интерфейсі (LuCI) — портты тексеріңіз: API өз HTTP портында жұмыс істейді.</string>
     <string name="err_not_api">Мекенжай жауап береді, бірақ бұл Helm API емес — оның орнына веб-бет қайтарылды. Портты және роутерде API орнатылғанын тексеріңіз.</string>
+    <string name="err_title_local_network">Жергілікті желіге қолжетімділік жоқ</string>
+    <string name="err_local_network">Android Helm-ді желіңіздегі құрылғыларға, соның ішінде роутерге жібермейді. Helm-ге «Маңайдағы құрылғыларға» рұқсат беріңіз — онсыз кез келген сұрау күту уақытымен үзіледі.</string>
+    <string name="local_network_allow">Рұқсат беру</string>
     <string name="err_title_connection">Роутермен байланыс жоқ</string>
     <string name="err_title_config">Роутер мекенжайын тексеріңіз</string>
     <string name="err_title_access">Кіруге тыйым салынды</string>

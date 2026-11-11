@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.WifiOff
+import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import com.skofqq.domainmanager.ui.components.*
@@ -127,11 +128,13 @@ fun ErrorCard(message: UiMessage, modifier: Modifier = Modifier, onRetry: (() ->
     val kind = errorKindOf(message.res)
     val red = Tints.red
     val openSettings = LocalOpenRouterSettings.current
+    val requestLocalNetwork = LocalRequestLocalNetwork.current
     var showDetail by rememberSaveable(message) { mutableStateOf(false) }
     val (titleRes, icon, shape) = when (kind) {
         ErrorKind.CONNECTION -> Triple(R.string.err_title_connection, Icons.Outlined.WifiOff, MaterialShapes.Cookie4Sided)
         ErrorKind.CONFIG -> Triple(R.string.err_title_config, Icons.Outlined.Dns, MaterialShapes.Cookie6Sided)
         ErrorKind.ACCESS -> Triple(R.string.err_title_access, Icons.Outlined.Key, MaterialShapes.Clover4Leaf)
+        ErrorKind.LOCAL_NETWORK -> Triple(R.string.err_title_local_network, Icons.Outlined.Lan, MaterialShapes.Cookie4Sided)
         ErrorKind.OTHER -> Triple(R.string.err_title_other, Icons.Outlined.ErrorOutline, MaterialShapes.Cookie9Sided)
     }
     Column(
@@ -180,7 +183,16 @@ fun ErrorCard(message: UiMessage, modifier: Modifier = Modifier, onRetry: (() ->
                 )
             }
         }
-        val settingsAction = openSettings.takeIf { kind != ErrorKind.OTHER }
+        val settingsAction = openSettings.takeIf { kind != ErrorKind.OTHER && kind != ErrorKind.LOCAL_NETWORK }
+        val permissionAction = requestLocalNetwork.takeIf { kind == ErrorKind.LOCAL_NETWORK }
+        if (permissionAction != null) {
+            HelmButton(
+                text = stringResource(R.string.local_network_allow),
+                onClick = permissionAction,
+                icon = Icons.Outlined.Lan,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         if (onRetry != null || settingsAction != null || !detail.isNullOrBlank()) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -213,13 +225,14 @@ fun ErrorCard(message: UiMessage, modifier: Modifier = Modifier, onRetry: (() ->
 }
 
 /** What an error is about, for its title, icon and whether "Router settings" helps. */
-private enum class ErrorKind { CONNECTION, CONFIG, ACCESS, OTHER }
+private enum class ErrorKind { CONNECTION, CONFIG, ACCESS, LOCAL_NETWORK, OTHER }
 
 private fun errorKindOf(@StringRes res: Int): ErrorKind = when (res) {
     R.string.err_timeout, R.string.err_unreachable, R.string.err_unknown_host,
     R.string.err_network, R.string.err_empty_response -> ErrorKind.CONNECTION
     R.string.err_tls, R.string.err_not_api, R.string.err_invalid_router_address -> ErrorKind.CONFIG
     R.string.err_bad_token, R.string.err_token_not_configured -> ErrorKind.ACCESS
+    R.string.err_local_network -> ErrorKind.LOCAL_NETWORK
     else -> ErrorKind.OTHER
 }
 
@@ -230,6 +243,12 @@ private fun errorKindOf(@StringRes res: Int): ErrorKind = when (res) {
  */
 val LocalOpenRouterSettings = staticCompositionLocalOf<(() -> Unit)?> { null }
 
+/**
+ * Asks for the Android 16+ local network permission (or opens the app settings when
+ * the system will not show the dialog again). Provided by MainActivity.
+ */
+val LocalRequestLocalNetwork = staticCompositionLocalOf<(() -> Unit)?> { null }
+
 fun networkErrorMessage(kind: NetFailure, detail: String?): UiMessage = when (kind) {
     NetFailure.TIMEOUT -> UiMessage(R.string.err_timeout, detail = detail)
     NetFailure.UNREACHABLE -> UiMessage(R.string.err_unreachable, detail = detail)
@@ -238,6 +257,7 @@ fun networkErrorMessage(kind: NetFailure, detail: String?): UiMessage = when (ki
     NetFailure.EMPTY_RESPONSE -> UiMessage(R.string.err_empty_response)
     NetFailure.TLS -> UiMessage(R.string.err_tls, detail = detail)
     NetFailure.NOT_API -> UiMessage(R.string.err_not_api, detail = detail)
+    NetFailure.LOCAL_NETWORK_BLOCKED -> UiMessage(R.string.err_local_network, detail = detail)
     NetFailure.OTHER ->
         if (detail.isNullOrBlank()) UiMessage(R.string.err_network)
         else UiMessage(R.string.err_raw, listOf(detail))

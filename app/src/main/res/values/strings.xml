@@ -237,7 +237,7 @@
 
     <!-- Backup -->
     <string name="section_backup">Backup</string>
-    <string name="settings_backup_desc">Export and import lists</string>
+    <string name="settings_backup_desc">Router lists and app settings</string>
     <string name="backup_export_title">Export</string>
     <string name="backup_export_note">A snapshot of the router\'s current lists for reference or manual restore. The live state always stays on the router — this app only reads and writes it over the API.</string>
     <string name="backup_build">Build snapshot</string>
@@ -543,6 +543,21 @@
     <string name="tor_bridge_delete_title">Remove bridge?</string>
     <string name="tor_bridge_delete_text">The bridge will be removed from the router and Tor will restart.</string>
 
+    <!-- App settings backup (Settings → Backup) -->
+    <string name="settings_backup_title">App settings</string>
+    <string name="settings_backup_note">Theme, language, appearance, security, monitoring, shortcuts and router profiles with device icons and favourites. The router’s own lists are not included — they are in the snapshot above.</string>
+    <string name="settings_backup_tokens">Include access tokens</string>
+    <string name="settings_backup_tokens_desc">Without them, restored routers keep the token already on this phone</string>
+    <string name="settings_backup_tokens_warning">The file will contain router addresses and access tokens in clear text. Keep it somewhere safe and don’t send it to anyone.</string>
+    <string name="settings_backup_save">Save to file</string>
+    <string name="settings_backup_restore">Restore from file</string>
+    <string name="settings_backup_auth">Confirm to export the tokens</string>
+    <string name="settings_backup_saved">Settings saved to the file</string>
+    <string name="settings_backup_write_failed">Could not write the file</string>
+    <string name="settings_backup_read_failed">Could not read the file</string>
+    <string name="settings_backup_invalid">This is not a Helm settings backup</string>
+    <string name="settings_backup_restored">Settings restored · routers added: %1$d, updated: %2$d</string>
+
     <!-- In-app updates (GitHub releases) -->
     <string name="update_section">App update</string>
     <string name="update_current_version">Installed: %1$s</string>
@@ -609,6 +624,9 @@
     <string name="err_empty_response">Empty response from router</string>
     <string name="err_tls">The router answered over HTTPS instead of the Helm API. Usually this is the router web interface (LuCI) on that port — check the port: the API runs on its own HTTP port.</string>
     <string name="err_not_api">The address answers, but it is not the Helm API — a web page came back instead. Check the port and that the API is installed on the router.</string>
+    <string name="err_title_local_network">No access to the local network</string>
+    <string name="err_local_network">Android blocks Helm from reaching devices on your network, the router included. Allow “Nearby devices” for Helm — without it every request times out.</string>
+    <string name="local_network_allow">Allow access</string>
     <string name="err_title_connection">No connection to the router</string>
     <string name="err_title_config">Check the router address</string>
     <string name="err_title_access">Access denied</string>

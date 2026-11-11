@@ -79,7 +79,12 @@ changes made from the Share flow or another device show up without a manual refr
   (`routerdomains://setup`), host, port and access token (stored in
   `EncryptedSharedPreferences`)
 - Security: biometric/PIN lock for the whole app or just the token reveal
-- Backup: export routing + strategies as a versioned JSON snapshot and import it back
+- Backup: export routing + strategies as a versioned JSON snapshot and import it back;
+  separately, the app's own settings (theme, language, security, monitoring, shortcuts,
+  router profiles with device icons and favourites, tokens optional) as a JSON file to
+  restore after a reinstall
+- Updates: checks GitHub releases (manually or once a day), downloads the APK and
+  installs it through the system installer
 - Monitoring: background notifications on WAN IP change, low disk space and proxy
   latency degradation
 - Diagnostics: adjustable HTTP timeout and a rolling log of recent API requests with
@@ -154,9 +159,9 @@ codes (`provider_exists`, `subscription_exists`, `subscription_not_found`,
 `cannot_remove_base_subscription`, `controlport_not_ready`, `mihomo_config_test_failed`,
 …) each get their own message in the app.
 
-> **Android 16+ note:** if "Test connection" times out on a freshly installed build,
-> allow the local-network permission for the app (shown as "Nearby devices" in App info) —
-> Local Network Protection silently drops LAN traffic otherwise.
+> **Android 16+ note:** Local Network Protection silently drops LAN traffic from apps
+> without the local-network permission (shown as "Nearby devices"). Helm asks for it on
+> first launch; if it was denied, the connection error says so and has a button to allow it.
 
 ## Building
 

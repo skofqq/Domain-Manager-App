@@ -61,7 +61,7 @@ fun HelmBottomSheet(
     )
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        modifier = if (frosted) modifier.border(1.dp, rim, SheetShape) else modifier,
+        modifier = modifier,
         sheetState = sheetState,
         shape = SheetShape,
         containerColor = when {
@@ -71,8 +71,21 @@ fun HelmBottomSheet(
         },
         contentColor = Helm.colors.text,
         scrimColor = if (blurBehind) Color.Black.copy(alpha = 0.2f) else BottomSheetDefaults.ScrimColor,
-        content = content,
-    )
+        // The drag handle is drawn inside the rim below instead.
+        dragHandle = null,
+    ) {
+        // The rim lives inside the sheet's own content, together with the handle. Passed
+        // as ModalBottomSheet's modifier it landed on the full-screen container instead
+        // of the sheet surface and drew a thin light line along the top of the screen.
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .then(if (frosted) Modifier.border(1.dp, rim, SheetShape) else Modifier),
+        ) {
+            BottomSheetDefaults.DragHandle(Modifier.align(Alignment.CenterHorizontally))
+            content()
+        }
+    }
 }
 
 /** Card-like group inside a sheet. */

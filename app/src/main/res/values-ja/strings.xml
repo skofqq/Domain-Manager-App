@@ -232,7 +232,7 @@
 
     <!-- Backup -->
     <string name="section_backup">バックアップ</string>
-    <string name="settings_backup_desc">リストのエクスポートとインポート</string>
+    <string name="settings_backup_desc">ルーターのリストとアプリの設定</string>
     <string name="backup_export_title">エクスポート</string>
     <string name="backup_export_note">ルーターの現在のリストのスナップショットで、参照や手動での復元に使えます。実際の状態は常にルーター上にあり、このアプリは API 経由で読み書きするだけです。</string>
     <string name="backup_build">スナップショットを作成</string>
@@ -529,6 +529,21 @@
     <string name="tor_bridge_delete_title">ブリッジを削除しますか？</string>
     <string name="tor_bridge_delete_text">ブリッジがルーターから削除され、Tor が再起動します。</string>
 
+    <!-- App settings backup (Settings → Backup) -->
+    <string name="settings_backup_title">アプリの設定</string>
+    <string name="settings_backup_note">テーマ、言語、外観、セキュリティ、監視、ショートカット、デバイスのアイコンとお気に入りを含むルーターのプロファイル。ルーター自体のリストは含まれません（上のスナップショットにあります）。</string>
+    <string name="settings_backup_tokens">アクセストークンを含める</string>
+    <string name="settings_backup_tokens_desc">含めない場合、復元したルーターはこのスマートフォンにある既存のトークンを使います</string>
+    <string name="settings_backup_tokens_warning">ファイルにはルーターのアドレスとアクセストークンが平文で含まれます。安全な場所に保管し、誰にも送らないでください。</string>
+    <string name="settings_backup_save">ファイルに保存</string>
+    <string name="settings_backup_restore">ファイルから復元</string>
+    <string name="settings_backup_auth">トークンをエクスポートするには確認してください</string>
+    <string name="settings_backup_saved">設定をファイルに保存しました</string>
+    <string name="settings_backup_write_failed">ファイルを書き込めませんでした</string>
+    <string name="settings_backup_read_failed">ファイルを読み込めませんでした</string>
+    <string name="settings_backup_invalid">これは Helm の設定バックアップではありません</string>
+    <string name="settings_backup_restored">設定を復元しました · 追加したルーター: %1$d、更新: %2$d</string>
+
     <!-- In-app updates (GitHub releases) -->
     <string name="update_section">アプリのアップデート</string>
     <string name="update_current_version">インストール済み: %1$s</string>
@@ -595,6 +610,9 @@
     <string name="err_empty_response">ルーターからの応答が空です</string>
     <string name="err_tls">ルーターが Helm API ではなく HTTPS で応答しました。通常、そのポートはルーターのウェブ管理画面（LuCI）です。ポートを確認してください。API は専用の HTTP ポートで動作します。</string>
     <string name="err_not_api">アドレスは応答していますが、Helm API ではなくウェブページが返されました。ポートと、ルーターに API がインストールされているかを確認してください。</string>
+    <string name="err_title_local_network">ローカルネットワークにアクセスできません</string>
+    <string name="err_local_network">Android が Helm によるネットワーク内のデバイス（ルーターを含む）へのアクセスをブロックしています。Helm に「付近のデバイス」を許可してください。許可がないとすべてのリクエストがタイムアウトします。</string>
+    <string name="local_network_allow">アクセスを許可</string>
     <string name="err_title_connection">ルーターに接続できません</string>
     <string name="err_title_config">ルーターのアドレスを確認してください</string>
     <string name="err_title_access">アクセスが拒否されました</string>

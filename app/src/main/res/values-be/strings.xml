@@ -241,7 +241,7 @@
 
     <!-- Backup -->
     <string name="section_backup">Рэзервовая копія</string>
-    <string name="settings_backup_desc">Экспарт і імпарт спісаў</string>
+    <string name="settings_backup_desc">Спісы роўтара і налады праграмы</string>
     <string name="backup_export_title">Экспарт</string>
     <string name="backup_export_note">Здымак бягучых спісаў роўтара для даведкі або ручнога аднаўлення. Сапраўдны стан заўсёды застаецца на роўтары — праграма толькі чытае і запісвае яго праз API.</string>
     <string name="backup_build">Стварыць здымак</string>
@@ -559,6 +559,21 @@
     <string name="tor_bridge_delete_title">Выдаліць мост?</string>
     <string name="tor_bridge_delete_text">Мост будзе выдалены з роўтара, і Tor перазапусціцца.</string>
 
+    <!-- App settings backup (Settings → Backup) -->
+    <string name="settings_backup_title">Налады праграмы</string>
+    <string name="settings_backup_note">Тэма, мова, выгляд, бяспека, маніторынг, ярлыкі і профілі роўтараў са значкамі і абранымі прыладамі. Спісы самога роўтара сюды не ўваходзяць — яны ў здымку вышэй.</string>
+    <string name="settings_backup_tokens">Уключыць токены доступу</string>
+    <string name="settings_backup_tokens_desc">Без іх адноўленыя роўтары захаваюць токен, які ўжо ёсць на гэтым тэлефоне</string>
+    <string name="settings_backup_tokens_warning">У файле будуць адрасы роўтараў і токены доступу адкрытым тэкстам. Захоўвайце яго ў надзейным месцы і нікому не дасылайце.</string>
+    <string name="settings_backup_save">Захаваць у файл</string>
+    <string name="settings_backup_restore">Аднавіць з файла</string>
+    <string name="settings_backup_auth">Пацвердзіце экспарт токенаў</string>
+    <string name="settings_backup_saved">Налады захаваны ў файл</string>
+    <string name="settings_backup_write_failed">Не ўдалося запісаць файл</string>
+    <string name="settings_backup_read_failed">Не ўдалося прачытаць файл</string>
+    <string name="settings_backup_invalid">Гэта не рэзервовая копія налад Helm</string>
+    <string name="settings_backup_restored">Налады адноўлены · роўтараў дададзена: %1$d, абноўлена: %2$d</string>
+
     <!-- In-app updates (GitHub releases) -->
     <string name="update_section">Абнаўленне праграмы</string>
     <string name="update_current_version">Усталявана: %1$s</string>
@@ -625,6 +640,9 @@
     <string name="err_empty_response">Пусты адказ ад роўтара</string>
     <string name="err_tls">Роўтар адказаў па HTTPS, а не як API Helm. Звычайна на гэтым порце вэб-інтэрфейс роўтара (LuCI) — праверце порт: API працуе на сваім HTTP-порце.</string>
     <string name="err_not_api">Адрас адказвае, але гэта не API Helm — вярнулася вэб-старонка. Праверце порт і ці ўсталяваны API на роўтары.</string>
+    <string name="err_title_local_network">Няма доступу да лакальнай сеткі</string>
+    <string name="err_local_network">Android не пускае Helm да прылад вашай сеткі, у тым ліку да роўтара. Дазвольце Helm доступ да «Прылад паблізу» — без яго любы запыт абрываецца па тайм-аўце.</string>
+    <string name="local_network_allow">Дазволіць доступ</string>
     <string name="err_title_connection">Няма злучэння з роўтарам</string>
     <string name="err_title_config">Праверце адрас роўтара</string>
     <string name="err_title_access">Доступ забаронены</string>

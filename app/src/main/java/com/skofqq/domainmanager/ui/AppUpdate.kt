@@ -1,6 +1,7 @@
 package com.skofqq.domainmanager.ui
 
 import android.app.Application
+import android.util.Log
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -20,6 +21,7 @@ import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +57,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.File
+
+private const val TAG = "AppUpdate"
 
 sealed interface UpdateState {
     data object Idle : UpdateState
@@ -103,6 +107,11 @@ class AppUpdateViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Re-read after a settings restore may have changed it behind this ViewModel. */
+    fun refreshAutoCheck() {
+        autoCheck = updater.autoCheck
+    }
+
     fun updateAutoCheck(value: Boolean) {
         updater.autoCheck = value
         autoCheck = value
@@ -129,6 +138,7 @@ class AppUpdateViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                Log.w(TAG, "update check failed", e)
                 if (silent) UpdateState.Idle
                 else UpdateState.Failed(null, UiMessage(R.string.update_err_check, detail = e.message))
             }
@@ -144,9 +154,11 @@ class AppUpdateViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AppUpdater.InvalidApkException) {
+                Log.w(TAG, "downloaded file is not a valid update", e)
                 _state.value = UpdateState.Failed(release, UiMessage(R.string.update_err_bad_apk))
                 return@launch
             } catch (e: Exception) {
+                Log.w(TAG, "update download failed", e)
                 _state.value = UpdateState.Failed(release, UiMessage(R.string.update_err_download, detail = e.message))
                 return@launch
             }
@@ -179,6 +191,7 @@ class AppUpdateViewModel(app: Application) : AndroidViewModel(app) {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            Log.w(TAG, "install session failed", e)
             _state.value = UpdateState.Failed(release, UiMessage(R.string.update_err_install, detail = e.message))
         }
     }
@@ -214,6 +227,7 @@ fun AppUpdateSection() {
     val state by vm.state.collectAsState()
     val context = LocalContext.current
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.onResumed() }
+    LaunchedEffect(Unit) { vm.refreshAutoCheck() }
 
     HelmSection(
         title = stringResource(R.string.update_section),
@@ -319,13 +333,16 @@ fun AppUpdateSection() {
                 is UpdateState.Failed -> {
                     s.release?.let { ReleaseInfo(it) }
                     ErrorCard(s.message)
-                    HelmButton(
-                        text = stringResource(R.string.retry),
-                        onClick = { if (s.release != null) vm.downloadAndInstall(s.release) else vm.check() },
-                        icon = Icons.Outlined.Refresh,
-                        style = ButtonStyle.Tonal,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    // A signature conflict will fail the same way every time — only GitHub helps.
+                    if (s.message.res != R.string.update_err_conflict) {
+                        HelmButton(
+                            text = stringResource(R.string.retry),
+                            onClick = { if (s.release != null) vm.downloadAndInstall(s.release) else vm.check() },
+                            icon = Icons.Outlined.Refresh,
+                            style = ButtonStyle.Tonal,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                     TintButton(
                         text = stringResource(R.string.update_open_github),
                         tint = Tints.gray,

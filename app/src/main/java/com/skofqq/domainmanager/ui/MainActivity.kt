@@ -5,7 +5,11 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import androidx.activity.result.contract.ActivityResultContracts
+import com.skofqq.domainmanager.data.LocalNetworkAccess
 import androidx.activity.BackEventCompat
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.PredictiveBackHandler
@@ -103,6 +107,60 @@ class MainActivity : AppCompatActivity() {
         AppShortcuts.publish(applicationContext, prefs.enabledShortcutIds, activeZapret)
     }
 
+    /** Every screen drops what it has and re-fetches (router switched, LAN access granted). */
+    private fun reloadAllRouterData() {
+        domainsViewModel.reset()
+        strategiesViewModel.reset()
+        servicesViewModel.reset()
+        mihomoViewModel.reset()
+        diagnosticsViewModel.reset()
+        magitrickleGroupsViewModel.reset()
+        routerInfoViewModel.reset()
+        z2ProfilesViewModel.reset()
+        z1ProfilesViewModel.reset()
+        ruleProvidersViewModel.reset()
+        subscriptionsViewModel.reset()
+        torViewModel.reset()
+    }
+
+    /**
+     * Android 16+ Local Network Protection (see [LocalNetworkAccess]): without the
+     * permission every router call times out. Asked once on a cold start, and again
+     * from the error card button; a grant reloads every screen right away.
+     */
+    private val localNetworkRequest = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            localNetworkWasBlocked = false // the following onResume must not reload again
+            reloadAllRouterData()
+        } else if (!shouldShowRequestPermissionRationale(LocalNetworkAccess.PERMISSION)) {
+            // Denied for good (or "don’t ask again"): the system no longer shows the
+            // dialog, so the only way left is the app’s own settings page.
+            localNetworkDeniedForGood = true
+        }
+    }
+    private var localNetworkDeniedForGood = false
+    private var localNetworkWasBlocked = false
+
+    private fun requestLocalNetwork() {
+        if (localNetworkDeniedForGood) {
+            startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
+            )
+        } else {
+            localNetworkRequest.launch(LocalNetworkAccess.PERMISSION)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Granted from the system settings page: pick it up on return.
+        val blocked = LocalNetworkAccess.isBlocked(this)
+        if (localNetworkWasBlocked && !blocked) reloadAllRouterData()
+        localNetworkWasBlocked = blocked
+    }
+
     private val prefs by lazy { PrefsStore(this).also { Haptics.enabled = it.hapticFeedback } }
     private val api by lazy { RouterApi(prefs, applicationContext) }
     private val history by lazy { HistoryStore.get(this) }
@@ -187,6 +245,9 @@ class MainActivity : AppCompatActivity() {
         if (prefs.monitoringEnabled) {
             RouterMonitorWorker.reschedule(applicationContext, prefs.monitoringIntervalMinutes)
         }
+        if (savedInstanceState == null && LocalNetworkAccess.isBlocked(this)) {
+            localNetworkRequest.launch(LocalNetworkAccess.PERMISSION)
+        }
         // At most once a day, silent unless a newer release exists (Settings → About).
         if (savedInstanceState == null) appUpdateViewModel.checkIfDue()
         setContent {
@@ -195,20 +256,7 @@ class MainActivity : AppCompatActivity() {
             // every screen drops the old router's data and re-fetches — the
             // skeleton states show, never the previous router's numbers.
             LaunchedEffect(Unit) {
-                prefs.activeProfileIdFlow.drop(1).collect {
-                    domainsViewModel.reset()
-                    strategiesViewModel.reset()
-                    servicesViewModel.reset()
-                    mihomoViewModel.reset()
-                    diagnosticsViewModel.reset()
-                    magitrickleGroupsViewModel.reset()
-                    routerInfoViewModel.reset()
-                    z2ProfilesViewModel.reset()
-                    z1ProfilesViewModel.reset()
-                    ruleProvidersViewModel.reset()
-                    subscriptionsViewModel.reset()
-                    torViewModel.reset()
-                }
+                prefs.activeProfileIdFlow.drop(1).collect { reloadAllRouterData() }
             }
             // Keeps the "zapret_restart" shortcut's label pointed at whichever
             // engine is actually running — refreshed on every cold start and every
@@ -230,6 +278,7 @@ class MainActivity : AppCompatActivity() {
             }
             CompositionLocalProvider(
                 LocalConfiguration provides (localeConfiguration ?: LocalConfiguration.current),
+                LocalRequestLocalNetwork provides ::requestLocalNetwork,
             ) {
             DomainManagerTheme(
                 darkTheme = darkTheme,

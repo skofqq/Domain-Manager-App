@@ -7,7 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import android.content.Context
+import android.net.Uri
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import com.skofqq.domainmanager.R
+import com.skofqq.domainmanager.data.AppUpdater
+import com.skofqq.domainmanager.data.SettingsBackup
 import com.skofqq.domainmanager.data.MihomoProxiesResult
 import com.skofqq.domainmanager.data.OkResult
 import com.skofqq.domainmanager.data.PrefsStore
@@ -215,6 +220,110 @@ class SettingsViewModel(
         val clamped = value.coerceIn(RouterApi.MIN_TIMEOUT_SECONDS, RouterApi.MAX_TIMEOUT_SECONDS)
         httpTimeoutSeconds = clamped
         prefs.httpTimeoutSeconds = clamped
+    }
+
+    // --- App settings backup (Settings → Backup → App settings) ---------------------
+
+    /** Last export/restore outcome for the Backup screen; null = nothing to show. */
+    var settingsBackupMessage by mutableStateOf<UiMessage?>(null)
+        private set
+    var settingsBackupError by mutableStateOf<UiMessage?>(null)
+        private set
+
+    fun clearSettingsBackupMessages() {
+        settingsBackupMessage = null
+        settingsBackupError = null
+    }
+
+    fun exportSettings(includeTokens: Boolean): String {
+        val updater = AppUpdater(appContext)
+        return SettingsBackup.export(
+            prefs = prefs,
+            extras = SettingsBackup.Extras(
+                languageTag = AppCompatDelegate.getApplicationLocales().toLanguageTags(),
+                updateAutoCheck = updater.autoCheck,
+            ),
+            appVersion = updater.installedVersion,
+            includeTokens = includeTokens,
+        )
+    }
+
+    /** Writes [text] to an SAF document the user picked. */
+    fun saveSettingsTo(uri: Uri, includeTokens: Boolean) {
+        val json = exportSettings(includeTokens)
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    appContext.contentResolver.openOutputStream(uri, "wt")!!.use {
+                        it.write(json.toByteArray(Charsets.UTF_8))
+                    }
+                }.isSuccess
+            }
+            clearSettingsBackupMessages()
+            if (ok) settingsBackupMessage = UiMessage(R.string.settings_backup_saved)
+            else settingsBackupError = UiMessage(R.string.settings_backup_write_failed)
+        }
+    }
+
+    fun restoreSettingsFrom(uri: Uri) {
+        viewModelScope.launch {
+            val text = withContext(Dispatchers.IO) {
+                runCatching {
+                    appContext.contentResolver.openInputStream(uri)!!.use { it.readBytes().toString(Charsets.UTF_8) }
+                }.getOrNull()
+            }
+            if (text == null) {
+                clearSettingsBackupMessages()
+                settingsBackupError = UiMessage(R.string.settings_backup_read_failed)
+            } else {
+                restoreSettings(text)
+            }
+        }
+    }
+
+    /** Applies a settings backup; also used when one is pasted into the shared import field. */
+    fun restoreSettings(text: String) {
+        clearSettingsBackupMessages()
+        val result = try {
+            SettingsBackup.restore(prefs, text)
+        } catch (e: Exception) {
+            settingsBackupError = UiMessage(R.string.settings_backup_invalid)
+            return
+        }
+        result.updateAutoCheck?.let { AppUpdater(appContext).autoCheck = it }
+        reloadFromPrefs()
+        settingsBackupMessage = UiMessage(
+            R.string.settings_backup_restored,
+            listOf(result.routersAdded, result.routersUpdated),
+        )
+        // Last: a language change recomposes the whole UI in place (no recreate).
+        result.languageTag?.let { tag ->
+            if (tag != AppCompatDelegate.getApplicationLocales().toLanguageTags()) {
+                AppCompatDelegate.setApplicationLocales(
+                    if (tag.isEmpty()) LocaleListCompat.getEmptyLocaleList()
+                    else LocaleListCompat.forLanguageTags(tag)
+                )
+            }
+        }
+    }
+
+    /** Re-reads every Compose-observed setting and re-applies their side effects. */
+    private fun reloadFromPrefs() {
+        monitoringEnabled = prefs.monitoringEnabled
+        monitoringIntervalMinutes = prefs.monitoringIntervalMinutes
+        monitorWanIp = prefs.monitorWanIp
+        monitorDiskSpace = prefs.monitorDiskSpace
+        enabledShortcutIds = prefs.enabledShortcutIds
+        useDynamicColor = prefs.useDynamicColor
+        liquidGlass = prefs.liquidGlass
+        trueBlack = prefs.trueBlack
+        hapticFeedback = prefs.hapticFeedback
+        com.skofqq.domainmanager.ui.components.Haptics.enabled = prefs.hapticFeedback
+        themeMode = prefs.themeMode
+        appLockMode = prefs.appLockMode
+        httpTimeoutSeconds = prefs.httpTimeoutSeconds
+        applyMonitorSchedule()
+        AppShortcuts.publish(appContext, prefs.enabledShortcutIds)
     }
 
     private val _testState = MutableStateFlow<TestUiState?>(null)

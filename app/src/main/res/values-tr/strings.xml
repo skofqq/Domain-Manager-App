@@ -235,7 +235,7 @@
 
     <!-- Backup -->
     <string name="section_backup">Yedekleme</string>
-    <string name="settings_backup_desc">Listeleri dışa ve içe aktar</string>
+    <string name="settings_backup_desc">Yönlendirici listeleri ve uygulama ayarları</string>
     <string name="backup_export_title">Dışa aktar</string>
     <string name="backup_export_note">Yönlendiricinin mevcut listelerinin başvuru veya elle geri yükleme için anlık görüntüsü. Gerçek durum her zaman yönlendiricide kalır — bu uygulama onu yalnızca API üzerinden okur ve yazar.</string>
     <string name="backup_build">Anlık görüntü oluştur</string>
@@ -538,6 +538,21 @@
     <string name="tor_bridge_delete_title">Köprü kaldırılsın mı?</string>
     <string name="tor_bridge_delete_text">Köprü yönlendiriciden kaldırılacak ve Tor yeniden başlatılacak.</string>
 
+    <!-- App settings backup (Settings → Backup) -->
+    <string name="settings_backup_title">Uygulama ayarları</string>
+    <string name="settings_backup_note">Tema, dil, görünüm, güvenlik, izleme, kısayollar ve cihaz simgeleri ile favorileriyle birlikte yönlendirici profilleri. Yönlendiricinin kendi listeleri dahil değildir; onlar yukarıdaki anlık görüntüdedir.</string>
+    <string name="settings_backup_tokens">Erişim belirteçlerini ekle</string>
+    <string name="settings_backup_tokens_desc">Bunlar olmadan geri yüklenen yönlendiriciler bu telefondaki mevcut belirteci korur</string>
+    <string name="settings_backup_tokens_warning">Dosyada yönlendirici adresleri ve erişim belirteçleri düz metin olarak bulunur. Güvenli bir yerde saklayın ve kimseye göndermeyin.</string>
+    <string name="settings_backup_save">Dosyaya kaydet</string>
+    <string name="settings_backup_restore">Dosyadan geri yükle</string>
+    <string name="settings_backup_auth">Belirteçleri dışa aktarmayı onaylayın</string>
+    <string name="settings_backup_saved">Ayarlar dosyaya kaydedildi</string>
+    <string name="settings_backup_write_failed">Dosya yazılamadı</string>
+    <string name="settings_backup_read_failed">Dosya okunamadı</string>
+    <string name="settings_backup_invalid">Bu bir Helm ayar yedeği değil</string>
+    <string name="settings_backup_restored">Ayarlar geri yüklendi · eklenen yönlendirici: %1$d, güncellenen: %2$d</string>
+
     <!-- In-app updates (GitHub releases) -->
     <string name="update_section">Uygulama güncellemesi</string>
     <string name="update_current_version">Yüklü: %1$s</string>
@@ -604,6 +619,9 @@
     <string name="err_empty_response">Yönlendiriciden boş yanıt</string>
     <string name="err_tls">Yönlendirici Helm API yerine HTTPS ile yanıt verdi. Bu bağlantı noktasında genellikle yönlendiricinin web arayüzü (LuCI) çalışır — bağlantı noktasını kontrol edin: API kendi HTTP bağlantı noktasında çalışır.</string>
     <string name="err_not_api">Adres yanıt veriyor ama bu Helm API değil — bunun yerine bir web sayfası döndü. Bağlantı noktasını ve API’nin yönlendiricide yüklü olduğunu kontrol edin.</string>
+    <string name="err_title_local_network">Yerel ağa erişim yok</string>
+    <string name="err_local_network">Android, Helm’in ağınızdaki cihazlara (yönlendirici dahil) erişmesini engelliyor. Helm için “Yakındaki cihazlar” iznini verin; aksi hâlde her istek zaman aşımına uğrar.</string>
+    <string name="local_network_allow">Erişime izin ver</string>
     <string name="err_title_connection">Yönlendiriciyle bağlantı yok</string>
     <string name="err_title_config">Yönlendirici adresini kontrol edin</string>
     <string name="err_title_access">Erişim reddedildi</string>

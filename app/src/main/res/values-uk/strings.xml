@@ -241,7 +241,7 @@
 
     <!-- Backup -->
     <string name="section_backup">Резервна копія</string>
-    <string name="settings_backup_desc">Експорт та імпорт списків</string>
+    <string name="settings_backup_desc">Списки роутера й налаштування застосунку</string>
     <string name="backup_export_title">Експорт</string>
     <string name="backup_export_note">Знімок поточних списків роутера для довідки чи ручного відновлення. Актуальний стан завжди зберігається на роутері — застосунок лише читає й записує його через API.</string>
     <string name="backup_build">Створити знімок</string>
@@ -558,6 +558,21 @@
     <string name="tor_bridge_delete_title">Видалити міст?</string>
     <string name="tor_bridge_delete_text">Міст буде видалено з роутера, а Tor перезапуститься.</string>
 
+    <!-- App settings backup (Settings → Backup) -->
+    <string name="settings_backup_title">Налаштування застосунку</string>
+    <string name="settings_backup_note">Тема, мова, вигляд, безпека, моніторинг, ярлики та профілі роутерів з іконками й обраними пристроями. Списки самого роутера сюди не входять — вони в знімку вище.</string>
+    <string name="settings_backup_tokens">Включити токени доступу</string>
+    <string name="settings_backup_tokens_desc">Без них відновлені роутери збережуть токен, який уже є на цьому телефоні</string>
+    <string name="settings_backup_tokens_warning">У файлі будуть адреси роутерів і токени доступу відкритим текстом. Зберігайте його в надійному місці й нікому не надсилайте.</string>
+    <string name="settings_backup_save">Зберегти у файл</string>
+    <string name="settings_backup_restore">Відновити з файлу</string>
+    <string name="settings_backup_auth">Підтвердьте експорт токенів</string>
+    <string name="settings_backup_saved">Налаштування збережено у файл</string>
+    <string name="settings_backup_write_failed">Не вдалося записати файл</string>
+    <string name="settings_backup_read_failed">Не вдалося прочитати файл</string>
+    <string name="settings_backup_invalid">Це не резервна копія налаштувань Helm</string>
+    <string name="settings_backup_restored">Налаштування відновлено · роутерів додано: %1$d, оновлено: %2$d</string>
+
     <!-- In-app updates (GitHub releases) -->
     <string name="update_section">Оновлення застосунку</string>
     <string name="update_current_version">Встановлено: %1$s</string>
@@ -624,6 +639,9 @@
     <string name="err_empty_response">Порожня відповідь від роутера</string>
     <string name="err_tls">Роутер відповів через HTTPS замість Helm API. Зазвичай на цьому порту працює веб-інтерфейс роутера (LuCI) — перевірте порт: API працює на власному HTTP-порту.</string>
     <string name="err_not_api">За адресою щось відповідає, але це не Helm API — повернулася веб-сторінка. Перевірте порт і чи встановлено API на роутері.</string>
+    <string name="err_title_local_network">Немає доступу до локальної мережі</string>
+    <string name="err_local_network">Android не пускає Helm до пристроїв вашої мережі, зокрема до роутера. Дозвольте Helm доступ до «Пристроїв поблизу» — без нього будь-який запит обривається за таймаутом.</string>
+    <string name="local_network_allow">Дозволити доступ</string>
     <string name="err_title_connection">Немає зв’язку з роутером</string>
     <string name="err_title_config">Перевірте адресу роутера</string>
     <string name="err_title_access">Немає доступу</string>

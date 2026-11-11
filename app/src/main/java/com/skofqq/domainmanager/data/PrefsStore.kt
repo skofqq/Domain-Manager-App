@@ -251,20 +251,27 @@ class PrefsStore(context: Context) {
      * Manual device-icon picks for the ACTIVE router, MAC → icon key. Purely
      * client-side; takes priority over the keyword guess from the type field.
      */
-    fun deviceIconOverrides(): Map<String, String> {
-        val id = activeProfile()?.id ?: return emptyMap()
-        val raw = uiPrefs.getString(deviceIconsKey(id), null) ?: return emptyMap()
+    fun deviceIconOverrides(): Map<String, String> =
+        activeProfile()?.id?.let { deviceIconOverrides(it) } ?: emptyMap()
+
+    /** Icon picks of any profile — the settings backup carries them per router. */
+    fun deviceIconOverrides(profileId: String): Map<String, String> {
+        val raw = uiPrefs.getString(deviceIconsKey(profileId), null) ?: return emptyMap()
         return runCatching {
             val json = JSONObject(raw)
             buildMap { for (key in json.keys()) put(key, json.getString(key)) }
         }.getOrDefault(emptyMap())
     }
 
+    fun setDeviceIconOverrides(profileId: String, map: Map<String, String>) {
+        uiPrefs.edit().putString(deviceIconsKey(profileId), JSONObject(map as Map<*, *>).toString()).apply()
+    }
+
     fun setDeviceIconOverride(mac: String, icon: String?) {
         val id = activeProfile()?.id ?: return
-        val map = deviceIconOverrides().toMutableMap()
+        val map = deviceIconOverrides(id).toMutableMap()
         if (icon == null) map.remove(mac) else map[mac] = icon
-        uiPrefs.edit().putString(deviceIconsKey(id), JSONObject(map as Map<*, *>).toString()).apply()
+        setDeviceIconOverrides(id, map)
     }
 
     // ---------------------------------------------------------------------------
@@ -273,9 +280,14 @@ class PrefsStore(context: Context) {
 
     private fun favoritesKey(profileId: String) = "$KEY_FAVORITE_DEVICES_PREFIX$profileId"
 
-    fun favoriteDeviceMacs(): Set<String> {
-        val id = activeProfile()?.id ?: return emptySet()
-        return uiPrefs.getStringSet(favoritesKey(id), emptySet()) ?: emptySet()
+    fun favoriteDeviceMacs(): Set<String> =
+        activeProfile()?.id?.let { favoriteDeviceMacs(it) } ?: emptySet()
+
+    fun favoriteDeviceMacs(profileId: String): Set<String> =
+        uiPrefs.getStringSet(favoritesKey(profileId), emptySet()) ?: emptySet()
+
+    fun setFavoriteDeviceMacs(profileId: String, macs: Set<String>) {
+        uiPrefs.edit().putStringSet(favoritesKey(profileId), HashSet(macs)).apply()
     }
 
     fun toggleFavoriteDevice(mac: String) {

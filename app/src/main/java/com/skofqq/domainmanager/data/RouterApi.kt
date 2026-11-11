@@ -35,7 +35,7 @@ data class DomainStatus(
  * router web UI redirecting there), [NOT_API]: something answered, but with a web page
  * instead of the API JSON. Both mean the address or port points at the wrong service.
  */
-enum class NetFailure { TIMEOUT, UNREACHABLE, UNKNOWN_HOST, INVALID_ADDRESS, EMPTY_RESPONSE, TLS, NOT_API, OTHER }
+enum class NetFailure { TIMEOUT, UNREACHABLE, UNKNOWN_HOST, INVALID_ADDRESS, EMPTY_RESPONSE, TLS, NOT_API, LOCAL_NETWORK_BLOCKED, OTHER }
 
 /** Thrown when the reply is an HTML page (a web UI, an error page), not the API. */
 class NotApiException(val httpCode: Int) : java.io.IOException("HTTP $httpCode: not the Helm API (HTML page)")
@@ -2113,7 +2113,18 @@ class RouterApi(val prefs: PrefsStore, private val context: Context) {
         }
     }
 
-    private fun classify(e: Exception): NetFailure = when (e) {
+    private fun classify(e: Exception): NetFailure {
+        // Local Network Protection drops LAN packets without a trace — the failure
+        // looks like a timeout. Name the real cause when the permission is missing.
+        if ((e is SocketTimeoutException || e is ConnectException || e is NoRouteToHostException) &&
+            LocalNetworkAccess.isBlocked(context)
+        ) {
+            return NetFailure.LOCAL_NETWORK_BLOCKED
+        }
+        return classifyTransport(e)
+    }
+
+    private fun classifyTransport(e: Exception): NetFailure = when (e) {
         is SocketTimeoutException -> NetFailure.TIMEOUT
         is ConnectException, is NoRouteToHostException -> NetFailure.UNREACHABLE
         is UnknownHostException -> NetFailure.UNKNOWN_HOST

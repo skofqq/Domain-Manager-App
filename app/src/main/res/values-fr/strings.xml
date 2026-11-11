@@ -238,7 +238,7 @@
 
     <!-- Backup -->
     <string name="section_backup">Sauvegarde</string>
-    <string name="settings_backup_desc">Exporter et importer les listes</string>
+    <string name="settings_backup_desc">Listes du routeur et paramètres de l’app</string>
     <string name="backup_export_title">Exporter</string>
     <string name="backup_export_note">Un instantané des listes actuelles du routeur, pour référence ou restauration manuelle. L’état réel reste toujours sur le routeur — cette app ne fait que le lire et l’écrire via l’API.</string>
     <string name="backup_build">Créer un instantané</string>
@@ -548,6 +548,21 @@
     <string name="tor_bridge_delete_title">Retirer le pont ?</string>
     <string name="tor_bridge_delete_text">Le pont sera retiré du routeur et Tor redémarrera.</string>
 
+    <!-- App settings backup (Settings → Backup) -->
+    <string name="settings_backup_title">Paramètres de l’app</string>
+    <string name="settings_backup_note">Thème, langue, apparence, sécurité, surveillance, raccourcis et profils de routeurs avec icônes et favoris des appareils. Les listes du routeur lui-même ne sont pas incluses : elles sont dans l’instantané ci-dessus.</string>
+    <string name="settings_backup_tokens">Inclure les jetons d’accès</string>
+    <string name="settings_backup_tokens_desc">Sans eux, les routeurs restaurés gardent le jeton déjà présent sur ce téléphone</string>
+    <string name="settings_backup_tokens_warning">Le fichier contiendra les adresses des routeurs et les jetons d’accès en clair. Conservez-le en lieu sûr et ne l’envoyez à personne.</string>
+    <string name="settings_backup_save">Enregistrer dans un fichier</string>
+    <string name="settings_backup_restore">Restaurer depuis un fichier</string>
+    <string name="settings_backup_auth">Confirmez pour exporter les jetons</string>
+    <string name="settings_backup_saved">Paramètres enregistrés dans le fichier</string>
+    <string name="settings_backup_write_failed">Impossible d’écrire le fichier</string>
+    <string name="settings_backup_read_failed">Impossible de lire le fichier</string>
+    <string name="settings_backup_invalid">Ce n’est pas une sauvegarde des paramètres Helm</string>
+    <string name="settings_backup_restored">Paramètres restaurés · routeurs ajoutés : %1$d, mis à jour : %2$d</string>
+
     <!-- In-app updates (GitHub releases) -->
     <string name="update_section">Mise à jour de l’app</string>
     <string name="update_current_version">Installée : %1$s</string>
@@ -614,6 +629,9 @@
     <string name="err_empty_response">Réponse vide du routeur</string>
     <string name="err_tls">Le routeur a répondu en HTTPS au lieu de l’API Helm. Sur ce port, c’est généralement l’interface web du routeur (LuCI) — vérifiez le port : l’API fonctionne sur son propre port HTTP.</string>
     <string name="err_not_api">L’adresse répond, mais ce n’est pas l’API Helm — une page web a été renvoyée. Vérifiez le port et que l’API est installée sur le routeur.</string>
+    <string name="err_title_local_network">Pas d’accès au réseau local</string>
+    <string name="err_local_network">Android empêche Helm d’atteindre les appareils de votre réseau, y compris le routeur. Autorisez « Appareils à proximité » pour Helm : sans cela, chaque requête expire.</string>
+    <string name="local_network_allow">Autoriser l’accès</string>
     <string name="err_title_connection">Pas de connexion au routeur</string>
     <string name="err_title_config">Vérifiez l’adresse du routeur</string>
     <string name="err_title_access">Accès refusé</string>

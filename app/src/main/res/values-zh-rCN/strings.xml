@@ -232,7 +232,7 @@
 
     <!-- Backup -->
     <string name="section_backup">备份</string>
-    <string name="settings_backup_desc">导出和导入列表</string>
+    <string name="settings_backup_desc">路由器列表和应用设置</string>
     <string name="backup_export_title">导出</string>
     <string name="backup_export_note">路由器当前列表的快照，可供参考或手动恢复。实际状态始终保存在路由器上，本应用只通过 API 读取和写入。</string>
     <string name="backup_build">生成快照</string>
@@ -529,6 +529,21 @@
     <string name="tor_bridge_delete_title">移除网桥？</string>
     <string name="tor_bridge_delete_text">该网桥将从路由器中移除，Tor 会重新启动。</string>
 
+    <!-- App settings backup (Settings → Backup) -->
+    <string name="settings_backup_title">应用设置</string>
+    <string name="settings_backup_note">主题、语言、外观、安全、监控、快捷方式，以及包含设备图标和收藏的路由器配置。路由器自身的列表不包括在内——它们在上方的快照中。</string>
+    <string name="settings_backup_tokens">包含访问令牌</string>
+    <string name="settings_backup_tokens_desc">不包含时，恢复的路由器会保留这部手机上已有的令牌</string>
+    <string name="settings_backup_tokens_warning">文件会以明文包含路由器地址和访问令牌。请妥善保存，不要发送给任何人。</string>
+    <string name="settings_backup_save">保存到文件</string>
+    <string name="settings_backup_restore">从文件恢复</string>
+    <string name="settings_backup_auth">确认以导出令牌</string>
+    <string name="settings_backup_saved">设置已保存到文件</string>
+    <string name="settings_backup_write_failed">无法写入文件</string>
+    <string name="settings_backup_read_failed">无法读取文件</string>
+    <string name="settings_backup_invalid">这不是 Helm 设置备份</string>
+    <string name="settings_backup_restored">设置已恢复 · 新增路由器：%1$d，已更新：%2$d</string>
+
     <!-- In-app updates (GitHub releases) -->
     <string name="update_section">应用更新</string>
     <string name="update_current_version">已安装：%1$s</string>
@@ -595,6 +610,9 @@
     <string name="err_empty_response">路由器返回空响应</string>
     <string name="err_tls">路由器在该端口以 HTTPS 应答，而不是 Helm API。这通常是路由器的网页管理界面（LuCI）。请检查端口：API 运行在单独的 HTTP 端口上。</string>
     <string name="err_not_api">该地址有响应，但不是 Helm API，返回的是网页。请检查端口，并确认路由器上已安装 API。</string>
+    <string name="err_title_local_network">无法访问本地网络</string>
+    <string name="err_local_network">Android 阻止 Helm 访问你网络中的设备，包括路由器。请为 Helm 允许“附近的设备”权限，否则所有请求都会超时。</string>
+    <string name="local_network_allow">允许访问</string>
     <string name="err_title_connection">无法连接到路由器</string>
     <string name="err_title_config">请检查路由器地址</string>
     <string name="err_title_access">访问被拒绝</string>

@@ -184,6 +184,7 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import com.skofqq.domainmanager.R
 import com.skofqq.domainmanager.ui.theme.appColorScheme
+import com.skofqq.domainmanager.data.SettingsBackup
 import com.skofqq.domainmanager.data.ApiLog
 import com.skofqq.domainmanager.data.HistoryStore
 import com.skofqq.domainmanager.data.RouterApi
@@ -307,7 +308,7 @@ fun SettingsScreen(
                     "language" -> LanguageSettingsScreen(onBack = { subScreen = null })
                     "auth" -> AuthSettingsScreen(viewModel, onBack = { subScreen = null })
                     "security" -> SecuritySettingsScreen(viewModel, onBack = { subScreen = null })
-                    "backup" -> BackupSettingsScreen(backupViewModel, onBack = { subScreen = null })
+                    "backup" -> BackupSettingsScreen(backupViewModel, viewModel, onBack = { subScreen = null })
                     "history" -> HistorySettingsScreen(viewModel, onBack = { subScreen = null })
                     "diagnostics" -> DiagnosticsSettingsScreen(viewModel, onBack = { subScreen = null })
                     "monitoring" -> MonitoringSettingsScreen(viewModel, onBack = { subScreen = null })
@@ -1431,7 +1432,11 @@ private fun SecuritySettingsScreen(viewModel: SettingsViewModel, onBack: () -> U
 // --- Backup (export / import of the router lists) ---------------------------------
 
 @Composable
-private fun BackupSettingsScreen(viewModel: BackupViewModel, onBack: () -> Unit) {
+private fun BackupSettingsScreen(
+    viewModel: BackupViewModel,
+    settingsViewModel: SettingsViewModel,
+    onBack: () -> Unit,
+) {
     SettingsChildScaffold(stringResource(R.string.section_backup), onBack) { padding ->
         val state by viewModel.state.collectAsState()
         val context = LocalContext.current
@@ -1541,7 +1546,14 @@ private fun BackupSettingsScreen(viewModel: BackupViewModel, onBack: () -> Unit)
                     text = if (state.importing && progress != null) {
                         stringResource(R.string.backup_progress, progress.first, progress.second)
                     } else stringResource(R.string.backup_run_import),
-                    onClick = { viewModel.runImport(importText) },
+                    onClick = {
+                        // A pasted app-settings backup goes to its own restore, not the router import.
+                        if (SettingsBackup.looksLikeSettingsBackup(importText)) {
+                            settingsViewModel.restoreSettings(importText)
+                        } else {
+                            viewModel.runImport(importText)
+                        }
+                    },
                     enabled = importText.isNotBlank() && !state.building,
                     loading = state.importing,
                     icon = Icons.Outlined.Download,
@@ -1552,6 +1564,8 @@ private fun BackupSettingsScreen(viewModel: BackupViewModel, onBack: () -> Unit)
                 }
                 state.error?.let { ErrorCard(it) }
             }
+
+            AppSettingsBackupSection(settingsViewModel)
         }
     }
 }
